@@ -9,6 +9,9 @@ const nextConfig: NextConfig = {
     // Add custom Webpack configurations if needed
     return config;
   },
+  compiler: {
+    // removeConsole: true,
+  },
 };
 
 export default nextConfig;

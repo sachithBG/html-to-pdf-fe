@@ -1,11 +1,35 @@
-import React, { useState } from 'react';
-import { Box, Button, Typography, Modal } from '@mui/material';
+"use client";
+import React, { useEffect, useRef, useState } from 'react';
+import { Box, Button, Typography, Modal, CircularProgress } from '@mui/material';
 
-const PdfPreviewButton = ({ pdfData }: { pdfData: Buffer | null }) => {
+const PdfPreviewButton = ({ htmlContent }: { htmlContent: string | null }) => {
     const [open, setOpen] = useState(false);
+    const [loading, setLoading] = useState(false);  // Loading state
+    const iframeRef = useRef<HTMLIFrameElement>(null);
 
+    // Open and close modal handlers
     const handleOpen = () => setOpen(true);
     const handleClose = () => setOpen(false);
+
+    useEffect(() => {
+        if (iframeRef.current && htmlContent) {
+            const doc = iframeRef.current.contentDocument;
+            if (doc) {
+                doc.open();
+                doc.write(htmlContent); // Write HTML content to iframe
+                doc.close();
+            }
+        }
+    }, [htmlContent]); // Re-render iframe when htmlContent changes
+
+    // Handle loading state based on iframe content
+    useEffect(() => {
+        if (iframeRef.current && htmlContent) {
+            setLoading(true);
+            const iframe = iframeRef.current;
+            iframe.onload = () => setLoading(false); // Set loading to false once iframe content is loaded
+        }
+    }, [htmlContent]);
 
     return (
         <Box>
@@ -14,12 +38,12 @@ const PdfPreviewButton = ({ pdfData }: { pdfData: Buffer | null }) => {
                 variant="outlined"
                 color="primary"
                 onClick={handleOpen}
-                disabled={!pdfData} // Disable button if no PDF data
+                disabled={!htmlContent} // Disable button if no HTML content
             >
-                Preview PDF
+                Preview HTML
             </Button>
 
-            {/* Modal for PDF preview */}
+            {/* Modal for preview */}
             <Modal
                 open={open}
                 onClose={handleClose}
@@ -48,24 +72,35 @@ const PdfPreviewButton = ({ pdfData }: { pdfData: Buffer | null }) => {
                         component="h2"
                         gutterBottom
                     >
-                        PDF Preview
+                        HTML Preview
                     </Typography>
 
+                    {/* Show loading state while iframe is loading */}
+                    {loading && (
+                        <Box display="flex" justifyContent="center" alignItems="center" height="100%">
+                            <CircularProgress />
+                        </Box>
+                    )}
+
                     {/* PDF iframe */}
-                    {pdfData ? (
+                    {htmlContent ? (
                         <iframe
-                            src={`data:application/pdf;base64,${pdfData}`}
+                            ref={iframeRef}
                             width="100%"
                             height="100%"
-                            title="PDF Preview"
+                            title="HTML Preview"
                             style={{ border: 'none' }}
+                            srcDoc={htmlContent}
+                        // src=''
                         />
                     ) : (
                         <Typography
                             id="pdf-preview-description"
                             color="error"
+                            align="center"
+                            variant="h6"
                         >
-                            No PDF data available.
+                            No HTML content available.
                         </Typography>
                     )}
 

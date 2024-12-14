@@ -1,7 +1,10 @@
+
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
-
+import ThemeProvidr from "@/provider/ThemeProvidr";
+import ReduxProvider from "@/provider/ReduxProvider";
+import ErrorBoundary from "./components/ErrorBoundary";
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
   variable: "--font-geist-sans",
@@ -24,12 +27,20 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" >
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        suppressHydrationWarning={true}
       >
-        {children}
+        <ErrorBoundary>
+          <ReduxProvider>
+            <ThemeProvidr>
+              {children}
+            </ThemeProvidr>
+          </ReduxProvider>
+        </ErrorBoundary>
+
       </body>
-    </html>
+    </html >
   );
 }
