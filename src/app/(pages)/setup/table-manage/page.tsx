@@ -1,298 +1,147 @@
 "use client";
-import React, { useState, useEffect } from "react";
-import { TextField, Button, Typography, Box, InputAdornment, Grid2 } from "@mui/material";
+import { SyntheticEvent, useCallback, useState } from 'react';
+import Box from '@mui/material/Box';
+import Tab from '@mui/material/Tab';
+import TabContext from '@mui/lab/TabContext';
+import TabList from '@mui/lab/TabList';
+import TabPanel from '@mui/lab/TabPanel';
+import TableManagePage from '../components/tableManagePage';
+import HorizontalNonLinearStepperTblCreation from '../components/horizontalNonLinearStepperTblCreation';
+import { Stack } from '@mui/system';
+import { Chip, Typography } from '@mui/material';
 
 
-const TableManager = () => {
-    const initialColumns = 3; // Initial number of columns
-    const initialRows = [
-        { col1: "Data 1", col2: "Data 2", col3: "Data 3" }, // Default row data
-    ];
-    const initialStyles = Array.from({ length: initialColumns }, () => ({
-        backgroundColor: "#f4f4f4", // Default background color
-        fontSize: "14", // Default font size
-        padding: "8px", // Default padding
-        color: "#000", // Default text color
-    }));
+const addons_ = [
+    { id: 1, name: 'TEXT!' },
+    { id: 2, name: 'TEXT2!' },
+    { id: 3, name: 'TEXT3!' },
+    { id: 4, name: 'TEXT4!' },
+];
 
-    const [rows, setRows] = useState<any>(initialRows); // Row data
-    const [numColumns, setNumColumns] = useState(initialColumns); // Number of columns
-    const [customHtml, setCustomHtml] = useState(`<table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
-                        <thead>
-                            <tr style="background-color: #007bff; color: #ffffff;">
-                                <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Header 1</th>
-                                <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Header 2</th>
-                                <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Header 3</th>
-                            </tr>
-                        </thead><tbody></tbody></table>`); // Custom HTML table
-    const [previewHtml, setPreviewHtml] = useState(""); // Preview HTML table
-    const [cellStyles, setCellStyles] = useState(initialStyles); // Cell styles
-    const [isEdit, setIsEdit] = useState(false); // Flag to check if editing existing table
+export default function LabTabs() {
+    const [value, setValue] = useState('1');
+    const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
+    const [selectedAddonsV2, setSelectedAddonsV2] = useState<any[]>([]);
+    const [addons, setAddons] = useState<any[]>(addons_);
+    const [tagKey, setTagKey] = useState('');
+    const [completed, setCompleted] = useState<{ [k: number]: boolean }>({});
+    const [activeStep, setActiveStep] = useState(0);
+    const [tag, setTag] = useState();
 
-    // Handle changes to form inputs for dynamic rows
-    const handleRowChange = (e: React.ChangeEvent<HTMLInputElement> | any, index: number) => {
-        const { name, value } = e.target;
-        setRows((prevRows: any) => {
-            const updatedRows = [...prevRows];
-            updatedRows[index][name] = value;
-            generatePreview(updatedRows); // Regenerate preview when data changes
-            return updatedRows;
+    const handleChange = (event: SyntheticEvent, newValue: string) => {
+        setValue(newValue);
+    };
+
+
+    // Memoizing the function to handle addon selection change
+    const handleAddonChange = useCallback((event: any) => {
+        let val = event.target.value as string[];
+        console.log(val);
+        setSelectedAddons(() => val);
+        setSelectedAddonsV2((pr) => addons.filter((addon: any) => val.includes(addon.id)));
+    }, []);
+
+    // Memoizing the function to handle key input change
+    const handleKeyChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+        // console.log(event.target.value);
+        setTagKey(() => event.target.value);
+    }, []);
+
+    // Memoizing the function to handle step completion
+    const handleCompleteStep = useCallback(async () => {
+        const response = await fetch('http://localhost:4000/api/tag', {
+            method: 'POST',
+            body: JSON.stringify({ addons: selectedAddonsV2, key: tagKey }),
+            headers: { 'Content-Type': 'application/json' },
         });
-    };
 
-    // Add a new row to the table
-    const addRow = () => {
-        setRows((prevRows: any) => [...prevRows, { [`col${numColumns}`]: "" }]);
-    };
-
-    // Remove a row from the table
-    const removeRow = (index: number) => {
-        setRows((prevRows: any) => {
-            const updatedRows = prevRows.filter((_: any, i: number) => i !== index);
-            generatePreview(updatedRows); // Regenerate preview when a row is removed
-            return updatedRows;
-        });
-    };
-
-    // Handle number of columns change
-    const handleNumColumnsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = parseInt(e.target.value, 10);
-        if (!isNaN(value) && value > 0 && value <= 6) {  // Max number of columns is 6
-            setNumColumns(value);
-            setCellStyles(
-                Array.from({ length: value }, () => ({
-                    backgroundColor: "#f4f4f4", // Default background color
-                    fontSize: "14", // Default font size
-                    padding: "8px", // Default padding
-                    color: "#000", // Default text color
-                }))
-            );
-            generatePreview(rows); // Regenerate preview when the number of columns changes
-        }
-    };
-
-    // Handle changes to individual cell styles (background, font size, padding, text color)
-    const handleCellStyleChange = (index: number, style: string, value: string) => {
-        setCellStyles((prevStyles) => {
-            const updatedStyles = [...prevStyles];
-            updatedStyles[index] = { ...updatedStyles[index], [style]: value };
-            generatePreview(rows); // Regenerate preview when styles are updated
-            return updatedStyles;
-        });
-    };
-
-    // Generate the HTML for the table preview with styles and custom HTML content
-    const generatePreview = (rowsData: any[]) => {
-        const tableBody = rowsData
-            .map((row, rowIndex) => {
-                return `
-      <tr style="background-color: ${cellStyles[rowIndex]?.backgroundColor};">
-        ${Array.from({ length: numColumns }).map((_, colIndex) => {
-                    return `
-            <td style="background-color: ${cellStyles[colIndex].backgroundColor}; font-size: ${cellStyles[colIndex].fontSize}; padding: ${cellStyles[colIndex].padding}; color: ${cellStyles[colIndex].color}; border: 1px solid #ddd; text-align: left;">
-              ${row[`col${colIndex + 1}`]}
-            </td>`;
-                }).join("")}
-      </tr>`;
-            })
-            .join("");
-
-        const tableTemplate = customHtml.replace("<tbody></tbody>", `<tbody>${tableBody}</tbody>`);
-        setPreviewHtml(tableTemplate); // Update the preview with generated table body
-    };
-
-    useEffect(() => {
-        generatePreview(rows); // Initialize the preview when component mounts
-    }, [rows, customHtml]); // Re-run preview generation on data or HTML changes
-
-    // Handle changes to the custom HTML table structure (for table, thead, tbody, etc.)
-    const handleCustomHtmlChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-        setCustomHtml(e.target.value);
-        generatePreview(rows); // Regenerate the preview based on the new custom HTML structure
-    };
-
-    // Function to save table data (called when the user clicks save)
-    const saveTableData = async () => {
-        const tableData = {
-            customHtml,
-            rows,
-            cellStyles,
-            numColumns,
-        };
-        try {
-            // Make API call to save table data
-            const response = await fetch("http://localhost:4000/api/dynamic-html-table", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(tableData),
+        if (response.ok) {
+            const data = await response.json();
+            console.log(data.data);
+            setTag(() => data.data);
+            setCompleted({
+                ...completed,
+                [activeStep]: true,
             });
-            const result = await response.json();
-            alert(result.message);
-        } catch (error) {
-            console.error("Error saving table data:", error);
+            // Proceed to the next step after successful completion
+            setActiveStep((prevStep) => prevStep + 1);
+        } else {
+            console.error('Failed to complete');
         }
-    };
+    }, [selectedAddons, tagKey, activeStep, completed]);
+
+    // Memoizing the function to handle moving to the next step
+    const handleNext = useCallback(() => {
+        setActiveStep((prevActiveStep) => prevActiveStep + 1);
+    }, []);
+
+    // Memoizing the function to handle going back to the previous step
+    const handleBack = useCallback(() => {
+        setActiveStep((prevActiveStep) => prevActiveStep - 1);
+    }, []);
+
+
 
     return (
-        <Box sx={{ padding: 4, maxWidth: '1200px', margin: '0 auto' }} className="space-y-6">
-            <Typography variant="h4" className="text-center font-bold mb-6">
-                {isEdit ? "Edit Table" : "Create Table"}
-            </Typography>
+        <Box sx={{ width: '100%', typography: 'body1' }}>
+            <TabContext value={value}>
+                <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+                    <TabList onChange={handleChange} aria-label="lab API tabs example">
+                        <Tab label="All Tables" value="1" />
+                        <Tab label="New Table" value="2" />
+                        {/* <Tab label="Item Three" value="3" /> */}
+                    </TabList>
+                </Box>
+                <TabPanel value="1">table of image list</TabPanel>
+                <TabPanel value="2">
+                    {
+                        completed[1] ?
+                            <>
+                                {/* Main container */}
+                                <Box className="flex flex-col md:flex-row md:space-x-8 p-4">
+                                    {/* Left Column: Selected Addons */}
+                                    <Box className="mb-4 md:mb-0 flex-1">
 
-            <Box>
-                <Typography variant="h6" className="mb-2">Table Design</Typography>
+                                        <Stack direction="row" spacing={1} flexWrap="wrap">
+                                            <Typography className="font-bold text-lg mb-2">Selected Addons : </Typography>
+                                            {selectedAddonsV2.map((dd: any) => (
+                                                <Typography key={dd.id} variant='inherit' >{dd.name} , </Typography>
+                                            ))}
+                                        </Stack>
+                                    </Box>
 
-                {/* Number of Columns Input */}
-                <TextField
-                    label="Number of Columns"
-                    type="number"
-                    value={numColumns}
-                    onChange={handleNumColumnsChange}
-                    variant="outlined"
-                    fullWidth
-                    sx={{ marginBottom: 2 }}
-                    inputProps={{ min: 1, max: 6 }}
-                />
+                                    {/* Right Column: Key */}
+                                    <Box className="flex-1">
+                                        {/* <h3 className="font-bold text-lg mb-2">Key</h3> */}
+                                        <Stack direction="row" spacing={1}>
+                                            <Typography className="font-bold text-lg mb-2">Key : </Typography>
+                                            <Typography variant='inherit' > {' {{' + tagKey + '}}'}</Typography>
+                                        </Stack>
+                                    </Box>
+                                </Box>
 
-                {/* Custom HTML Textarea */}
-                <Typography variant="body1" className="mb-2">Custom HTML Table</Typography>
-                <TextField
-                    value={customHtml}
-                    onChange={handleCustomHtmlChange}
-                    multiline
-                    sx={{
-                        padding: 2,
-                        width: '100%',
-                        border: '1px solid #ddd',
-                        borderRadius: '8px',
-                        marginBottom: 3,
-                        fontFamily: 'monospace',
-                        fontSize: '14px',
-                    }}
-                    placeholder="Enter your custom HTML table here"
-                />
-            </Box>
+                                {/* Table Component */}
+                                <TableManagePage id={null} tag={tag} />
+                            </>
 
-            <Box>
-                <Typography variant="h6" className="mb-2">Table Data</Typography>
-
-                {/* Dynamic Table Data Input */}
-                {rows.map((row: any, index: number) => (
-                    <Box key={index} className="flex items-center space-x-2 mb-3">
-                        {Array.from({ length: numColumns }).map((_, colIndex) => (
-                            <TextField
-                                key={colIndex}
-                                label={`Column ${colIndex + 1}`}
-                                name={`col${colIndex + 1}`}
-                                value={row[`col${colIndex + 1}`] || ""}
-                                onChange={(e) => handleRowChange(e, index)}
-                                variant="outlined"
-                                fullWidth
-                                className="flex-1"
-                                size="small"
+                            :
+                            <HorizontalNonLinearStepperTblCreation
+                                addons={addons}
+                                selectedAddons={selectedAddons}
+                                tag={tagKey}
+                                activeStep={activeStep}
+                                completed={completed}
+                                handleAddonChange={handleAddonChange}
+                                handleKeyChange={handleKeyChange}
+                                handleCompleteStep={handleCompleteStep}
+                                handleNext={handleNext}
+                                handleBack={handleBack}
                             />
-                        ))}
-                        <Button
-                            variant="contained"
-                            color="error"
-                            onClick={() => removeRow(index)}
-                            size="small"
-                        >
-                            Remove
-                        </Button>
-                    </Box>
-                ))}
+                    }
 
-                {/* Add Row Button */}
-                <Button
-                    variant="contained"
-                    color="primary"
-                    onClick={addRow}
-                    size="small"
-                    className="mb-3"
-                >
-                    Add Row
-                </Button>
-            </Box>
-
-            {/* Cell Styles */}
-            <Box>
-                <Typography variant="h6" className="mb-2">Cell Styles</Typography>
-                {Array.from({ length: numColumns }).map((_, colIndex) => (
-                    <Box key={colIndex} className="mb-6">
-                        <Typography variant="body1" className="mb-2">Column {colIndex + 1} Styles</Typography>
-                        <Grid2 container spacing={2}>
-                            <Grid2 size={3}>
-                                <TextField
-                                    label="Background Color"
-                                    value={cellStyles[colIndex].backgroundColor}
-                                    onChange={(e) => handleCellStyleChange(colIndex, "backgroundColor", e.target.value)}
-                                    fullWidth
-                                    variant="outlined"
-                                    size="small"
-                                />
-                            </Grid2>
-                            <Grid2 size={3}>
-                                <TextField
-                                    label="Font Size"
-                                    value={cellStyles[colIndex].fontSize}
-                                    onChange={(e) => handleCellStyleChange(colIndex, "fontSize", e.target.value)}
-                                    fullWidth
-                                    variant="outlined"
-                                    size="small"
-                                    slotProps={{
-                                        input: {
-                                            endAdornment: (
-                                                <InputAdornment position="end">px</InputAdornment>
-                                            ),
-                                        },
-                                    }}
-                                // InputProps={{
-                                //     endAdornment: <InputAdornment position="end">px</InputAdornment>,
-                                // }}
-                                />
-                            </Grid2>
-                            <Grid2 size={3}>
-                                <TextField
-                                    label="Padding"
-                                    value={cellStyles[colIndex].padding}
-                                    onChange={(e) => handleCellStyleChange(colIndex, "padding", e.target.value)}
-                                    fullWidth
-                                    variant="outlined"
-                                    size="small"
-                                />
-                            </Grid2>
-                            <Grid2 size={3}>
-                                <TextField
-                                    label="Text Color"
-                                    value={cellStyles[colIndex].color}
-                                    onChange={(e) => handleCellStyleChange(colIndex, "color", e.target.value)}
-                                    fullWidth
-                                    variant="outlined"
-                                    size="small"
-                                />
-                            </Grid2>
-                        </Grid2>
-                    </Box>
-                ))}
-            </Box>
-
-            {/* Table Preview */}
-            <Typography variant="h6" className="mb-2">Table Preview</Typography>
-            <Box className="p-4 border rounded-lg border-gray-300" dangerouslySetInnerHTML={{ __html: previewHtml }} />
-
-            {/* Save or Update Button */}
-            <Button
-                variant="contained"
-                color="primary"
-                onClick={saveTableData}
-                size="large"
-                className="mt-6"
-            >
-                {isEdit ? "Update Table" : "Create Table"}
-            </Button>
+                </TabPanel>
+                {/* <TabPanel value="3">Item Three</TabPanel> */}
+            </TabContext>
         </Box>
     );
-};
-
-export default TableManager;
+}
