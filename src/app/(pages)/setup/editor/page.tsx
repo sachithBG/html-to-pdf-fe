@@ -7,11 +7,25 @@ import {
     TextField,
     Grid2 as Grid,
     useMediaQuery,
+    FormControl,
+    Select,
+    InputLabel,
+    MenuItem,
+    Checkbox,
+    ListItemText,
+    CircularProgress,
+    Autocomplete,
 } from "@mui/material";
 import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { Save as SaveIcon } from "@mui/icons-material";
+
 import dynamic from "next/dynamic";
+import { SessionContext } from "@toolpad/core/AppProvider";
+import { useSession } from "next-auth/react";
+import { findAllAddons } from "@/app/services/addonService";
+import { useSelector } from "react-redux";
+import { findAllTags } from "@/app/services/tagService";
 // const EditableTextField = dynamic(() => import('@/app/components/EditableTextField'), { ssr: false });
 const PdfPreviewButton = dynamic(() => import('@/app/components/PdfPreviewButton'), { ssr: false });
 const DownloadButton = dynamic(() => import('@/app/components/DownloadButton'), { ssr: false });
@@ -89,7 +103,7 @@ const bdy = `<div style="padding: 20px;">
     </div>
 `
 
-const HtmlTestEditor = () => {
+const HtmlTestEditor = ({ id }: any) => {
     const [headerContent, setHeaderContent] = useState<string>("");
     const [bodyContent, setBodyContent] = useState<string>("");
     const [footerContent, setFooterContent] = useState<string>("");
@@ -105,6 +119,74 @@ const HtmlTestEditor = () => {
     const [pdfData, setPdfData] = useState<Buffer | null | any>(null);
     const [isClient, setIsClient] = useState(false);
     const isMobile = useMediaQuery((theme) => theme.breakpoints.down('sm'));
+
+    const [addons, setAddons] = useState<any[]>([]);
+    const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
+    const [tags, setTags] = useState<any[]>([]);
+    const [selectedTags, setSelectedTags] = useState<string[]>([]);
+
+    const [isUploading, setIsUploading] = useState(false);
+    const [isEditMode, setIsEditMode] = useState(false);
+
+    const { organizations } = useSelector((state: any) => state.organization);
+    const { data: session }: any = useSession();
+
+    // Fetch Addons
+    useEffect(() => {
+        const fetchAddons = async () => {
+            try {
+                const activeOrg = organizations?.find((o: any) => o.is_default);
+                const response = await findAllAddons(activeOrg?.id, session?.user?.token);
+                console.log(response.data)
+                if (response.status == 200) {
+                    setAddons(response.data);
+                }
+            } catch (error) {
+                console.error("Error fetching addons:", error);
+            }
+        };
+        if (session?.user?.token) fetchAddons();
+    }, [organizations]);
+
+    // Fetch Tags based on selected Addons
+    useEffect(() => {
+        if (selectedAddons.length > 0) {
+            const fetchTags = async () => {
+                try {
+                    const response = await findAllTags(addons.filter(a => selectedAddons.includes(a.name)), session?.user?.token);
+                    // axios.get(process.env.NEXT_PUBLIC_BASE_URL + "v1/tags", {
+                    //     params: { addons: addons.filter(a => selectedAddons.includes(a.name)).map(a => a.id).join(',') },
+                    // });
+                    if (response.stattus == 200) {
+                        setTags(response.data?.data);
+                    }
+
+                } catch (error) {
+                    console.error("Error fetching tags:", error);
+                }
+            };
+            fetchTags();
+        } else {
+            setTags([]);
+        }
+    }, [selectedAddons]);
+
+    // Handle Addon Change
+    const handleAddonChange = (event: any) => {
+        setSelectedAddons(event.target.value);
+    };
+
+    // Handle Tag Change
+    const handleTagChange = (event: any) => {
+        setSelectedTags(event.target.value);
+    };
+
+    // Handle Copy Tag
+    const handleCopyTag = (tag: string) => {
+        console.log(tag)
+        navigator.clipboard.writeText(`{{${tag}}}`);
+    };
+
     useEffect(() => {
         setIsClient(true); // Ensures PDF rendering runs on the client side
         setTimeout(() => {
@@ -114,6 +196,25 @@ const HtmlTestEditor = () => {
         }, 100)
 
     }, []);
+
+    // Fetch Initial Data for Edit Mode
+    useEffect(() => {
+        if (id) {
+            setIsEditMode(true);
+            const fetchData = async () => {
+                try {
+                    const response = await axios.get(`${process.env.BASE_URL}v1/pdf/${id}`, { params: { id } });
+                    setHeaderContent(response.data.headerContent);
+                    setBodyContent(response.data.bodyContent);
+                    setFooterContent(response.data.footerContent);
+                    setSelectedAddons(response.data.addons);
+                } catch (error) {
+                    console.error("Error fetching data for edit mode:", error);
+                }
+            };
+            fetchData();
+        }
+    }, [id]);
 
 
     if (!isClient) {
@@ -129,6 +230,11 @@ const HtmlTestEditor = () => {
     };
 
     const handleGeneratePdf = async () => {
+        if (selectedAddons.length === 0) {
+            alert("Please select at least one addon.");
+            return;
+        }
+        setIsUploading(true);
         const htmlContent = `
       <html>
         <body>
@@ -140,13 +246,20 @@ const HtmlTestEditor = () => {
     `;
 
         try {
-            const response = await axios.post("http://localhost:4000/api/html-to-pdf", {
-                headerContent, bodyContent, footerContent
-            });
+            const payload = {
+                headerContent,
+                bodyContent,
+                footerContent,
+                addons: selectedAddons,
+            };
+            const response = isEditMode ? await axios.post(process.env.NEXT_PUBLIC_BASE_URL + "v1/pdf/resource", payload) :
+                await axios.put(process.env.NEXT_PUBLIC_BASE_URL + "v1/pdf/resource/" + id, { ...payload, id: id });
             const { pdf } = response.data;
             setPdfData((pr: any) => pdf); // Base64 PDF data
         } catch (error) {
             console.error("Error generating PDF:", error);
+        } finally {
+            setIsUploading(false);
         }
     };
 
@@ -168,11 +281,84 @@ const HtmlTestEditor = () => {
         }
     }
 
+
+
+
+
     return (
         <Box className="container mx-auto p-4">
             <Typography variant="h4" component="h1" gutterBottom>
-                HTML Editor
+                HTML Editor {JSON.stringify(session)}
             </Typography>
+
+            {/* Addon Selector */}
+            <Box mb={4}>
+                <FormControl fullWidth>
+                    <InputLabel>Addons</InputLabel>
+                    <Select
+                        multiple
+                        value={selectedAddons}
+                        onChange={handleAddonChange}
+                        label="Addons"
+                        required
+                        renderValue={(selected) => selected.join(", ")}
+                    >
+                        {addons?.map((addon) => (
+                            <MenuItem key={addon.id} value={addon.name}>
+                                <Checkbox checked={selectedAddons.includes(addon.name)} />
+                                <ListItemText primary={addon.name} />
+                            </MenuItem>
+                        ))}
+                    </Select>
+                </FormControl>
+            </Box>
+
+            {/* Tag Selector */}
+            {selectedAddons.length > 0 && (
+                <Box mb={4}>
+                    <FormControl fullWidth>
+                        {/* <InputLabel>Tags</InputLabel> */}
+                        <Autocomplete
+                            multiple
+                            options={tags.filter((tag) => tag.type === "IMAGE" || tag.type === "TABLE" || tag.type === "CONTENT")
+                                .sort((a, b) => -b.type.localeCompare(a.type))
+                            }
+                            getOptionLabel={(option) => option.name} // How to display tag names
+                            groupBy={(option) => option.type}
+                            value={selectedTags}
+                            onChange={(_, newValue) => setSelectedTags(newValue)} // Update the selected tags
+                            renderInput={(params: any) => <TextField   {...params} label="Tags"
+                                slotProps={{
+                                    input: {
+                                        ...params.InputProps,
+                                        style: { cursor: 'pointer' },
+                                        onClick: (e: any) => {
+                                            const tagName = e.target.innerText;
+                                            const tag_ = tags.find(t => t.name === tagName)
+                                            handleCopyTag(tag_?.key)
+                                        },
+                                    },
+                                }}
+                            />}
+
+                            autoHighlight
+                            renderOption={(props, option, { selected }) => (
+                                <li {...props} key={option.id}>
+                                    <Checkbox checked={selected} key={option.id + 'c'} />
+                                    <ListItemText primary={option.name} key={option.id + 'l'} />
+                                    <Button onClick={() => handleCopyTag(option.key)} variant="outlined" size="small" key={option.id + 'b'}>
+                                        Copy
+                                    </Button>
+                                </li>
+                            )}
+                        />
+                    </FormControl>
+                </Box>
+            )}
+
+
+
+
             <Box mb={4}>
                 <Grid
                     container
@@ -343,6 +529,21 @@ const HtmlTestEditor = () => {
                         </Box>
                     </Box>
                 </Collapse>
+            </Box>
+
+            {/* Save Button */}
+            <Box mb={4} mt={5}>
+                <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={handleGeneratePdf}
+                    startIcon={<SaveIcon />}
+                    disabled={selectedAddons.length === 0 || isUploading}
+                    sx={{ float: 'right' }}
+                >
+                    {isEditMode ? "Update" : "Save"}
+                    {isUploading && <CircularProgress size={24} />}
+                </Button>
             </Box>
         </Box>
     );

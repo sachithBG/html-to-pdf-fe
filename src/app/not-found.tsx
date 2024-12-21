@@ -16,7 +16,7 @@ export default function PageNotFound() {
 
     return (
         <ThemeProvidr>
-            <DashboardLayout>
+            <DashboardLayout defaultSidebarCollapsed={true}>
                 <PageContainer>
                     <Container>
                         <Box sx={{ textAlign: "center", marginTop: 5 }}>

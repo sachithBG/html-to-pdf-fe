@@ -26,3 +26,14 @@ vercel-live-feedback {
 nextjs-portal {
   display: none;
 }
+
+/* auto select input feild background color*/
+input:-webkit-autofill, input:-webkit-autofill:hover, input:-webkit-autofill:focus, input:-webkit-autofill:active {
+  transition: background-color 5000s ease-in-out 0s !important;
+  background-color: 'unset' !important;
+  -webkit-box-shadow: 0 0 0 30px rgba(217, 229, 255, 0) inset !important;
+}
+ #input-with-icon-textfield :-webkit-autofill{ 
+  background-color: 'unset' !important;
+  -webkit-box-shadow: 0 0 0 30px rgba(217, 229, 255, 0)inset !important;
+}

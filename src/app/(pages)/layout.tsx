@@ -6,17 +6,23 @@ import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import BarChartIcon from '@mui/icons-material/BarChart';
 import DescriptionIcon from '@mui/icons-material/Description';
 import LayersIcon from '@mui/icons-material/Layers';
-import { AppProvider, Router } from '@toolpad/core/AppProvider';
-import { DashboardLayout } from '@toolpad/core/DashboardLayout';
+import { AppProvider, Router, type Session } from '@toolpad/core/AppProvider';
+import { DashboardLayout, SidebarFooterProps } from '@toolpad/core/DashboardLayout';
 import { PageContainer } from '@toolpad/core/PageContainer';
 import Grid from '@mui/material/Grid2';
 import { Settings, Storage, Image, Brightness7, Brightness4 } from '@mui/icons-material';
-import { useRouter } from 'next/navigation';
-import { IconButton, Typography } from '@mui/material';
+import { usePathname, useRouter } from 'next/navigation';
+import { Box, IconButton, Typography } from '@mui/material';
 import LineStyleIcon from '@mui/icons-material/LineStyle';
 import ReceiptIcon from '@mui/icons-material/Receipt';
 import AddCardIcon from '@mui/icons-material/AddCard';
 import BackupTableIcon from '@mui/icons-material/BackupTable';
+import SignIn from './auth/ThemeSignInPage';
+import AccountSlotsAccountSwitcher from './auth/components/AccountSlotsAccountSwitcher';
+
+import { SessionProvider, useSession } from 'next-auth/react';
+import { useSelector } from 'react-redux';
+import AuthGuard from './guard/authGuard';
 
 type NavigationItem = {
     topNav?: {
@@ -92,6 +98,16 @@ const NAVIGATION: Navigation | any = [
         title: 'Integrations',
         icon: <LayersIcon />,
     },
+    {
+        segment: 'organization',
+        title: 'Manage Organizations',
+        icon: <LayersIcon />,
+    },
+    {
+        segment: 'profile',
+        title: 'Manage Profile',
+        icon: <LayersIcon />,
+    },
 ];
 
 const demoTheme = extendTheme({
@@ -131,12 +147,59 @@ const Skeleton = styled('div')<{ height: number }>(({ theme, height }) => ({
     content: '" "',
 }));
 
+function SidebarFooter({ mini }: SidebarFooterProps) {
+    const { organizations } = useSelector((state: any) => state.organization);
+
+    return (
+        <Box
+            // variant="caption"
+            sx={{ m: 1, whiteSpace: 'nowrap', overflow: 'hidden' }}
+        >
+            {
+                organizations.find((organization: any) =>
+                    organization.is_default)?.name ?? 'No organization selected'
+            }
+            {mini ? '© ' : ` © ${new Date(organizations.find((organization: any) =>
+                organization.is_default)?.updated_at).getFullYear()} Made with Pdf Tool`}
+        </Box>
+    );
+}
+
 export default function DashboardLayoutBasic(props: any) {
     const { window } = props;
     const [mounted, setMounted] = React.useState(false);
-    const router = useDemoRouter('/setup');
+    // cuurent route url
+    const pathname = usePathname();
+    const router = useDemoRouter(pathname ?? '/');
+    // const [session, setSession] = React.useState<Session | null>({
+    //     user: {
+    //         name: 'Bharat Kashyap',
+    //         email: 'bharatkashyap@outlook.com',
+    //         image: 'https://avatars.githubusercontent.com/u/19550456',
+    //     },
+    // });
+
+
+
+    // const authentication = React.useMemo(() => {
+    //     return {
+    //         signIn: () => {
+    //             setSession({
+    //                 user: {
+    //                     name: 'Bharat Kashyap',
+    //                     email: 'bharatkashyap@outlook.com',
+    //                     image: 'https://avatars.githubusercontent.com/u/19550456',
+    //                 },
+    //             });
+    //         },
+    //         signOut: () => {
+    //             setSession(null);
+    //         },
+    //     };
+    // }, []);
 
     React.useEffect(() => {
+        console.log(pathname, 'Pathname');
         setMounted(true);
     }, []);
 
@@ -149,23 +212,33 @@ export default function DashboardLayoutBasic(props: any) {
     const demoWindow = window ? window() : undefined;
 
     return (
-        <AppProvider
-            navigation={NAVIGATION}
-            branding={{
-                title: 'PDF Crafter: HTML to PDF Tool',
-                logo: <LineStyleIcon color='info' />
-            }}
-            router={router}
-            theme={demoTheme}
-            window={demoWindow}
-        >
-            <DashboardLayout >
-                <PageContainer>
-                    <Grid container spacing={1}>
-                    </Grid>
-                    {props.children}
-                </PageContainer>
-            </DashboardLayout>
-        </AppProvider>
+        // 
+        <SessionProvider >
+            <AuthGuard>
+                <AppProvider
+                    navigation={NAVIGATION}
+                    branding={{
+                        title: 'PDF Crafter: HTML to PDF Tool',
+                        logo: <LineStyleIcon color='info' />
+                    }}
+                    router={router}
+                    theme={demoTheme}
+                    window={demoWindow}
+                // authentication={authentication}
+                // session={session}
+
+                >
+                    {/* <SignIn></SignIn> */}
+                    <DashboardLayout slots={{ sidebarFooter: SidebarFooter, toolbarActions: AccountSlotsAccountSwitcher }}>
+                        <PageContainer>
+                            <Grid container spacing={1}>
+                                {/* {JSON.stringify(session)} */}
+                            </Grid>
+                            {props.children}
+                        </PageContainer>
+                    </DashboardLayout>
+                </AppProvider>
+            </AuthGuard>
+        </SessionProvider>
     );
 }

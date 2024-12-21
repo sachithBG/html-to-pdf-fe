@@ -49,7 +49,7 @@ export default function LabTabs() {
 
     // Memoizing the function to handle step completion
     const handleCompleteStep = useCallback(async () => {
-        const response = await fetch('http://localhost:4000/api/tag', {
+        const response = await fetch(process.env.NEXT_PUBLIC_BASE_URL + 'v1/tag', {
             method: 'POST',
             body: JSON.stringify({ addons: selectedAddonsV2, key: tagKey }),
             headers: { 'Content-Type': 'application/json' },
@@ -67,6 +67,11 @@ export default function LabTabs() {
             setActiveStep((prevStep) => prevStep + 1);
         } else {
             console.error('Failed to complete');
+            setCompleted({
+                ...completed,
+                [activeStep]: true,
+            });
+            setActiveStep((prevStep) => prevStep + 1);
         }
     }, [selectedAddons, tagKey, activeStep, completed]);
 

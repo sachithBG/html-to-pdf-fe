@@ -126,7 +126,7 @@ const TableManagePage = ({ id, tag }: any) => {
         };
         try {
             // Make API call to save table data
-            const response = await fetch("http://localhost:4000/api/dynamic-html-table", {
+            const response = await fetch(process.env.NEXT_PUBLIC_BASE_URL + "v1/dynamic-html-table", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(tableData),
@@ -145,7 +145,7 @@ const TableManagePage = ({ id, tag }: any) => {
     useEffect(() => {
         if (id) {
             // Make API call to save table data
-            fetch("http://localhost:4000/api/dynamic-html-table/" + id, {
+            fetch(process.env.NEXT_PUBLIC_BASE_URL + "dynamic-html-table/" + id, {
                 method: "GET",
                 headers: { "Content-Type": "application/json" }
             }).then(response => {

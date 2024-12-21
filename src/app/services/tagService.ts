@@ -1,34 +1,51 @@
-export const createTag = async (data: any) => {
-  const res = await fetch(`/api/admin/tag`, {
+import { baseURL } from "./api";
+
+export const createTag = async (data: any, token: string) => {
+  const res = await fetch(`${baseURL}/tags`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify({ data: data }),
   });
   return await res.json();
-};
+}
 
-export const updateTag = async (data: any) => {
-  const res = await fetch(`/api/admin/tag`, {
+export const updateTag = async (data: any, token: string) => {
+  const res = await fetch(`${baseURL}/tags`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify({ data: data }),
   });
   return await res.json();
-};
+}
 
-export const findAllTags = async (active: Boolean | null) => {
-  const res = await fetch(`/api/public/tag?active=${active}`, {
+export const findTagById = async (id: any, token: string) => {
+  const res = await fetch(`${baseURL}/tags/${id}`, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
     },
   });
   return await res.json();
-};
+}
+
+export const findAllTags = async (addon_ids: Number[], token: string) => {
+  const queryParams = new URLSearchParams({ addon_ids: JSON.stringify(addon_ids) }).toString();
+  const res = await fetch(`${baseURL}/tags?${queryParams}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  return await res.json();
+}
 
 export const findTagPage = async (
   page: Number,
@@ -55,33 +72,13 @@ export const findTagPage = async (
   return await res.json();
 };
 
-export const deleteTag = async (id: any) => {
-  const res = await fetch(
-    `/api/admin/tag?` +
-      new URLSearchParams({
-        id: id,
-      }),
-    {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    }
-  );
-  return await res.json();
-};
-
-//################### API V2
-export const findAllTagsV2 = async (session: any, req: any) => {
-  const host = req.headers.host;
-  // console.log(session);
-  // console.log('fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff');
-  const res = await fetch(`http://${host}/api/admin/tag`, {
-    method: 'GET',
+export const deleteTag = async (id: any, token: string) => {
+  const res = await fetch(`${baseURL}/tags/${id}`, {
+    method: 'DELETE',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `bearer ${session?.accessToken}`,
+      Authorization: `Bearer ${token}`,
     },
   });
   return await res.json();
-};
+}

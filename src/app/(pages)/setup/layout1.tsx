@@ -19,7 +19,7 @@ import ListItemText from '@mui/material/ListItemText';
 import { Avatar, Menu, MenuItem, useMediaQuery } from '@mui/material';
 import { Settings, Storage, Image, Brightness7, Brightness4 } from '@mui/icons-material';
 import Link from 'next/link';
-import { toggleTheme } from '@/redux/features/ToggleTheme';
+import { toggleTheme } from '@/redux/slice/ToggleTheme';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '@/redux/store';
 

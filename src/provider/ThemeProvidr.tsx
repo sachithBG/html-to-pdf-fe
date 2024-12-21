@@ -9,7 +9,7 @@ import {
 } from '@mui/material';
 import { SnackbarProvider, closeSnackbar } from 'notistack';
 import CloseIcon from '@mui/icons-material/Close';
-import { toggleTheme } from '../redux/features/ToggleTheme';
+import { toggleTheme } from '../redux/slice/ToggleTheme';
 
 export const secondary_main = '#E4E8F8';
 

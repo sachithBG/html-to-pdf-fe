@@ -14,7 +14,7 @@ export default function SetupPageNotFound() {
     return (
         <Container sx={{ textAlign: 'center', marginTop: 5 }}>
             <Typography variant="h3" gutterBottom>
-                40422 - Page Not Found
+                404 - Page Not Found
             </Typography>
             <Typography variant="h6">
                 Oops! The page you're looking for under /setup doesn't exist.
