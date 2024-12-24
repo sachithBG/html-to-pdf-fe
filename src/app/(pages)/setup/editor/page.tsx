@@ -15,103 +15,47 @@ import {
     ListItemText,
     CircularProgress,
     Autocomplete,
+    Snackbar,
+    Alert,
+    IconButton,
+    Tooltip,
+    InputAdornment,
+    Chip,
+    useTheme,
+    Paper,
+    Grid2,
+    Divider,
+    FormControlLabel,
+    FormHelperText,
 } from "@mui/material";
-import { useEffect, useMemo, useState } from "react";
-import axios from "axios";
+import { useEffect, useState } from "react";
 import { Save as SaveIcon } from "@mui/icons-material";
+import FileCopyIcon from '@mui/icons-material/FileCopy';
+import FilterListIcon from '@mui/icons-material/FilterList';
 
 import dynamic from "next/dynamic";
-import { SessionContext } from "@toolpad/core/AppProvider";
 import { useSession } from "next-auth/react";
 import { findAllAddons } from "@/app/services/addonService";
 import { useSelector } from "react-redux";
 import { findAllTags } from "@/app/services/tagService";
+import { bdy, ftr, hdr, TAG_TYPES } from "@/app/utils/constant";
+import { getDefaultOrganization, Organization, OrganizationState } from "@/redux/slice/organizationSlice";
+import { createPdfTemplate, generatePdfBuffer, readPdfTemplate, updatePdfTemplate } from "@/app/services/pdfService";
 // const EditableTextField = dynamic(() => import('@/app/components/EditableTextField'), { ssr: false });
 const PdfPreviewButton = dynamic(() => import('@/app/components/PdfPreviewButton'), { ssr: false });
 const DownloadButton = dynamic(() => import('@/app/components/DownloadButton'), { ssr: false });
 
-const imageUrl = 'https://media.istockphoto.com/id/1967543722/photo/the-city-of-london-skyline-at-night-united-kingdom.jpg?s=2048x2048&w=is&k=20&c=ZMquw-lP_vrSVoUlSWjuWIZHdVma7z4ju9pD1EkRPvs='
-
-
-const hdr = ` <div style="font-family: Arial, sans-serif; line-height: 1.5; margin: 0; padding: 0; text-align: center;text-align: center; width: 100%; border-top: 1px solid #ccc;">
-<div style="background-color: #f4f4f4; padding: 20px; ">
-      <img
-        src="${imageUrl}"
-        alt="Logo"
-        style="display: block; margin: 0 auto; max-width: 100px;"
-      />
-      <h1 style="margin: 10px 0;font-size: 20px; color: #555;">Company Name</h1>
-      <p style="margin: 0; font-size: 14px; color: #555;">Your tagline or slogan here</p>
-    </div> </div>`
-
-const ftr = `<div style="font-size: 10px; text-align: center; width: 100%;">
-<div
-      style="background-color: #f4f4f4; padding: 20px; text-align: center; font-size: 12px; color: #555;"
-    >
-      <p style="margin: 0;">123 Business Street, Business City, BC 12345</p>
-      <p style="margin: 0;">
-        Contact us: <a href="mailto:info@company.com" style="color: #007BFF;">info@company.com</a>
-      </p>
-      <p style="margin: 0;">&copy; 2024 Company Name. All rights reserved.</p>
-    </div></div>`;
-
-const bdy = `<div style="padding: 20px;">
-      <h2 style="color: #333;">Welcome to Our Report</h2>
-      <p style="margin: 0 0 10px; color: #555;">
-        Below is a summary of our performance and goals. Feel free to review the details and let us know your thoughts.
-      </p>
-
-      <!-- Image Example -->
-      <div style="text-align: center; margin: 20px 0;">
-        <img
-          src="${imageUrl}"
-          alt="Sample Chart"
-          style="max-width: 100%; height: auto;"
-        />
-      </div>
-
-      <!-- Table Example -->
-      <h3 style="color: #333;">Performance Overview</h3>
-      <table
-        style="width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px;"
-      >
-        <thead>
-          <tr style="background-color: #f4f4f4;">
-            <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Metric</th>
-            <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Target</th>
-            <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Achieved</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td style="border: 1px solid #ddd; padding: 8px;">Revenue</td>
-            <td style="border: 1px solid #ddd; padding: 8px;">$1,000,000</td>
-            <td style="border: 1px solid #ddd; padding: 8px;">$950,000</td>
-          </tr>
-          <tr style="background-color: #f9f9f9;">
-            <td style="border: 1px solid #ddd; padding: 8px;">Customer Growth</td>
-            <td style="border: 1px solid #ddd; padding: 8px;">20%</td>
-            <td style="border: 1px solid #ddd; padding: 8px;">18%</td>
-          </tr>
-          <tr>
-            <td style="border: 1px solid #ddd; padding: 8px;">Satisfaction Score</td>
-            <td style="border: 1px solid #ddd; padding: 8px;">90%</td>
-            <td style="border: 1px solid #ddd; padding: 8px;">88%</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-`
-
-const HtmlTestEditor = ({ id }: any) => {
+const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
     const [headerContent, setHeaderContent] = useState<string>("");
     const [bodyContent, setBodyContent] = useState<string>("");
     const [footerContent, setFooterContent] = useState<string>("");
     const [collapsed, setCollapsed] = useState<{
+        setting: boolean;
         header: boolean;
         body: boolean;
         footer: boolean;
     }>({
+        setting: true,
         header: true,
         body: true,
         footer: true,
@@ -120,59 +64,80 @@ const HtmlTestEditor = ({ id }: any) => {
     const [isClient, setIsClient] = useState(false);
     const isMobile = useMediaQuery((theme) => theme.breakpoints.down('sm'));
 
-    const [addons, setAddons] = useState<any[]>([]);
+    const [addons, setAddons] = useState<any[]>(addons_ || []);
     const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
     const [tags, setTags] = useState<any[]>([]);
     const [selectedTags, setSelectedTags] = useState<string[]>([]);
+    const [tagFlter, setTagFlter] = useState<string>('');
 
     const [isUploading, setIsUploading] = useState(false);
+    const [isGenerating, setIsGenerating] = useState(false);
     const [isEditMode, setIsEditMode] = useState(false);
 
-    const { organizations } = useSelector((state: any) => state.organization);
     const { data: session }: any = useSession();
+
+    const [snackbarOpen, setSnackbarOpen] = useState(false);
+    const [copiedText, setCopiedText] = useState('');
+
+    const [pdfName, setPdfName] = useState<string>('');
+    const [pdfKey, setPdfKey] = useState<string>('');
+    const [errors, setErrors] = useState<{ pdfName?: string, pdfKey?: string, addons?: string }>({});
+
+    const [margin, setMargin] = useState({ l: 20, t: 200, r: 20, b: 150 });
+    const [displayHeaderFooter, setDisplayHeaderFooter] = useState(true);
+    const [defVal, setDefVal] = useState('-');
+
+    const handleMarginChange = (side: 'l' | 't' | 'r' | 'b', value: string) => {
+        setMargin((prev) => ({ ...prev, [side]: value }));
+    };
+
+    const currentOrg: Organization | any = useSelector((state: { organization: OrganizationState }) =>
+        getDefaultOrganization(state.organization)
+    );
+    const theme = useTheme();
+
+    const fetchTags = async () => {
+        try {
+            const response = await findAllTags(addons.filter(a => selectedAddons.includes(a.name)).map(a => a.id), session?.user?.token);
+            if (response.status == 200) {
+                setTags((prev) => response.data);
+            }
+        } catch (error) {
+            console.error("Error fetching tags:", error);
+        }
+    };
+
+    const fetchAddons = async () => {
+        try {
+            const response = await findAllAddons(currentOrg?.id, session?.user?.token);
+            console.log(response.data)
+            if (response.status == 200) {
+                setAddons(response.data);
+                setSelectedAddons([]);
+            }
+        } catch (error) {
+            console.error("Error fetching addons:", error);
+        }
+    };
 
     // Fetch Addons
     useEffect(() => {
-        const fetchAddons = async () => {
-            try {
-                const activeOrg = organizations?.find((o: any) => o.is_default);
-                const response = await findAllAddons(activeOrg?.id, session?.user?.token);
-                console.log(response.data)
-                if (response.status == 200) {
-                    setAddons(response.data);
-                }
-            } catch (error) {
-                console.error("Error fetching addons:", error);
-            }
-        };
         if (session?.user?.token) fetchAddons();
-    }, [organizations]);
+    }, [currentOrg?.id]);
 
     // Fetch Tags based on selected Addons
     useEffect(() => {
         if (selectedAddons.length > 0) {
-            const fetchTags = async () => {
-                try {
-                    const response = await findAllTags(addons.filter(a => selectedAddons.includes(a.name)), session?.user?.token);
-                    // axios.get(process.env.NEXT_PUBLIC_BASE_URL + "v1/tags", {
-                    //     params: { addons: addons.filter(a => selectedAddons.includes(a.name)).map(a => a.id).join(',') },
-                    // });
-                    if (response.stattus == 200) {
-                        setTags(response.data?.data);
-                    }
-
-                } catch (error) {
-                    console.error("Error fetching tags:", error);
-                }
-            };
             fetchTags();
         } else {
             setTags([]);
+            setSelectedTags([]);
         }
     }, [selectedAddons]);
 
     // Handle Addon Change
     const handleAddonChange = (event: any) => {
+        setErrors((prev) => ({ ...prev, addons: undefined }));
         setSelectedAddons(event.target.value);
     };
 
@@ -184,7 +149,14 @@ const HtmlTestEditor = ({ id }: any) => {
     // Handle Copy Tag
     const handleCopyTag = (tag: string) => {
         console.log(tag)
-        navigator.clipboard.writeText(`{{${tag}}}`);
+        if (!tag) return;
+        navigator.clipboard.writeText(`{{${tag}}}`).then(() => {
+            setCopiedText(`{{${tag}}}`);
+            setSnackbarOpen(true); // Show snackbar when copied
+            setTimeout(() => setSnackbarOpen(false), 3000); // Hide snackbar after 3 seconds
+        }).catch(err => {
+            console.error('Failed to copy: ', err);
+        });
     };
 
     useEffect(() => {
@@ -203,11 +175,20 @@ const HtmlTestEditor = ({ id }: any) => {
             setIsEditMode(true);
             const fetchData = async () => {
                 try {
-                    const response = await axios.get(`${process.env.BASE_URL}v1/pdf/${id}`, { params: { id } });
-                    setHeaderContent(response.data.headerContent);
-                    setBodyContent(response.data.bodyContent);
-                    setFooterContent(response.data.footerContent);
-                    setSelectedAddons(response.data.addons);
+                    let response = await readPdfTemplate(id, session?.user?.token);
+                    if (response.status == 200) {
+                        response = response.data;
+                        setPdfName(() => response.data.name);
+                        setHeaderContent(() => response.data.headerContent);
+                        setBodyContent(() => response.data.bodyContent);
+                        setFooterContent(() => response.data.footerContent);
+                        setSelectedAddons(() => response.data.addons?.map((a: any) => a.name));
+                        setDefVal(() => response.data.defVal);
+                        setPdfKey(() => response.data.key);
+                        setDisplayHeaderFooter(() => response.data.displayHeaderFooter);
+                        setMargin(() => response.data.margin);
+                    }
+
                 } catch (error) {
                     console.error("Error fetching data for edit mode:", error);
                 }
@@ -222,7 +203,7 @@ const HtmlTestEditor = ({ id }: any) => {
     }
 
 
-    const handleCollapse = (section: "header" | "body" | "footer") => {
+    const handleCollapse = (section: "setting" | "header" | "body" | "footer") => {
         setCollapsed((prevState) => ({
             ...prevState,
             [section]: !prevState[section],
@@ -230,38 +211,63 @@ const HtmlTestEditor = ({ id }: any) => {
     };
 
     const handleGeneratePdf = async () => {
-        if (selectedAddons.length === 0) {
-            alert("Please select at least one addon.");
-            return;
+        pdfTmplSave(true);
+    }
+
+    const savePdfTmpl = async () => {
+        pdfTmplSave(false);
+    };
+
+    const pdfTmplSave = async (isGenerate: boolean) => {
+        // Clear previous errors
+        setErrors({});
+
+        // Validation
+        const newErrors: { pdfName?: string; field_path?: string; tag_type?: string, addons?: string } = {};
+        if (!pdfName) newErrors.pdfName = 'Name is required';
+        // if (!tagKey) newErrors.field_path = 'Tag key is required';
+        if (!selectedAddons.length) newErrors.addons = 'At least one addon must be selected';
+
+        if (Object.keys(newErrors).length > 0) {
+            setErrors(newErrors);
+            return; // Exit if there are validation errors
         }
-        setIsUploading(true);
-        const htmlContent = `
-      <html>
-        <body>
-          <div>${headerContent}</div>
-          <div>${bodyContent}</div>
-          <footer>${footerContent}</footer>
-        </body>
-      </html>
-    `;
+
+        if (isGenerate) setIsGenerating(true);
+        else setIsUploading(true)
 
         try {
             const payload = {
                 headerContent,
                 bodyContent,
                 footerContent,
-                addons: selectedAddons,
+                addon_ids: addons.filter(a => selectedAddons.includes(a.name)).map(a => a.id),
+                name: pdfName,
+                key: pdfKey,
+                margin: margin,
+                displayHeaderFooter: displayHeaderFooter,
+                defVal: defVal,
+                organization_id: currentOrg.id
             };
-            const response = isEditMode ? await axios.post(process.env.NEXT_PUBLIC_BASE_URL + "v1/pdf/resource", payload) :
-                await axios.put(process.env.NEXT_PUBLIC_BASE_URL + "v1/pdf/resource/" + id, { ...payload, id: id });
-            const { pdf } = response.data;
-            setPdfData((pr: any) => pdf); // Base64 PDF data
+            if (isGenerate) {
+                const response = await generatePdfBuffer(payload, session?.user?.token);
+                const { pdf } = response.data;
+                setPdfData((pr: any) => pdf); // Base64 PDF data
+            } else {
+                const response = !isEditMode ? await createPdfTemplate(payload, session?.user?.token) :
+                    await updatePdfTemplate(id, { ...payload, id: id }, session?.user?.token);
+                if (response.status == 201 || response.status == 200) {
+                    handleBack(true);
+                }
+            }
+
         } catch (error) {
             console.error("Error generating PDF:", error);
         } finally {
-            setIsUploading(false);
+            if (isGenerate) setIsGenerating(false);
+            else setIsUploading(false)
         }
-    };
+    }
 
     const openPdfInNewTab = () => {
         try {
@@ -281,91 +287,54 @@ const HtmlTestEditor = ({ id }: any) => {
         }
     }
 
+    // Function to convert string to camelCase
+    const toCamelCase = (str: string) => {
+        return str
+            .replace(/(?:^\w|[A-Z]|\b\w|\s+)/g, (match, index) =>
+                index === 0 ? match.toLowerCase() : match.toUpperCase()
+            )
+            .replace(/\s+/g, ''); // Remove spaces after converting to camelCase
+    };
 
+    // Validation function for pdfName
+    const validatePdfName = (value: string) => {
+        const regex = /^[a-zA-Z][a-zA-Z0-9\s]*$/; // Must start with a letter and allow letters, numbers, and spaces
+        if (!regex.test(value)) {
+            return 'Name must start with a letter and contain only letters, numbers, and spaces';
+        }
+        return '';
+    };
+
+    const handlePdfNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const value = event.target.value;
+        setPdfName(value);
+
+        // Validate the name
+        const errorMessage = validatePdfName(value);
+        if (errorMessage) {
+            setErrors((prev) => ({ ...prev, pdfName: errorMessage }));
+        } else {
+            setErrors((prev) => ({ ...prev, pdfName: undefined }));
+        }
+
+        // Convert to camelCase and update the key
+        if (!errorMessage) {
+            const camelCaseKey = toCamelCase(value);
+            setPdfKey(camelCaseKey);
+        }
+    };
 
 
 
     return (
         <Box className="container mx-auto p-4">
-            <Typography variant="h4" component="h1" gutterBottom>
-                HTML Editor {JSON.stringify(session)}
-            </Typography>
-
-            {/* Addon Selector */}
-            <Box mb={4}>
-                <FormControl fullWidth>
-                    <InputLabel>Addons</InputLabel>
-                    <Select
-                        multiple
-                        value={selectedAddons}
-                        onChange={handleAddonChange}
-                        label="Addons"
-                        required
-                        renderValue={(selected) => selected.join(", ")}
-                    >
-                        {addons?.map((addon) => (
-                            <MenuItem key={addon.id} value={addon.name}>
-                                <Checkbox checked={selectedAddons.includes(addon.name)} />
-                                <ListItemText primary={addon.name} />
-                            </MenuItem>
-                        ))}
-                    </Select>
-                </FormControl>
-            </Box>
-
-            {/* Tag Selector */}
-            {selectedAddons.length > 0 && (
-                <Box mb={4}>
-                    <FormControl fullWidth>
-                        {/* <InputLabel>Tags</InputLabel> */}
-                        <Autocomplete
-                            multiple
-                            options={tags.filter((tag) => tag.type === "IMAGE" || tag.type === "TABLE" || tag.type === "CONTENT")
-                                .sort((a, b) => -b.type.localeCompare(a.type))
-                            }
-                            getOptionLabel={(option) => option.name} // How to display tag names
-                            groupBy={(option) => option.type}
-                            value={selectedTags}
-                            onChange={(_, newValue) => setSelectedTags(newValue)} // Update the selected tags
-                            renderInput={(params: any) => <TextField   {...params} label="Tags"
-                                slotProps={{
-                                    input: {
-                                        ...params.InputProps,
-                                        style: { cursor: 'pointer' },
-                                        onClick: (e: any) => {
-                                            const tagName = e.target.innerText;
-                                            const tag_ = tags.find(t => t.name === tagName)
-                                            handleCopyTag(tag_?.key)
-                                        },
-                                    },
-                                }}
-                            />}
-
-                            autoHighlight
-                            renderOption={(props, option, { selected }) => (
-                                <li {...props} key={option.id}>
-                                    <Checkbox checked={selected} key={option.id + 'c'} />
-                                    <ListItemText primary={option.name} key={option.id + 'l'} />
-                                    <Button onClick={() => handleCopyTag(option.key)} variant="outlined" size="small" key={option.id + 'b'}>
-                                        Copy
-                                    </Button>
-                                </li>
-                            )}
-                        />
-                    </FormControl>
-                </Box>
-            )}
-
-
-
-
             <Box mb={4}>
                 <Grid
                     container
                     spacing={2} // Spacing between the buttons
                     direction={isMobile ? 'column' : 'row'} // Stack vertically on mobile, horizontally on larger screens
-                    alignItems="center" // Align items to the center
-                    justifyContent="center" // Center the items horizontally
+                    alignItems="right" // Align items to the center
+                    justifyContent="right" // Center the items horizontally
                 >
                     <Grid >
                         <PdfPreviewButton htmlContent={
@@ -380,20 +349,21 @@ const HtmlTestEditor = ({ id }: any) => {
                     </Grid>
                     <Grid >
                         <Button
-                            variant="contained"
+                            variant="outlined"
                             color="primary"
-                            startIcon={<SaveIcon />}
+                            disabled={isGenerating}
                             onClick={handleGeneratePdf}
                         >
                             Generate PDF
+                            {isGenerating && <CircularProgress size={24} />}
                         </Button>
                     </Grid>
 
                     {pdfData && <> <Grid >
                         <Button
-                            variant="contained"
+                            variant="outlined"
                             color="primary"
-                            startIcon={<SaveIcon />}
+                            // startIcon={<SaveIcon />}
                             onClick={openPdfInNewTab}
                         >
                             Open In New Tab
@@ -401,10 +371,361 @@ const HtmlTestEditor = ({ id }: any) => {
                     </Grid>
                         <Grid >
                             <DownloadButton pdfData={pdfData} />
-                        </Grid></>}
+                        </Grid></>
+                    }
+
+                    {/* Save Button 1 */}
+                    <Grid >
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            onClick={savePdfTmpl}
+                            startIcon={<SaveIcon />}
+                            disabled={selectedAddons.length === 0 || isUploading}
+                            sx={{ float: 'right' }}
+                        >
+                            {isEditMode ? "Update" : "Save"}
+                            {isUploading && <CircularProgress size={24} />}
+                        </Button>
+                    </Grid>
                 </Grid>
             </Box>
 
+            <Box key={'setting'} mb={4}>
+                <Button onClick={() => handleCollapse('setting')}>
+                    {'setting'.charAt(0).toUpperCase() + 'setting'.slice(1)} Editor{" "}
+                    {collapsed['setting'] ? "▲" : "▼"}
+                </Button>
+                <Collapse in={collapsed['setting']} aria-expanded>
+                    <Grid2 container spacing={{ xs: 2, md: 3 }} columns={{ xs: 4, sm: 8, md: 12 }}>
+                        <Grid2 size={{ xs: 2, sm: 4, md: 4 }}>
+                            <TextField
+                                label="Pdf Name"
+                                fullWidth
+                                value={pdfName}
+                                onChange={handlePdfNameChange}
+                                margin="normal"
+                                error={Boolean(errors.pdfName)}
+                                helperText={errors.pdfName}
+                                required
+                            />
+                            <Box sx={{ display: 'none' }}>{/* flex */}
+                                Key: &nbsp;
+                                {/* Wrap pdfKey in a Paper component */}
+                                {pdfKey && <Paper sx={{ padding: '8px' }}>
+                                    <Box sx={{ maxWidth: 300, wordWrap: 'break-word', overflowWrap: 'break-word' }}>
+                                        <Typography>{pdfKey}</Typography>
+                                    </Box>
+                                </Paper>}
+                            </Box>
+
+
+                        </Grid2>
+                        <Grid2 sx={{ display: 'none' }}>
+                            <TextField
+                                label="Pdf key"
+                                fullWidth
+                                value={pdfKey}
+                                onChange={(event) => {
+                                    setPdfKey(event.target.value);
+                                    setErrors((prev) => { return { ...prev, pdfKey: undefined } });
+                                }}
+                                margin="normal"
+                                error={Boolean(errors.pdfKey)}
+                                helperText={errors.pdfKey}
+                                disabled
+
+                            />
+                        </Grid2>
+                        {/* Addon Selector */}
+                        <Grid2 size={8}>
+                            <FormControl fullWidth sx={{ mt: 2 }} error={errors.addons ? true : false}>
+                                <InputLabel>Addons</InputLabel>
+                                <Select
+                                    multiple
+                                    value={selectedAddons}
+                                    onChange={handleAddonChange}
+                                    label="Addons"
+                                    required
+                                    renderValue={(selected) => selected.join(", ")}
+                                    error={Boolean(errors.addons)}
+
+                                >
+                                    {addons?.map((addon) => (
+                                        <MenuItem key={addon.id} value={addon.name}>
+                                            <Checkbox checked={selectedAddons.includes(addon.name)} />
+                                            <ListItemText primary={addon.name} />
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                                {errors.addons && <FormHelperText>{errors.addons}</FormHelperText>}
+                            </FormControl>
+                        </Grid2>
+                        {/* <Grid2 size={{ xs: 2, sm: 4, md: 4 }}>
+                            <FormControl fullWidth>
+                                <InputLabel>Type</InputLabel>
+                                <Select
+                                    value={tagFlter}
+                                    onChange={(event) => {
+                                        setTagFlter(event.target.value);
+                                    }}
+                                    required
+                                    label="Type"
+                                >
+                                    {["CONTENT", "TABLE", "IMAGE"].map((t) => (
+                                        <MenuItem key={t} value={t}>
+                                            {t}
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
+                        </Grid2> */}
+
+                        {/* Margin Inputs */}
+                        <Grid2 size={{ xs: 2, sm: 2, md: 2 }}>
+                            <TextField
+                                label="Left Margin"
+                                variant="outlined"
+                                value={margin.l}
+                                onChange={(e) => handleMarginChange('l', e.target.value)}
+                                fullWidth
+                                type="number"
+                                slotProps={{
+                                    input: {
+                                        endAdornment: (
+                                            <InputAdornment position="end">{"px"}</InputAdornment>
+                                        ),
+                                    },
+                                }}
+                            />
+                        </Grid2>
+                        <Grid2 size={{ xs: 2, sm: 2, md: 2 }}>
+                            <TextField
+                                label="Top Margin"
+                                variant="outlined"
+                                value={margin.t}
+                                onChange={(e) => handleMarginChange('t', e.target.value)}
+                                fullWidth
+                                type="number"
+                                slotProps={{
+                                    input: {
+                                        endAdornment: (
+                                            <InputAdornment position="end">{"px"}</InputAdornment>
+                                        ),
+                                    },
+                                }}
+                            />
+                        </Grid2>
+                        <Grid2 size={{ xs: 2, sm: 2, md: 2 }}>
+                            <TextField
+                                label="Right Margin"
+                                variant="outlined"
+                                value={margin.r}
+                                onChange={(e) => handleMarginChange('r', e.target.value)}
+                                fullWidth
+                                type="number"
+                                slotProps={{
+                                    input: {
+                                        endAdornment: (
+                                            <InputAdornment position="end">{"px"}</InputAdornment>
+                                        ),
+                                    },
+                                }}
+                            />
+                        </Grid2>
+                        <Grid2 size={{ xs: 2, sm: 2, md: 2 }}>
+                            <TextField
+                                label="Bottom Margin"
+                                variant="outlined"
+                                value={margin.b}
+                                onChange={(e) => handleMarginChange('b', e.target.value)}
+                                fullWidth
+                                type="number"
+                                slotProps={{
+                                    input: {
+                                        endAdornment: (
+                                            <InputAdornment position="end">{"px"}</InputAdornment>
+                                        ),
+                                    },
+                                }}
+                            />
+                        </Grid2>
+
+                        {/* Default Value Input */}
+                        <Grid2 size={{ xs: 2, sm: 2, md: 2 }}>
+                            <TextField
+                                label="Default Value"
+                                variant="outlined"
+                                value={defVal}
+                                onChange={(e) => setDefVal(e.target.value)}
+                                fullWidth
+                            // InputProps={{
+                            //     startAdornment: <InputAdornment position="start">{"'"}</InputAdornment>,
+                            //     endAdornment: <InputAdornment position="end">{"'"}</InputAdornment>,
+                            // }}
+                            />
+                        </Grid2>
+
+                        {/* Display Header/Footer Checkbox */}
+                        <Grid2 size={{ xs: 2, sm: 2, md: 2 }}>
+                            <FormControlLabel
+                                control={
+                                    <Checkbox
+                                        checked={displayHeaderFooter}
+                                        onChange={(e) => setDisplayHeaderFooter(e.target.checked)}
+                                    />
+                                }
+                                label="Display Header/Footer"
+                            />
+                        </Grid2>
+
+                        <Grid2 size={12}><Divider /></Grid2>
+                        <Grid2 size={12}>
+                            {/* Tag Selector */}
+
+                            <Box mb={4}>
+                                <FormControl fullWidth>
+
+                                    {/* <InputLabel>Tags</InputLabel> */}
+                                    <Autocomplete
+                                        disabled={selectedAddons.length < 1}
+                                        multiple
+                                        disableCloseOnSelect
+                                        autoHighlight
+                                        options={tags.filter((tag) => TAG_TYPES.includes(tag.tag_type + ''))
+                                            .filter((tag) => tagFlter && tagFlter != '' ? tagFlter == tag.tag_type : true)
+                                            .sort((a, b) => -b.tag_type.localeCompare(a.tag_type))
+                                        }
+                                        getOptionLabel={(option) => option.name} // How to display tag names
+                                        groupBy={(option) => option.tag_type}
+                                        value={selectedTags}
+                                        onChange={(_, newValue) => setSelectedTags(newValue)} // Update the selected tags
+                                        renderTags={(tagValue, getTagProps) =>
+                                            tagValue.map((option, index) => {
+                                                const { key, ...tagProps } = getTagProps({ index });
+                                                return (
+                                                    <Paper
+                                                        elevation={3}
+                                                        sx={{
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            // p: 1,
+                                                            mr: .5,
+                                                            borderRadius: '8px',
+                                                            boxShadow: 3,
+                                                            bgcolor: theme.palette.background.paper,
+                                                            ':hover': { boxShadow: 6 },
+                                                        }} key={key} style={{ display: 'flex', alignItems: 'center' }}>
+                                                        <Tooltip title={option?.field_path}>
+                                                            <Chip
+                                                                label={option.name} // Display the tag name here
+                                                                {...tagProps}
+                                                                sx={{ mr: 1, mb: 1 }}
+                                                            />
+                                                        </Tooltip>
+                                                        {/* Copy Icon */}
+                                                        <Tooltip title="Copy tag key">
+                                                            <IconButton
+                                                                onClick={() => {
+                                                                    const tag_ = tags.find((t) => t.name === option.name);
+                                                                    handleCopyTag(tag_?.field_path); // Copy the tag key on click
+                                                                }}
+                                                                size="small"
+                                                                sx={{
+                                                                    padding: '6px',
+                                                                    '&:hover': {
+                                                                        backgroundColor: 'rgba(0, 0, 0, 0.08)', // Hover effect
+                                                                    },
+                                                                }}
+                                                            >
+                                                                <FileCopyIcon sx={{ fontSize: 20 }} />
+                                                            </IconButton>
+                                                        </Tooltip>
+                                                    </Paper>
+                                                );
+                                            })
+                                        }
+                                        renderInput={(params: any) => <TextField
+                                            {...params}
+                                            label="Tags"
+                                            slotProps={{
+                                                input: {
+                                                    ...params.InputProps,
+                                                    style: { cursor: 'pointer' },
+                                                    onClick: (e: any) => {
+                                                        const tagName = e.target.innerText;
+                                                        const tag_ = tags.find((t) => t.name === tagName);
+                                                        handleCopyTag(tag_?.field_path); // Handle copy action when clicking the tag
+                                                    },
+                                                    endAdornment: (
+                                                        <InputAdornment position="end" sx={{ display: 'flex', alignItems: 'center', mr: -4 }}>
+                                                            <FormControl size="small" variant="standard" sx={{ minWidth: 100 }} >
+                                                                {/* <InputLabel>Type</InputLabel> */}
+                                                                <Select
+                                                                    value={tagFlter}
+                                                                    onChange={(event) => {
+                                                                        setTagFlter(event.target.value);
+                                                                    }}
+                                                                    required
+                                                                    // label="Filter"
+                                                                    size="small"
+                                                                    variant="standard"
+                                                                    disabled={selectedAddons.length < 1}
+                                                                    endAdornment={<InputAdornment position="end" ><FilterListIcon /></InputAdornment>}
+
+                                                                >
+                                                                    <MenuItem value="">
+                                                                        <em>None</em>
+                                                                    </MenuItem>
+                                                                    {["CONTENT", "TABLE", "IMAGE"].map((t) => (
+                                                                        <MenuItem key={t} value={t}>
+                                                                            {t}
+                                                                        </MenuItem>
+                                                                    ))}
+                                                                </Select>
+                                                            </FormControl>
+                                                        </InputAdornment>
+                                                    ),
+                                                },
+                                            }}
+                                        />}
+
+
+                                        renderOption={(props, option, { selected }) => (
+                                            <li {...props} key={option.id}>
+                                                <Checkbox checked={selected} key={option.id + 'c'} />
+                                                <ListItemText primary={option.name} key={option.id + 'l'} />
+                                                {/* Copy Icon and Tooltip */}
+                                                <Tooltip title={`Copy ${option.field_path}`} key={option.id + 't'}>
+                                                    <IconButton
+                                                        onClick={() => handleCopyTag(option.field_path)} // Copy the tag field_path
+                                                        size="small"
+                                                        sx={{
+                                                            marginLeft: 1,
+                                                            padding: 1,
+                                                            '&:hover': {
+                                                                backgroundColor: 'rgba(0, 0, 0, 0.08)', // MUI hover effect for better UI
+                                                            },
+                                                        }}
+                                                    >
+                                                        <FileCopyIcon sx={{ fontSize: 20 }} />
+                                                    </IconButton>
+                                                </Tooltip>
+                                            </li>
+                                        )}
+                                    />
+                                </FormControl>
+                            </Box>
+
+                        </Grid2>
+
+                    </Grid2>
+
+
+                </Collapse>
+            </Box>
+            <Grid2 size={12}><Divider /></Grid2>
+            <Grid2 size={12}><Divider /></Grid2>
             <Box key={'header'} mb={4}>
                 <Button onClick={() => handleCollapse('header')}>
                     {'header'.charAt(0).toUpperCase() + 'header'.slice(1)} Editor{" "}
@@ -545,9 +866,21 @@ const HtmlTestEditor = ({ id }: any) => {
                     {isUploading && <CircularProgress size={24} />}
                 </Button>
             </Box>
+            {/* Snackbar to show copied text */}
+            <Snackbar
+                open={snackbarOpen}
+                autoHideDuration={3000}
+                onClose={() => setSnackbarOpen(false)}
+                anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+                sx={{ marginTop: 8 }}
+            >
+                <Alert onClose={() => setSnackbarOpen(false)} severity="success" sx={{ width: '100%' }}>
+                    Tag key copied: {copiedText}
+                </Alert>
+            </Snackbar>
         </Box>
     );
 };
 
-export default HtmlTestEditor;
+export default HtmlToPdfEditor;
 

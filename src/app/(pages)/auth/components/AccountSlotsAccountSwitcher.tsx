@@ -79,7 +79,7 @@ export default function AccountSlotsAccountSwitcher() {
         // if (!session2) {
         //     dispatch(clearOrganizationState());
         // }
-        () => {
+        return () => {
             dispatch(clearOrganizationState());
         }
     }, [session2?.user?.id]);

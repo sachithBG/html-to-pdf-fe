@@ -56,7 +56,7 @@ const NAVIGATION: Navigation | any = [
     },
     {
         segment: 'test',
-        title: 'Test',
+        title: 'Test  (PLANED ...)',
         icon: <ReceiptIcon />,
     },
     {
@@ -72,13 +72,21 @@ const NAVIGATION: Navigation | any = [
         icon: <BarChartIcon />,
         children: [
             {
-                segment: 'editor',
-                title: 'Page Edit',
+                segment: 'pdf-template',
+                title: 'Template',
                 icon: <AddCardIcon />,
+                // children: [{
+                //     segment: 'edit',
+                //     title: 'Edit',
+                // },
+                // {
+                //     segment: 'create',
+                //     title: 'New',
+                // }]
             },
             {
                 segment: 'table-manage',
-                title: 'Table Manage',
+                title: 'Table Manage (PLANED ...)',
                 icon: <BackupTableIcon />,
             },
             {
@@ -88,7 +96,7 @@ const NAVIGATION: Navigation | any = [
             },
             {
                 segment: 'media',
-                title: 'Media',
+                title: 'Media  (PLANED ...)',
                 icon: <Image />,
             },
         ],

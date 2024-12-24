@@ -260,8 +260,8 @@ export default function OrganizationPage() {
             {/* <Typography variant="h4" gutterBottom>
                 Manage Organizations
             </Typography> */}
-            <Button variant="contained" color="primary" startIcon={<AddIcon />} onClick={() => handleOpen()}>
-                Add Organization
+            <Button variant="contained" color="primary" sx={{ float: 'right' }} startIcon={<AddIcon />} onClick={() => handleOpen()}>
+                New
             </Button>
             <Table>
                 <TableHead>

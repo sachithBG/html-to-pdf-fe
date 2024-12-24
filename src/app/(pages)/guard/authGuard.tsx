@@ -17,10 +17,15 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
     useEffect(() => {
         console.log('AuthGuard', status, session?.user?.token);
         //check token expiration
-        if (status === 'unauthenticated' || !session?.user?.token) {
+        if (status === 'unauthenticated') {
             // signOut();
             router.push('/dashboard');
         }
+        if (status === 'unauthenticated') {
+            console.log('/Sign out')
+            signOut({ redirect: false });
+        }
+
     }, [session?.user?.token, status, pathname]);
 
     // if (status === 'loading' || !session?.user?.token) return null; // Prevents flashing of protected content

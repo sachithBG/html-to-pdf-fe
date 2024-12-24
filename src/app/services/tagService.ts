@@ -1,50 +1,41 @@
-import { baseURL } from "./api";
+import { API, baseURL } from "./api";
 
 export const createTag = async (data: any, token: string) => {
-  const res = await fetch(`${baseURL}/tags`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({ data: data }),
-  });
-  return await res.json();
+  return API.post(`/tags`, data,
+    {
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      }
+    });
 }
 
-export const updateTag = async (data: any, token: string) => {
-  const res = await fetch(`${baseURL}/tags`, {
-    method: 'PUT',
+export const updateTag = async (editTag: any, token: string) => {
+  return API.put('/tags/' + editTag.id, editTag, {
     headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({ data: data }),
+      Authorization: `Bearer ${token}`
+    }
   });
-  return await res.json();
 }
 
 export const findTagById = async (id: any, token: string) => {
-  const res = await fetch(`${baseURL}/tags/${id}`, {
-    method: 'GET',
+  return API.get('/tags/' + id, {
     headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
+      Authorization: `Bearer ${token}`
+    }
   });
-  return await res.json();
 }
 
 export const findAllTags = async (addon_ids: Number[], token: string) => {
-  const queryParams = new URLSearchParams({ addon_ids: JSON.stringify(addon_ids) }).toString();
-  const res = await fetch(`${baseURL}/tags?${queryParams}`, {
-    method: 'GET',
+  // const queryParams = new URLSearchParams({ addon_ids: JSON.stringify(addon_ids) }).toString();
+  return API.get(`/tags`, {
     headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
+      Authorization: `Bearer ${token}`
     },
+    params: {
+      addon_ids: addon_ids
+    }
   });
-  return await res.json();
 }
 
 export const findTagPage = async (
@@ -73,12 +64,9 @@ export const findTagPage = async (
 };
 
 export const deleteTag = async (id: any, token: string) => {
-  const res = await fetch(`${baseURL}/tags/${id}`, {
-    method: 'DELETE',
+  return API.delete('/tags/' + id, {
     headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
+      Authorization: `Bearer ${token}`
+    }
   });
-  return await res.json();
 }

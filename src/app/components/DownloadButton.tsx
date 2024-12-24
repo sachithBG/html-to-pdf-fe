@@ -37,7 +37,7 @@ const DownloadButton: React.FC<DownloadButtonProps> = ({ pdfData }) => {
     };
 
     return (
-        <Button type='button' color='info' onClick={handleDownload} disabled={!pdfData}>
+        <Button type='button' variant="outlined" onClick={handleDownload} disabled={!pdfData}>
             Download PDF
         </Button>
     );

@@ -11,7 +11,7 @@ export interface Organization {
     updated_at: string;
 }
 
-interface OrganizationState {
+export interface OrganizationState {
     organizations: Organization[];
 }
 
@@ -47,3 +47,8 @@ const organizationSlice = createSlice({
 export const { addOrganization, updateOrganization, removeOrganization, addOrganizationAll, clearOrganizationState } = organizationSlice.actions;
 
 export default organizationSlice.reducer;
+
+// Selector to get the default organization
+export const getDefaultOrganization = (state: OrganizationState): Organization | null => {
+    return state.organizations.find(org => org.is_default) || null;
+};

@@ -140,7 +140,7 @@ const HtmlTestEditor = () => {
     `;
 
         try {
-            const response = await axios.post("http://localhost:4000/api/htmlToPdf", {
+            const response = await axios.post("http://localhost:4000/api/v1/pdf-templates/test", {
                 headerContent, bodyContent, footerContent
             });
             const { pdf } = response.data;
