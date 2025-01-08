@@ -32,6 +32,7 @@ import { useEffect, useState } from "react";
 import { Save as SaveIcon } from "@mui/icons-material";
 import FileCopyIcon from '@mui/icons-material/FileCopy';
 import FilterListIcon from '@mui/icons-material/FilterList';
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 
 import dynamic from "next/dynamic";
 import { useSession } from "next-auth/react";
@@ -41,6 +42,7 @@ import { findAllTags } from "@/app/services/tagService";
 import { bdy, ftr, hdr, TAG_TYPES } from "@/app/utils/constant";
 import { getDefaultOrganization, Organization, OrganizationState } from "@/redux/slice/organizationSlice";
 import { createPdfTemplate, generatePdfBuffer, readPdfTemplate, updatePdfTemplate } from "@/app/services/pdfService";
+import { findAllByAddonId } from "@/app/services/externalKeyService";
 // const EditableTextField = dynamic(() => import('@/app/components/EditableTextField'), { ssr: false });
 const PdfPreviewButton = dynamic(() => import('@/app/components/PdfPreviewButton'), { ssr: false });
 const DownloadButton = dynamic(() => import('@/app/components/DownloadButton'), { ssr: false });
@@ -65,11 +67,12 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
     const isMobile = useMediaQuery((theme) => theme.breakpoints.down('sm'));
 
     const [addons, setAddons] = useState<any[]>(addons_ || []);
-    const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
+    const [selectedAddons, setSelectedAddons] = useState<number[]>([]);
     const [tags, setTags] = useState<any[]>([]);
     const [selectedTags, setSelectedTags] = useState<string[]>([]);
     const [tagFlter, setTagFlter] = useState<string>('');
 
+    const [isLoding, setIsLoding] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
     const [isGenerating, setIsGenerating] = useState(false);
     const [isEditMode, setIsEditMode] = useState(false);
@@ -81,11 +84,13 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
 
     const [pdfName, setPdfName] = useState<string>('');
     const [pdfKey, setPdfKey] = useState<string>('');
-    const [errors, setErrors] = useState<{ pdfName?: string, pdfKey?: string, addons?: string }>({});
+    const [errors, setErrors] = useState<{ pdfName?: string, pdfKey?: string, addons?: string, externalKey?: string }>({});
 
     const [margin, setMargin] = useState({ l: 20, t: 200, r: 20, b: 150 });
     const [displayHeaderFooter, setDisplayHeaderFooter] = useState(true);
     const [defVal, setDefVal] = useState('-');
+    const [selectedType, setSelectedType] = useState<number | null>(null);
+    const [externalKeys, setExternalKeys] = useState<any[]>([]);
 
     const handleMarginChange = (side: 'l' | 't' | 'r' | 'b', value: string) => {
         setMargin((prev) => ({ ...prev, [side]: value }));
@@ -98,9 +103,20 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
 
     const fetchTags = async () => {
         try {
-            const response = await findAllTags(addons.filter(a => selectedAddons.includes(a.name)).map(a => a.id), session?.user?.token);
+            const response = await findAllTags(addons.filter(a => selectedAddons.includes(a.id)).map(a => a.id), session?.user?.token);
             if (response.status == 200) {
                 setTags((prev) => response.data);
+            }
+        } catch (error) {
+            console.error("Error fetching tags:", error);
+        }
+    };
+
+    const fetchExternalKeys = async () => {
+        try {
+            const response = await findAllByAddonId(addons.filter(a => selectedAddons.includes(a.id))[0]?.id, session?.user?.token);
+            if (response.status == 200) {
+                setExternalKeys((prev) => response.data);
             }
         } catch (error) {
             console.error("Error fetching tags:", error);
@@ -129,6 +145,7 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
     useEffect(() => {
         if (selectedAddons.length > 0) {
             fetchTags();
+            fetchExternalKeys();
         } else {
             setTags([]);
             setSelectedTags([]);
@@ -138,7 +155,7 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
     // Handle Addon Change
     const handleAddonChange = (event: any) => {
         setErrors((prev) => ({ ...prev, addons: undefined }));
-        setSelectedAddons(event.target.value);
+        setSelectedAddons([event.target.value]);
     };
 
     // Handle Tag Change
@@ -173,6 +190,7 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
     useEffect(() => {
         if (id) {
             setIsEditMode(true);
+            setIsLoding(true);
             const fetchData = async () => {
                 try {
                     let response = await readPdfTemplate(id, session?.user?.token);
@@ -182,15 +200,18 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
                         setHeaderContent(() => response.data.headerContent);
                         setBodyContent(() => response.data.bodyContent);
                         setFooterContent(() => response.data.footerContent);
-                        setSelectedAddons(() => response.data.addons?.map((a: any) => a.name));
+                        setSelectedAddons(() => response.data.addons?.map((a: any) => a.id));
                         setDefVal(() => response.data.defVal);
                         setPdfKey(() => response.data.key);
                         setDisplayHeaderFooter(() => response.data.displayHeaderFooter);
                         setMargin(() => response.data.margin);
+                        setSelectedType(() => response.data.external_key);
                     }
 
                 } catch (error) {
                     console.error("Error fetching data for edit mode:", error);
+                } finally {
+                    setIsLoding(false);
                 }
             };
             fetchData();
@@ -223,10 +244,11 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
         setErrors({});
 
         // Validation
-        const newErrors: { pdfName?: string; field_path?: string; tag_type?: string, addons?: string } = {};
+        const newErrors: { pdfName?: string; field_path?: string; tag_type?: string, addons?: string, externalKey?: string } = {};
         if (!pdfName) newErrors.pdfName = 'Name is required';
         // if (!tagKey) newErrors.field_path = 'Tag key is required';
-        if (!selectedAddons.length) newErrors.addons = 'At least one addon must be selected';
+        if (!selectedAddons.length) newErrors.addons = 'Addon must be selected';
+        if (!selectedType) newErrors.externalKey = 'Type/Status must be selected';
 
         if (Object.keys(newErrors).length > 0) {
             setErrors(newErrors);
@@ -241,13 +263,14 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
                 headerContent,
                 bodyContent,
                 footerContent,
-                addon_ids: addons.filter(a => selectedAddons.includes(a.name)).map(a => a.id),
+                addon_ids: addons.filter(a => selectedAddons.includes(a.id)).map(a => a.id),
                 name: pdfName,
                 key: pdfKey,
                 margin: margin,
                 displayHeaderFooter: displayHeaderFooter,
                 defVal: defVal,
-                organization_id: currentOrg.id
+                organization_id: currentOrg.id,
+                external_key: selectedType
             };
             if (isGenerate) {
                 const response = await generatePdfBuffer(payload, session?.user?.token);
@@ -257,7 +280,7 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
                 const response = !isEditMode ? await createPdfTemplate(payload, session?.user?.token) :
                     await updatePdfTemplate(id, { ...payload, id: id }, session?.user?.token);
                 if (response.status == 201 || response.status == 200) {
-                    handleBack(true);
+                    // handleBack(true);
                 }
             }
 
@@ -324,6 +347,12 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
         }
     };
 
+    const handleTypeStatusChange = (event: any) => {
+        const value = event.target.value;
+        setSelectedType(value);
+        setErrors((prev) => ({ ...prev, externalKey: undefined }));
+    };
+
 
 
     return (
@@ -345,7 +374,7 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
                                 </body>
                                 <footer>${footerContent}</footer>
                             </html>
-                            `} />
+                            `} isIconButton={false} id={null} />
                     </Grid>
                     <Grid >
                         <Button
@@ -438,28 +467,60 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
                             />
                         </Grid2>
                         {/* Addon Selector */}
-                        <Grid2 size={8}>
+                        <Grid2 size={4}>
                             <FormControl fullWidth sx={{ mt: 2 }} error={errors.addons ? true : false}>
                                 <InputLabel>Addons</InputLabel>
-                                <Select
-                                    multiple
-                                    value={selectedAddons}
+                                {/* {addons?.filter(a => a.id == selectedAddons[0])[0]?.name} */}
+                                {!isLoding && <Select
+                                    // multiple
+                                    value={selectedAddons[0]}
                                     onChange={handleAddonChange}
                                     label="Addons"
                                     required
-                                    renderValue={(selected) => selected.join(", ")}
+                                    renderValue={(selected) => addons?.filter(a => a.id == selected)[0]?.name}//selected.join(", ")
                                     error={Boolean(errors.addons)}
 
                                 >
                                     {addons?.map((addon) => (
-                                        <MenuItem key={addon.id} value={addon.name}>
-                                            <Checkbox checked={selectedAddons.includes(addon.name)} />
+                                        <MenuItem key={addon.id} value={addon.id}>
+                                            <Checkbox checked={selectedAddons.indexOf(addon.id) > -1} />
                                             <ListItemText primary={addon.name} />
                                         </MenuItem>
                                     ))}
-                                </Select>
+                                </Select>}
                                 {errors.addons && <FormHelperText>{errors.addons}</FormHelperText>}
                             </FormControl>
+                        </Grid2>
+                        {/* Type Selector */}
+                        <Grid2 size={4} display="flex" alignItems="center">
+                            {/* Type/Status Dropdown */}
+                            <FormControl fullWidth sx={{ mt: 1 }} error={Boolean(errors.externalKey)}>
+                                <InputLabel>Type/Status</InputLabel>
+                                <Select
+                                    // multiple
+                                    value={selectedType + ''}
+                                    onChange={handleTypeStatusChange}
+                                    label="Type/Status"
+                                    renderValue={(selected) => externalKeys.filter(k => k.id == selected)[0]?.key_value} // Display selected addons or "None"
+                                    required
+                                >
+                                    {externalKeys?.map((keys) => (
+                                        <MenuItem key={keys.id} value={keys.id}>
+                                            <Checkbox checked={selectedType == keys.id} />
+                                            <ListItemText primary={keys.key_value} />
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                                {errors.externalKey && <FormHelperText>{errors.externalKey}</FormHelperText>}
+                            </FormControl>
+
+                            {/* Tooltip Icon */}
+                            <Tooltip
+                                title="Type/Status refers to the identifier used by external systems to categorize templates (e.g., invoice, report). This helps external systems recognize and interact with the template uniquely."
+                                arrow
+                            >
+                                <HelpOutlineIcon fontSize="small" sx={{ m: 1, cursor: 'pointer' }} />
+                            </Tooltip>
                         </Grid2>
                         {/* <Grid2 size={{ xs: 2, sm: 4, md: 4 }}>
                             <FormControl fullWidth>

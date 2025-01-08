@@ -1,47 +1,83 @@
 "use client";
 import React, { useEffect, useRef, useState } from 'react';
 import { Box, Button, Typography, Modal, CircularProgress } from '@mui/material';
+import OpenWithIcon from '@mui/icons-material/OpenWith';
+import { readPdfTemplate } from '../services/pdfService';
+import { useSession } from 'next-auth/react';
+import AspectRatioIcon from '@mui/icons-material/AspectRatio';
+import LaunchIcon from '@mui/icons-material/Launch';
 
-const PdfPreviewButton = ({ htmlContent }: { htmlContent: string | null }) => {
+const PdfPreviewButton = ({ htmlContent, isIconButton, id }: { htmlContent: string | null, isIconButton: boolean, id: number | null }) => {
     const [open, setOpen] = useState(false);
     const [loading, setLoading] = useState(false);  // Loading state
     const iframeRef = useRef<HTMLIFrameElement>(null);
+    const [htmlCntnt, setHtmlCntnt] = useState(htmlContent);
 
+    const { data: session }: any = useSession();
     // Open and close modal handlers
     const handleOpen = () => setOpen(true);
     const handleClose = () => setOpen(false);
 
+    const handleOpenWithData = () => {
+        if (id) {
+            setLoading(true)
+            const fetchData = async () => {
+                try {
+                    let response = await readPdfTemplate(id, session?.user?.token);
+                    if (response.status == 200) {
+                        response = response.data;
+                        setHtmlCntnt(`<html>
+                                        <div>${response.data.headerContent}</div>
+                                        <body>
+                                        <div>${response.data.bodyContent}</div>
+                                        </body>
+                                        <footer>${response.data.footerContent}</footer>
+                                    </html>
+                                    `);
+                        setOpen(true)
+                    }
+
+                } catch (error) {
+                    console.error("Error fetching data for edit mode:", error);
+                } finally {
+                    setLoading(false);
+                }
+            };
+            fetchData();
+        }
+    };
+
     useEffect(() => {
-        if (iframeRef.current && htmlContent) {
+        if (iframeRef.current && htmlCntnt) {
             const doc = iframeRef.current.contentDocument;
             if (doc) {
                 doc.open();
-                doc.write(htmlContent); // Write HTML content to iframe
+                doc.write(htmlCntnt); // Write HTML content to iframe
                 doc.close();
             }
         }
-    }, [htmlContent]); // Re-render iframe when htmlContent changes
+    }, [htmlCntnt]); // Re-render iframe when htmlContent changes
 
     // Handle loading state based on iframe content
     useEffect(() => {
-        if (iframeRef.current && htmlContent) {
+        if (iframeRef.current && htmlCntnt) {
             setLoading(true);
             const iframe = iframeRef.current;
             iframe.onload = () => setLoading(false); // Set loading to false once iframe content is loaded
         }
-    }, [htmlContent]);
+    }, [htmlCntnt]);
 
     return (
         <Box>
             {/* Button to open the modal */}
-            <Button
+            {isIconButton ? <LaunchIcon onClick={handleOpenWithData} sx={{ cursor: 'pointer' }} /> : <Button
                 variant="outlined"
                 color="primary"
                 onClick={handleOpen}
-                disabled={!htmlContent} // Disable button if no HTML content
+                disabled={!htmlCntnt} // Disable button if no HTML content
             >
                 Preview HTML
-            </Button>
+            </Button>}
 
             {/* Modal for preview */}
             <Modal
@@ -83,14 +119,14 @@ const PdfPreviewButton = ({ htmlContent }: { htmlContent: string | null }) => {
                     )}
 
                     {/* PDF iframe */}
-                    {htmlContent ? (
+                    {htmlCntnt ? (
                         <iframe
                             ref={iframeRef}
                             width="100%"
                             height="100%"
                             title="HTML Preview"
                             style={{ border: 'none' }}
-                            srcDoc={htmlContent}
+                            srcDoc={htmlCntnt}
                         // src=''
                         />
                     ) : (

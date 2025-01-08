@@ -4,6 +4,8 @@ import { motion } from 'framer-motion';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward'; // MUI Icon for "view" action
 import { debounce } from 'lodash'; // Lodash debounce for efficient search
 import { fadeIn } from '@/app/utils/constant';
+import dynamic from 'next/dynamic';
+const PdfPreviewButton = dynamic(() => import('@/app/components/PdfPreviewButton'), { ssr: false });
 
 const PdfTemplatesList = ({ currentOrg, session, readAllPdfTemplatePage }: any) => {
     const [page, setPage] = useState(1);
@@ -12,6 +14,7 @@ const PdfTemplatesList = ({ currentOrg, session, readAllPdfTemplatePage }: any) 
     const [isLoading, setIsLoading] = useState(true);
     const [totalPages, setTotalPages] = useState(0);
     const pageSize = 5;
+    const [pdfPreview, setPdfPreview] = useState<any>({ headerContent: '', bodyContent: '', footerContent: '' });
 
     // Optimized search function with debouncing
     const debouncedSearch = useMemo(
@@ -111,14 +114,26 @@ const PdfTemplatesList = ({ currentOrg, session, readAllPdfTemplatePage }: any) 
                                 <div className="space-y-2">
                                     {pdfTemplates?.map((template: any, i) => (
                                         <div key={i} className="flex justify-between items-center py-2 border-b">
-                                            <Typography className="flex-1">{template.name}</Typography>
+                                            <Typography className="flex-1" sx={{ display: 'flex' }}>{template.name}
+                                                <Grid2 ml={2}>
+                                                    <PdfPreviewButton htmlContent={
+                                                        `<html>
+                                                            <div>${pdfPreview.headerContent}</div>
+                                                            <body>
+                                                            <div>${pdfPreview.bodyContent}</div>
+                                                            </body>
+                                                            <footer>${pdfPreview.footerContent}</footer>
+                                                        </html>
+                                                        `} isIconButton={true} id={template.id} />
+                                                </Grid2>
+                                            </Typography>
                                             <Typography className="text-gray-500">{new Date(template.modified_at).toLocaleDateString()}</Typography>
-                                            <IconButton
+                                            {/* <IconButton
                                                 onClick={() => window.location.href = `/templates/${template.id}`} // Navigate to template view
                                                 aria-label="view"
                                             >
                                                 <ArrowForwardIcon />
-                                            </IconButton>
+                                            </IconButton> */}
                                         </div>
                                     ))}
                                 </div>

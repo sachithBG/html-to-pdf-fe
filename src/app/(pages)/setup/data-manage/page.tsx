@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from 'react';
-import { Button, TextField, Chip, IconButton, Popover, MenuItem, Select, InputLabel, FormControl, Paper, Box, Typography, Checkbox, ListItemText, Grid2, useTheme, Tooltip, Snackbar, Alert } from '@mui/material';
+import { Button, TextField, Chip, IconButton, Popover, MenuItem, Select, InputLabel, FormControl, Paper, Box, Typography, Checkbox, ListItemText, Grid2, useTheme, Tooltip, Snackbar, Alert, Tabs, Tab, Card, CircularProgress, Skeleton } from '@mui/material';
 import { AddCircle, Edit, Delete } from '@mui/icons-material';
 import { useSession } from 'next-auth/react';
 import { useSelector } from 'react-redux';
@@ -15,6 +15,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import SaveIcon from '@mui/icons-material/Save';
 import FileCopyIcon from '@mui/icons-material/FileCopy';
 import CloseIcon from '@mui/icons-material/Close';
+import ExternalKeyManager from '../components/ExternalKeyManager';
 // import axios from 'axios';
 
 interface Addon {
@@ -28,6 +29,35 @@ interface Tag {
     addon_ids: number[];
     field_path: string;
     tag_type: string;
+}
+
+interface TabPanelProps {
+    children?: React.ReactNode;
+    index: number;
+    value: number;
+}
+
+function CustomTabPanel(props: TabPanelProps) {
+    const { children, value, index, ...other } = props;
+
+    return (
+        <div
+            role="tabpanel"
+            hidden={value !== index}
+            id={`simple-tabpanel-${index}`}
+            aria-labelledby={`simple-tab-${index}`}
+            {...other}
+        >
+            {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
+        </div>
+    );
+}
+
+function a11yProps(index: number) {
+    return {
+        id: `simple-tab-${index}`,
+        'aria-controls': `simple-tabpanel-${index}`,
+    };
 }
 
 const TagManagementPage = () => {
@@ -59,11 +89,16 @@ const TagManagementPage = () => {
 
     const openDelete = Boolean(deleteAnchorEl);
     const idDelete = openDelete ? 'delete-popover' : undefined;
+    const [tabValue, setTabValue] = useState(0);
+
+    const [chosenAddon, setChosenAddon] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
         // Fetch the available addons from the API
         const fetchAddons = async () => {
             try {
+                setIsLoading(true);
                 const res = await findAllAddons(currentOrg?.id, session?.user?.token);
                 if (res.status == 200) {
                     setAddons((prev) => res.data);
@@ -81,6 +116,8 @@ const TagManagementPage = () => {
                 }
             } catch (error) {
                 console.error("Error fetching addons:", error);
+            } finally {
+                setIsLoading(false);
             }
         }
         if (session?.user?.token) fetchAddons();
@@ -213,211 +250,261 @@ const TagManagementPage = () => {
         });
     };
 
+    const handleChangeTab = (event: React.SyntheticEvent, newValue: number) => {
+        setTabValue(newValue);
+    };
+
+    const handleAddonSelection = (event: any) => {
+        setChosenAddon(event.target.value);
+    };
 
     return (
         <Box className="container mx-auto p-4">
-            {/* Addon Picker */}
-            <Box mb={3} mt={4}>
-                <FormControl fullWidth>
-                    <InputLabel>Addons</InputLabel>
-                    <Select
-                        multiple
-                        value={selectedAddons}
-                        onChange={handleAddonChange}
-                        label="Addons"
-                        required
-                        renderValue={(selected) => selected.map((id) => addons.find((addon) => addon.id === id)?.name).join(', ')}
-                    >
-                        {addons?.map((addon) => (
-                            <MenuItem key={addon.id} value={addon.id}>
-                                <Checkbox checked={selectedAddons.includes(addon.id)} />
-                                <ListItemText primary={addon.name} />
-                            </MenuItem>
-                        ))}
-                    </Select>
-                </FormControl>
+            <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+                <Tabs value={tabValue} onChange={handleChangeTab} aria-label="basic tabs example">
+                    <Tab label="Tag" {...a11yProps(0)} />
+                    <Tab label="Type/Status" {...a11yProps(1)} />
+                    <Tab label="Template Test data" {...a11yProps(2)} />
+                    <Tab label="Addons" {...a11yProps(3)} />
+                </Tabs>
             </Box>
-            <Box mb={2} mt={2}>
-                <FormControl fullWidth>
-                    <InputLabel>Type</InputLabel>
-                    <Select
-                        value={selectedType}
-                        onChange={(event) => {
-                            setSelectedType(event.target.value);
-                        }}
-                        required
-                        label="Type"
-                    >
-                        {["CONTENT", "TABLE", "IMAGE"].map((t) => (
-                            <MenuItem key={t} value={t}>
-                                {t}
-                            </MenuItem>
-                        ))}
-                    </Select>
-                </FormControl>
-            </Box>
-            {/* Tag Name Input */}
-            <TextField
-                label="Tag Name"
-                fullWidth
-                value={tagName}
-                onChange={(event) => setTagName(event.target.value)}
-                margin="normal"
-                error={Boolean(errors.name)}
-                helperText={errors.name}
-            />
+            <CustomTabPanel value={tabValue} index={0}>
+                {/* Addon Picker */}
+                <Box mb={3} mt={4}>
+                    <FormControl fullWidth>
+                        <InputLabel>Addons</InputLabel>
+                        <Select
+                            multiple
+                            value={selectedAddons}
+                            onChange={handleAddonChange}
+                            label="Addons"
+                            required
+                            renderValue={(selected) => selected.map((id) => addons.find((addon) => addon.id === id)?.name).join(', ')}
+                        >
+                            {addons?.map((addon) => (
+                                <MenuItem key={addon.id} value={addon.id}>
+                                    <Checkbox checked={selectedAddons.includes(addon.id)} />
+                                    <ListItemText primary={addon.name} />
+                                </MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+                </Box>
+                <Box mb={2} mt={2}>
+                    <FormControl fullWidth>
+                        <InputLabel>Type</InputLabel>
+                        <Select
+                            value={selectedType}
+                            onChange={(event) => {
+                                setSelectedType(event.target.value);
+                            }}
+                            required
+                            label="Type"
+                        >
+                            {["CONTENT", "TABLE", "IMAGE"].map((t) => (
+                                <MenuItem key={t} value={t}>
+                                    {t}
+                                </MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+                </Box>
+                {/* Tag Name Input */}
+                <TextField
+                    label="Tag Name"
+                    fullWidth
+                    value={tagName}
+                    onChange={(event) => setTagName(event.target.value)}
+                    margin="normal"
+                    error={Boolean(errors.name)}
+                    helperText={errors.name}
+                />
 
-            {/* Tag Key Input */}
-            <TextField
-                label="Tag Key"
-                fullWidth
-                value={tagKey}
-                onChange={(event) => setTagKey(event.target.value)}
-                margin="normal"
-                error={Boolean(errors.field_path)}
-                helperText={errors.field_path}
-            />
+                {/* Tag Key Input */}
+                <TextField
+                    label="Tag Key"
+                    fullWidth
+                    value={tagKey}
+                    onChange={(event) => setTagKey(event.target.value)}
+                    margin="normal"
+                    error={Boolean(errors.field_path)}
+                    helperText={errors.field_path}
+                />
 
-            {/* Save Button */}
-            <Button variant="contained" color="primary" onClick={handleSaveTag}>
-                Save Tag
-            </Button>
+                {/* Save Button */}
+                <Button variant="contained" color="primary" onClick={handleSaveTag}>
+                    Save Tag
+                </Button>
 
-            {/* Display Tags */}
-            <div style={{ marginTop: 20 }}>
-                <Grid2 container spacing={2}>
-                    {tags?.filter(t => t.tag_type === selectedType).map((tag) => (
-                        <Grid2 key={tag.id}>
-                            <Paper
-                                elevation={3}
-                                sx={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    p: 1,
-                                    borderRadius: '8px',
-                                    boxShadow: 3,
-                                    bgcolor: theme.palette.background.paper,
-                                    ':hover': { boxShadow: 6 },
-                                }}
-                            >
-                                <Chip
-                                    label={tag.name}
-                                    onDelete={(e) => handleEditClick(e, tag)}
-                                    deleteIcon={<EditIcon sx={{
-                                        color: theme.palette.mode === 'light' ? theme.palette.success.dark : theme.palette.secondary.light,
-                                    }} />}
+                {/* Display Tags */}
+                <div style={{ marginTop: 20 }}>
+                    <Grid2 container spacing={2}>
+                        {tags?.filter(t => t.tag_type === selectedType).map((tag) => (
+                            <Grid2 key={tag.id}>
+                                <Paper
+                                    elevation={3}
                                     sx={{
-                                        borderRadius: '12px',
-                                        borderColor: 'transparent',
-                                        ml: 1,
-                                        flexGrow: 1,
-                                        '&:hover': { borderColor: theme.palette.primary.main },
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        p: 1,
+                                        borderRadius: '8px',
+                                        boxShadow: 3,
+                                        bgcolor: theme.palette.background.paper,
+                                        ':hover': { boxShadow: 6 },
                                     }}
-                                    variant="outlined"
-                                />
-                                {/* Copy Icon Button */}
-                                <Tooltip title={"Copy Key " + tag.field_path}>
+                                >
+                                    <Chip
+                                        label={tag.name}
+                                        onDelete={(e) => handleEditClick(e, tag)}
+                                        deleteIcon={<EditIcon sx={{
+                                            color: theme.palette.mode === 'light' ? theme.palette.success.dark : theme.palette.secondary.light,
+                                        }} />}
+                                        sx={{
+                                            borderRadius: '12px',
+                                            borderColor: 'transparent',
+                                            ml: 1,
+                                            flexGrow: 1,
+                                            '&:hover': { borderColor: theme.palette.primary.main },
+                                        }}
+                                        variant="outlined"
+                                    />
+                                    {/* Copy Icon Button */}
+                                    <Tooltip title={"Copy Key " + tag.field_path}>
+                                        <IconButton
+                                            onClick={() => handleCopyTag(tag.field_path)}
+                                            size="small"
+                                            sx={{
+                                                padding: '6px',
+                                                '&:hover': {
+                                                    backgroundColor: theme.palette.info.main,
+                                                    color: theme.palette.common.white,
+                                                },
+                                            }}
+                                        >
+                                            <FileCopyIcon sx={{ fontSize: 16 }} />
+                                        </IconButton>
+                                    </Tooltip>
+                                    {/* Delete Icon Button */}
                                     <IconButton
-                                        onClick={() => handleCopyTag(tag.field_path)}
+                                        onClick={(event) => handleDeleteClick(event, tag.id)}
                                         size="small"
                                         sx={{
                                             padding: '6px',
                                             '&:hover': {
-                                                backgroundColor: theme.palette.info.main,
+                                                backgroundColor: theme.palette.error.main,
                                                 color: theme.palette.common.white,
                                             },
                                         }}
                                     >
-                                        <FileCopyIcon sx={{ fontSize: 16 }} />
+                                        <DeleteIcon sx={{ fontSize: 16 }} />
                                     </IconButton>
-                                </Tooltip>
-                                {/* Delete Icon Button */}
-                                <IconButton
-                                    onClick={(event) => handleDeleteClick(event, tag.id)}
-                                    size="small"
-                                    sx={{
-                                        padding: '6px',
-                                        '&:hover': {
-                                            backgroundColor: theme.palette.error.main,
-                                            color: theme.palette.common.white,
-                                        },
-                                    }}
-                                >
-                                    <DeleteIcon sx={{ fontSize: 16 }} />
-                                </IconButton>
-                            </Paper>
+                                </Paper>
 
-                        </Grid2>
-                    ))}
-                </Grid2>
-            </div>
+                            </Grid2>
+                        ))}
+                    </Grid2>
+                </div>
 
-            {/* Popover for Tag Delete Confirmation */}
-            <Popover
-                id={id}
-                open={openPopover}
-                anchorEl={anchorEl}
-                onClose={handleEditClose}
-                anchorOrigin={{
-                    vertical: 'bottom',
-                    horizontal: 'center',
-                }}
-                transformOrigin={{
-                    vertical: 'top',
-                    horizontal: 'center',
-                }}
-            >
-                <Box sx={{ p: 2, display: 'flex', alignItems: 'center' }}>
-                    <TextField
-                        value={editTag?.name || ''}
-                        onChange={(e: any) => setEditTag({ ...editTag, name: e.target.value })}
-                        size="small"
-                    />
-                    <IconButton onClick={handleUpdateTag}>
-                        <SaveIcon />
-                    </IconButton>
-                </Box>
-            </Popover>
-
-            {/* Edit Tag */}
-            <Popover
-                id={idDelete}
-                open={openDelete}
-                anchorEl={deleteAnchorEl}
-                onClose={handleDeleteClose}
-                anchorOrigin={{
-                    vertical: 'bottom',
-                    horizontal: 'center',
-                }}
-                transformOrigin={{
-                    vertical: 'top',
-                    horizontal: 'center',
-                }}
-            >
-                <Box sx={{ p: 2, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                    <Typography>Are you sure you want to delete this addon?</Typography>
-                    <Box sx={{ mt: 1, display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-                        <Button onClick={handleDeleteClose} color="primary">
-                            Cancel
-                        </Button>
-                        <Button onClick={handleConfirmDelete} color="secondary">
-                            Confirm
-                        </Button>
+                {/* Popover for Tag Delete Confirmation */}
+                <Popover
+                    id={id}
+                    open={openPopover}
+                    anchorEl={anchorEl}
+                    onClose={handleEditClose}
+                    anchorOrigin={{
+                        vertical: 'bottom',
+                        horizontal: 'center',
+                    }}
+                    transformOrigin={{
+                        vertical: 'top',
+                        horizontal: 'center',
+                    }}
+                >
+                    <Box sx={{ p: 2, display: 'flex', alignItems: 'center' }}>
+                        <TextField
+                            value={editTag?.name || ''}
+                            onChange={(e: any) => setEditTag({ ...editTag, name: e.target.value })}
+                            size="small"
+                        />
+                        <IconButton onClick={handleUpdateTag}>
+                            <SaveIcon />
+                        </IconButton>
                     </Box>
-                </Box>
-            </Popover>
-            {/* Snackbar to show copied text */}
-            <Snackbar
-                open={snackbarOpen}
-                autoHideDuration={3000}
-                onClose={() => setSnackbarOpen(false)}
-                anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-                sx={{ marginTop: 8 }}
-            >
-                <Alert onClose={() => setSnackbarOpen(false)} severity="success" sx={{ width: '100%' }}>
-                    Tag key copied: {copiedText}
-                </Alert>
-            </Snackbar>
+                </Popover>
+
+                {/* Edit Tag */}
+                <Popover
+                    id={idDelete}
+                    open={openDelete}
+                    anchorEl={deleteAnchorEl}
+                    onClose={handleDeleteClose}
+                    anchorOrigin={{
+                        vertical: 'bottom',
+                        horizontal: 'center',
+                    }}
+                    transformOrigin={{
+                        vertical: 'top',
+                        horizontal: 'center',
+                    }}
+                >
+                    <Box sx={{ p: 2, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                        <Typography>Are you sure you want to delete this addon?</Typography>
+                        <Box sx={{ mt: 1, display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                            <Button onClick={handleDeleteClose} color="primary">
+                                Cancel
+                            </Button>
+                            <Button onClick={handleConfirmDelete} color="secondary">
+                                Confirm
+                            </Button>
+                        </Box>
+                    </Box>
+                </Popover>
+                {/* Snackbar to show copied text */}
+                <Snackbar
+                    open={snackbarOpen}
+                    autoHideDuration={3000}
+                    onClose={() => setSnackbarOpen(false)}
+                    anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+                    sx={{ marginTop: 8 }}
+                >
+                    <Alert onClose={() => setSnackbarOpen(false)} severity="success" sx={{ width: '100%' }}>
+                        Tag key copied: {copiedText}
+                    </Alert>
+                </Snackbar>
+            </CustomTabPanel>
+            <CustomTabPanel value={tabValue} index={1}>
+
+                {/* Addon selection */}
+                <FormControl fullWidth sx={{ mb: 3 }}>
+                    <InputLabel>Choose Addon</InputLabel>
+                    <Select
+                        value={chosenAddon}
+                        onChange={handleAddonSelection}
+                        label="Choose Addon"
+                        sx={{ maxWidth: 250 }}
+                    >
+                        {addons?.map((addon) => (
+                            <MenuItem key={addon.id} value={addon.id}>
+                                {addon.name}
+                            </MenuItem>
+                        ))}
+                    </Select>
+                </FormControl>
+
+                {isLoading ? (
+                    <Skeleton variant="text" width="100%" height={40} />
+                ) : (
+                    chosenAddon && (
+                        <ExternalKeyManager addonId={chosenAddon} />
+                    )
+                )}
+            </CustomTabPanel>
+            <CustomTabPanel value={tabValue} index={2}>
+                ....
+            </CustomTabPanel>
+            <CustomTabPanel value={tabValue} index={3}>
+                ....
+            </CustomTabPanel>
         </Box>
     );
 };

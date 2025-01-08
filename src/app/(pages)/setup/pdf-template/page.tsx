@@ -1,6 +1,6 @@
 'use client'
 import React, { useState, useEffect, useCallback } from 'react';
-import { Container, Typography, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, IconButton, Paper, Pagination, Box, CircularProgress, FormControl, InputLabel, Select, MenuItem, Skeleton } from '@mui/material';
+import { Container, Typography, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, IconButton, Paper, Pagination, Box, CircularProgress, FormControl, InputLabel, Select, MenuItem, Skeleton, Grid2 } from '@mui/material';
 import { AddBox as AddBoxIcon, Edit as EditIcon, Delete as DeleteIcon, FastRewind as FastRewindIcon } from '@mui/icons-material';
 import { useSelector } from 'react-redux';
 import { useSession } from 'next-auth/react';
@@ -8,6 +8,8 @@ import { getDefaultOrganization, Organization, OrganizationState } from '@/redux
 import HtmlToPdfEditor from '../editor/page';
 import { deletePdfTemplate, readAllPdfTemplatePage } from '@/app/services/pdfService';
 import { findAllAddons } from '@/app/services/addonService';
+import dynamic from 'next/dynamic';
+const PdfPreviewButton = dynamic(() => import('@/app/components/PdfPreviewButton'), { ssr: false });
 
 const PdfTemplatePage: React.FC = () => {
     const [templates, setTemplates] = useState<any[]>([]);
@@ -20,6 +22,7 @@ const PdfTemplatePage: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [pageToggle, setPageToggle] = useState(false);
     const [addons_, setAddons_] = useState<any[]>();
+    const [pdfPreview, setPdfPreview] = useState<any>({ headerContent: '', bodyContent: '', footerContent: '' });
 
     const currentOrg: Organization | any = useSelector((state: { organization: OrganizationState }) =>
         getDefaultOrganization(state.organization)
@@ -77,7 +80,7 @@ const PdfTemplatePage: React.FC = () => {
         setSelectedTemplate(null);
         // }
 
-        if (currentPage !== undefined && isTrigger) {
+        if (currentPage !== undefined && isTrigger && session?.user?.token) {
             fetchTemplates(currentPage);
         } else {
             console.warn('currentPage is undefined');
@@ -114,7 +117,7 @@ const PdfTemplatePage: React.FC = () => {
     const fetchAddons = async () => {
         try {
             const response = await findAllAddons(currentOrg?.id, session?.user?.token);
-            console.log(response.data)
+            // console.log(response.data)
             if (response.status == 200) {
                 setAddons_(response.data);
             }
@@ -172,13 +175,28 @@ const PdfTemplatePage: React.FC = () => {
                                     </TableRow>
                                 ) : templates?.map((template, i) => (
                                     <TableRow hover key={`${template.id}-${template.name}-${template.addons}`}>
-                                        <TableCell>{template.name}</TableCell>
+                                        <TableCell >
+
+                                            <Grid2 sx={{ display: 'flex' }}>
+                                                <Typography mr={2}>{template.name}</Typography>
+
+                                                <PdfPreviewButton htmlContent={
+                                                    `<html>
+                                                            <div>${pdfPreview.headerContent}</div>
+                                                            <body>
+                                                            <div>${pdfPreview.bodyContent}</div>
+                                                            </body>
+                                                            <footer>${pdfPreview.footerContent}</footer>
+                                                        </html>
+                                                        `} isIconButton={true} id={template.id} />
+                                            </Grid2>
+                                        </TableCell>
                                         <TableCell>{template?.addons?.join(', ')}</TableCell>
                                         <TableCell>
                                             <IconButton color="primary" onClick={() => handleEdit(template)}>
                                                 <EditIcon />
                                             </IconButton>
-                                            <IconButton color="secondary" onClick={() => handleDelete(template.id)}>
+                                            <IconButton color="inherit" onClick={() => handleDelete(template.id)}>
                                                 <DeleteIcon />
                                             </IconButton>
                                         </TableCell>

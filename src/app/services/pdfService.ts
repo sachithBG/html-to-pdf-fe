@@ -16,7 +16,7 @@ export const generatePdfBuffer = async (data: any, token: string) => {
     });
 }
 
-export const readPdfTemplate = async (id: string, token: string) => {
+export const readPdfTemplate = async (id: number, token: string) => {
     return API.get(`/pdf-templates/resource/${id}`, {
         headers: {
             Authorization: `Bearer ${token}`

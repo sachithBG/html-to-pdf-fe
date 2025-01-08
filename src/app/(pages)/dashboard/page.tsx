@@ -29,6 +29,8 @@ import { useSession } from 'next-auth/react';
 import { chartMonthlyData } from '@/app/services/logsService';
 import PdfTemplatesList from '../setup/pdf-template/PdfTemplatesList';
 import { readAllPdfTemplatePage } from '@/app/services/pdfService';
+import dynamic from 'next/dynamic';
+
 
 // Registering Chart.js components
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, ChartTooltip, Legend);
@@ -88,6 +90,7 @@ const Dashboard = () => {
     const [copiedToken, setCopiedToken] = useState(false);
     const [chartData, setChartData] = useState<any>({});
 
+
     const { data: session }: any = useSession();
     const dispatch = useDispatch();
 
@@ -114,7 +117,7 @@ const Dashboard = () => {
                             {
                                 label: 'PDF Requests',
                                 data,
-                                borderColor: '#4caf50',
+                                borderColor: theme.palette.mode == 'dark' ? '#90caf9' : '#045da5',
                                 tension: .2,
                                 pointBackgroundColor: '#4caf50',
                             },
@@ -174,6 +177,7 @@ const Dashboard = () => {
                 minHeight: '100vh',
             }}
         >
+
             {/* Organization Switcher */}
             <motion.div initial="hidden" animate="visible" variants={fadeIn} transition={{ duration: 0.5 }}>
                 <Card sx={{ p: 3, mb: 4 }}>
@@ -188,7 +192,7 @@ const Dashboard = () => {
                                     sx={{
                                         p: 2,
                                         cursor: 'pointer',
-                                        backgroundColor: currentOrg?.name === org?.name ? '#4caf50' : theme.palette.background.paper,
+                                        backgroundColor: currentOrg?.name === org?.name ? 'var(--mui-palette-primary-main)' : theme.palette.background.paper,
                                         color: currentOrg?.name === org?.name ? '#fff' : theme.palette.text.primary,
                                     }}
                                     onClick={() => setDefault(org.id)}

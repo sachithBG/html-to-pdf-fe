@@ -60,6 +60,15 @@ export default function ThemeProvidr({
                         default: 'rgb(34, 43, 69)',
                         paper: 'rgb(34, 43, 69)',
                     },
+                    components: {
+                        MuiPaper: {
+                            styleOverrides: {
+                                root: {
+                                    backgroundColor: 'red',
+                                },
+                            },
+                        },
+                    },
                 }),
         },
     });

@@ -16,7 +16,9 @@ import { Box, IconButton, Typography } from '@mui/material';
 import LineStyleIcon from '@mui/icons-material/LineStyle';
 import ReceiptIcon from '@mui/icons-material/Receipt';
 import AddCardIcon from '@mui/icons-material/AddCard';
+import BallotIcon from '@mui/icons-material/Ballot';
 import BackupTableIcon from '@mui/icons-material/BackupTable';
+import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
 import SignIn from './auth/ThemeSignInPage';
 import AccountSlotsAccountSwitcher from './auth/components/AccountSlotsAccountSwitcher';
 
@@ -90,14 +92,14 @@ const NAVIGATION: Navigation | any = [
                 icon: <BackupTableIcon />,
             },
             {
-                segment: 'data-manage',
-                title: 'Data Manage',
-                icon: <Storage />,
-            },
-            {
                 segment: 'media',
                 title: 'Media  (PLANED ...)',
                 icon: <Image />,
+            },
+            {
+                segment: 'data-manage',
+                title: 'Config',
+                icon: <Storage />,
             },
         ],
     },
@@ -109,17 +111,44 @@ const NAVIGATION: Navigation | any = [
     {
         segment: 'organization',
         title: 'Manage Organizations',
-        icon: <LayersIcon />,
+        icon: <BallotIcon />,
     },
     {
         segment: 'profile',
         title: 'Manage Profile',
-        icon: <LayersIcon />,
+        icon: <ManageAccountsIcon />,
     },
 ];
 
 const demoTheme = extendTheme({
-    colorSchemes: { light: true, dark: true },
+    colorSchemes: {
+        light: {
+            palette: {
+                mode: 'light',
+                background: {
+                    default: '#f9f9f9',
+                    paper: '#ffffff',
+                },
+                text: {
+                    primary: '#000000',
+                    secondary: '#555555',
+                },
+            },
+        },
+        dark: {
+            palette: {
+                mode: 'dark',
+                background: {
+                    default: '#28292a', // Set dark background to #28292a
+                    paper: '#28292a',   // Slightly lighter for card-like components
+                },
+                text: {
+                    primary: '#ffffff', // Bright text for dark background
+                    secondary: '#b0b0b0',
+                },
+            },
+        },
+    },
     colorSchemeSelector: 'class',
     breakpoints: {
         values: {
