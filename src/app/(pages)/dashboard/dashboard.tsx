@@ -5,6 +5,10 @@ import { Box, Card, Typography, Grid2, Skeleton, IconButton, Tooltip } from '@mu
 import { Line } from 'react-chartjs-2'; // Chart.js integration for charts
 import { ContentCopy as ContentCopyIcon, CheckCircle as CheckCircleIcon } from '@mui/icons-material';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip as ChartTooltip, Legend } from 'chart.js';
+import { useSelector } from 'react-redux';
+import { getDefaultOrganization, Organization, OrganizationState } from '@/redux/slice/organizationSlice';
+import { useSession } from 'next-auth/react';
+import { chartMonthlyData } from '@/app/services/logsService';
 
 // Registering Chart.js components
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, ChartTooltip, Legend);
@@ -15,7 +19,7 @@ const chartData = {
     datasets: [
         {
             label: 'PDF Generation Requests',
-            data: [65, 59, 80, 81, 56, 55],
+            data: [],
             fill: false,
             borderColor: '#4caf50',
             tension: 0.1,
@@ -26,8 +30,8 @@ const chartData = {
 const Dashboard = () => {
     // States to manage loading state, data, and other interactions
     const [isLoading, setIsLoading] = useState(true);
-    const [activeOrg, setActiveOrg] = useState('Org 1');
-    const [orgs, setOrgs] = useState(['Org 1', 'Org 2', 'Org 3']);
+    const [activeOrg, setActiveOrg] = useState<Organization>();
+    const [orgs, setOrgs] = useState<Organization[]>([]);
     const [pdfTemplates, setPdfTemplates] = useState<any>([]);
     const [media, setMedia] = useState<any>([]);
     const [integrations, setIntegrations] = useState<any>([]);
@@ -35,10 +39,48 @@ const Dashboard = () => {
     const [copiedCurl, setCopiedCurl] = useState(false);
     const [tooltipToken, setTooltipToken] = useState('Copy');
     const [tooltipCurl, setTooltipCurl] = useState('Copy');
+    const [chartData, setChartData] = useState<any>(null);
+
+    const { organizations } = useSelector((state: any) => state.organization);
+    const currentOrg: Organization | any = useSelector((state: { organization: OrganizationState }) =>
+        getDefaultOrganization(state.organization)
+    );
+    const { data: session }: any = useSession();
 
     // Simulate data fetching
     useEffect(() => {
+        setOrgs(organizations);
+        setActiveOrg(currentOrg);
+
+        const fetchChartData = async () => {
+            await chartMonthlyData(currentOrg.id, session?.user?.token).then((response) => {
+                if (response.status == 200) {
+                    const labels: string[] = response.data.map((item: any) => item.label);
+                    const data = response.data.map((item: any) => item.value);
+                    console.log("Chart data:", data);
+                    setChartData({
+                        labels,
+                        datasets: [
+                            {
+                                label: 'PDF Requests',
+                                data,
+                                borderColor: '#4caf50',
+                                tension: 0.2,
+                                pointBackgroundColor: '#4caf50',
+                            },
+                        ],
+                    });
+                }
+            }).catch((error) => {
+                console.error('Error fetching chart data:', error);
+                setIsLoading(false);
+            });
+        };
+
         setTimeout(() => {
+            if (currentOrg?.id && session?.user?.token) {
+                fetchChartData();
+            }
             setPdfTemplates(['Invoice Template', 'Report Template', 'Receipt Template']);
             setMedia(['Image 1', 'Image 2', 'Image 3']);
             setIntegrations(['Zapier', 'Google Sheets', 'Webhooks']);
@@ -72,7 +114,7 @@ const Dashboard = () => {
             <Card className="p-4 mb-6">
                 <Typography variant="h6">Active Organization</Typography>
                 <Typography variant="body1" sx={{ mb: 2 }}>
-                    {activeOrg}
+                    {activeOrg?.name}
                 </Typography>
                 <Typography variant="body2" sx={{ mb: 2 }}>
                     Switch between organizations to see different data.
@@ -84,12 +126,12 @@ const Dashboard = () => {
                                 sx={{
                                     p: 2,
                                     cursor: 'pointer',
-                                    backgroundColor: activeOrg === org ? '#4caf50' : '#f5f5f5',
-                                    color: activeOrg === org ? '#fff' : '#000',
+                                    backgroundColor: activeOrg?.name === org.name ? '#4caf50' : '#f5f5f5',
+                                    color: activeOrg?.name === org.name ? '#fff' : '#000',
                                 }}
                                 onClick={() => setActiveOrg(org)}
                             >
-                                <Typography>{org}</Typography>
+                                <Typography>{org.name}</Typography>
                             </Card>
                         </Grid2>
                     ))}
@@ -99,7 +141,7 @@ const Dashboard = () => {
             {/* PDF Generation Chart Section */}
             <Card className="p-6 mb-6">
                 <Typography variant="h6" sx={{ mb: 2 }}>
-                    PDF Generation Trends ({activeOrg})
+                    PDF Generation Trends ({activeOrg?.name})
                 </Typography>
                 {isLoading ? (
                     <Skeleton variant="rectangular" width="100%" height={300} />
@@ -167,7 +209,7 @@ const Dashboard = () => {
             {/* PDF Table Overview */}
             <Card className="mt-6 p-6">
                 <Typography variant="h6" sx={{ mb: 2 }}>
-                    PDF Table Overview ({activeOrg})
+                    PDF Table Overview ({activeOrg?.name})
                 </Typography>
                 {isLoading ? (
                     <Skeleton variant="rectangular" width="100%" height={200} />

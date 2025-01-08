@@ -1,6 +1,6 @@
 'use client'
 import React, { useState, useEffect, useCallback } from 'react';
-import { Container, Typography, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, IconButton, Paper, Pagination, Box, CircularProgress, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
+import { Container, Typography, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, IconButton, Paper, Pagination, Box, CircularProgress, FormControl, InputLabel, Select, MenuItem, Skeleton } from '@mui/material';
 import { AddBox as AddBoxIcon, Edit as EditIcon, Delete as DeleteIcon, FastRewind as FastRewindIcon } from '@mui/icons-material';
 import { useSelector } from 'react-redux';
 import { useSession } from 'next-auth/react';
@@ -138,9 +138,9 @@ const PdfTemplatePage: React.FC = () => {
 
     return (
         <Container>
-            <Typography variant="h4" gutterBottom>
+            {/* <Typography variant="h4" gutterBottom>
                 PDF Templates
-            </Typography>
+            </Typography> */}
             {!editMode && (
                 <>
                     <Button variant="outlined" size="large" sx={{ float: 'right', mb: 2 }} color="primary" onClick={() => setEditMode(true)}>
@@ -157,11 +157,13 @@ const PdfTemplatePage: React.FC = () => {
                             </TableHead>
                             <TableBody>
                                 {loading ? (
-                                    <TableRow>
-                                        <TableCell colSpan={3} align="center">
-                                            <CircularProgress />
-                                        </TableCell>
-                                    </TableRow>
+                                    Array.from({ length: 5 }).map((_, index) => (
+                                        <TableRow key={index}>
+                                            <TableCell colSpan={3}>
+                                                <Skeleton variant="rectangular" height={30} />
+                                            </TableCell>
+                                        </TableRow>
+                                    ))
                                 ) : templates.length === 0 ? (
                                     <TableRow>
                                         <TableCell colSpan={3} align="center">
@@ -169,7 +171,7 @@ const PdfTemplatePage: React.FC = () => {
                                         </TableCell>
                                     </TableRow>
                                 ) : templates?.map((template, i) => (
-                                    <TableRow hover key={template.id + i}>
+                                    <TableRow hover key={`${template.id}-${template.name}-${template.addons}`}>
                                         <TableCell>{template.name}</TableCell>
                                         <TableCell>{template?.addons?.join(', ')}</TableCell>
                                         <TableCell>

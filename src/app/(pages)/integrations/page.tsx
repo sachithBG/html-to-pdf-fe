@@ -1,8 +1,12 @@
 'use client'
 
 import { Button, TextField, Typography, Box, IconButton, Tooltip } from '@mui/material';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ContentCopy as ContentCopyIcon, CheckCircle as CheckCircleIcon } from '@mui/icons-material';
+import { generateTokens } from '@/app/services/tokenService';
+import { addOrganizationAll, clearOrganizationState, getDefaultOrganization, Organization, OrganizationState } from '@/redux/slice/organizationSlice';
+import { useDispatch, useSelector } from 'react-redux';
+import { useSession } from 'next-auth/react';
 
 export default function Page() {
     const [token, setToken] = useState('');
@@ -12,11 +16,38 @@ export default function Page() {
     const [tooltipToken, setTooltipToken] = useState('Copy'); // Tooltip text for Token
     const [tooltipCurl, setTooltipCurl] = useState('Copy'); // Tooltip text for cURL Command
 
-    const generateToken = () => {
+    const { organizations } = useSelector((state: any) => state.organization);
+    const currentOrg: Organization | any = useSelector((state: { organization: OrganizationState }) =>
+        getDefaultOrganization(state.organization)
+    );
+    const dispatch = useDispatch();
+    const { data: session }: any = useSession();
+
+    useEffect(() => {
+        currentOrg?.refresh_token
+            ? (setToken(currentOrg.refresh_token), setCurlCommand(`curl -X POST https://api.example.com/access -H "Authorization: Bearer ${currentOrg.refresh_token}"`))
+            : (setToken(''), setCurlCommand(''));
+    }, [currentOrg?.id]);
+
+
+    const generateToken = async () => {
         // Simulate token generation
-        const newToken = 'newly_generated_token';
-        setToken(newToken);
-        setCurlCommand(`curl -X POST https://api.example.com/access -H "Authorization: Bearer ${newToken}"`);
+        generateTokens(currentOrg?.id, session?.user?.token).then((res: any) => {
+            if (res?.status == 200) {
+                // console.log(res)
+                const newToken = res.data?.refreshToken;
+                setToken(newToken);
+                setCurlCommand(`curl -X POST https://api.example.com/access -H "Authorization: Bearer ${newToken}"`);
+                // Update the organizations state with the new token
+                const updatedOrgs = organizations.map((org: any) =>
+                    org.id === currentOrg.id ? { ...org, refresh_token: newToken } : org
+                );
+                dispatch(clearOrganizationState());
+                dispatch(addOrganizationAll(updatedOrgs));
+            }
+        }).catch((err: any) => {
+            console.error(err);
+        });
     };
 
     const handleCopy = (text: any, type: any) => {
@@ -46,8 +77,8 @@ export default function Page() {
 
     return (
         <Box sx={{ p: 3 }}>
-            <Typography variant="h6">Integration Page</Typography>
-            <Button variant="contained" color="primary" onClick={generateToken} sx={{ mt: 2 }}>
+            {/* <Typography variant="h6">Integration Page</Typography> */}
+            <Button variant="contained" color="primary" onClick={generateToken} sx={{ mt: 2 }} disabled={!currentOrg?.id}>
                 Generate Refresh Token
             </Button>
             {token && (
