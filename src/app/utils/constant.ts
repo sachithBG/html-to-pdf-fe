@@ -85,4 +85,26 @@ export const bdy = `<div style="padding: 20px;">
         </tbody>
       </table>
     </div>
-`
+`;
+
+
+export const initialTableData = {
+  initialColumns: 3,
+  initialRows: [
+    { col1: "Data 1", col2: "Data 2", col3: "Data 3" }, // Default row data
+  ],
+  initialStyles: Array.from({ length: 3 }, () => ({
+    backgroundColor: "#f4f4f4", // Default background color
+    fontSize: "14", // Default font size
+    padding: "8px", // Default padding
+    color: "#000", // Default text color
+  })),
+  customHtml: `<table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+                        <thead>
+                            <tr style="background-color: #007bff; color: #ffffff;">
+                                <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Header 1</th>
+                                <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Header 2</th>
+                                <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Header 3</th>
+                            </tr>
+                        </thead><tbody></tbody></table>`
+}

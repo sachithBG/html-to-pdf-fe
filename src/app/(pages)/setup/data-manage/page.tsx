@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button, TextField, Chip, IconButton, Popover, MenuItem, Select, InputLabel, FormControl, Paper, Box, Typography, Checkbox, ListItemText, Grid2, useTheme, Tooltip, Snackbar, Alert, Tabs, Tab, Card, CircularProgress, Skeleton } from '@mui/material';
 import { AddCircle, Edit, Delete } from '@mui/icons-material';
 import { useSession } from 'next-auth/react';
@@ -16,7 +16,8 @@ import SaveIcon from '@mui/icons-material/Save';
 import FileCopyIcon from '@mui/icons-material/FileCopy';
 import CloseIcon from '@mui/icons-material/Close';
 import ExternalKeyManager from '../components/ExternalKeyManager';
-// import axios from 'axios';
+import TemplateDataManager from '../components/TemplateDataManager';
+import ManageAddonsPage from '../components/ManageAddons';
 
 interface Addon {
     id: number;
@@ -93,9 +94,18 @@ const TagManagementPage = () => {
 
     const [chosenAddon, setChosenAddon] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    // const [templates, setTemplates] = useState<any[]>([
+    //     { id: '1', name: 'Template 1', json: '{ "key": "value" }' },
+    //     { id: '2', name: 'Template 2', json: '{ "example": 123 }' },
+    // ]);
+
+    // const fetchLatestAddons = useCallback(async (addons: any[]) => {
+    //     setAddons((prev) => addons);
+    // }, [currentOrg?.id, tabValue]);
 
     useEffect(() => {
         // Fetch the available addons from the API
+        // alert(tabValue)
         const fetchAddons = async () => {
             try {
                 setIsLoading(true);
@@ -125,7 +135,7 @@ const TagManagementPage = () => {
             setAddons([]);
             setTags([]);
         }
-    }, [currentOrg?.id]);
+    }, [currentOrg?.id, tabValue]);
 
     const handleAddonChange = async (event: any) => {
         setSelectedAddons(event.target.value);
@@ -180,8 +190,6 @@ const TagManagementPage = () => {
             console.error("Error fetching addons:", error);
         }
     };
-
-
 
     const handleDeleteTag = async (tagId: number) => {
         try {
@@ -258,6 +266,15 @@ const TagManagementPage = () => {
         setChosenAddon(event.target.value);
     };
 
+    // template data -----------------------------------------------
+    // const handleSaveTemplate = (updatedTemplate: any) => {
+    //     setTemplates((prevTemplates) =>
+    //         prevTemplates.map((template) =>
+    //             template.id === updatedTemplate.id ? updatedTemplate : template
+    //         )
+    //     );
+    // };
+
     return (
         <Box className="container mx-auto p-4">
             <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
@@ -332,7 +349,7 @@ const TagManagementPage = () => {
                 />
 
                 {/* Save Button */}
-                <Button variant="contained" color="primary" onClick={handleSaveTag}>
+                <Button variant="contained" color="primary" sx={{ float: 'right' }} onClick={handleSaveTag}>
                     Save Tag
                 </Button>
 
@@ -500,10 +517,14 @@ const TagManagementPage = () => {
                 )}
             </CustomTabPanel>
             <CustomTabPanel value={tabValue} index={2}>
-                ....
+                {isLoading ? (
+                    <CircularProgress />
+                ) : (
+                    <TemplateDataManager />
+                )}
             </CustomTabPanel>
             <CustomTabPanel value={tabValue} index={3}>
-                ....
+                <ManageAddonsPage />
             </CustomTabPanel>
         </Box>
     );

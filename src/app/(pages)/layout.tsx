@@ -58,7 +58,7 @@ const NAVIGATION: Navigation | any = [
     },
     {
         segment: 'test',
-        title: 'Test  (PLANED ...)',
+        title: 'TestZone',
         icon: <ReceiptIcon />,
     },
     {
@@ -88,7 +88,7 @@ const NAVIGATION: Navigation | any = [
             },
             {
                 segment: 'table-manage',
-                title: 'Table Manage (PLANED ...)',
+                title: 'Table Manage',
                 icon: <BackupTableIcon />,
             },
             {

@@ -98,7 +98,7 @@ const PdfPreviewButton = ({ htmlContent, isIconButton, id }: { htmlContent: stri
                         border: '2px solid #000',
                         boxShadow: 24,
                         p: 4,
-                        pb: 20,
+                        pb: 15,
                         overflow: 'hidden',
                     }}
                 >
@@ -143,9 +143,9 @@ const PdfPreviewButton = ({ htmlContent, isIconButton, id }: { htmlContent: stri
                     {/* Close button */}
                     <Button
                         variant="contained"
-                        color="secondary"
+                        color="info"
                         onClick={handleClose}
-                        sx={{ mt: 2 }}
+                        sx={{ mt: 2, float: 'right' }}
                     >
                         Close
                     </Button>

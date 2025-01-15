@@ -146,7 +146,7 @@ const PdfTemplatePage: React.FC = () => {
             </Typography> */}
             {!editMode && (
                 <>
-                    <Button variant="outlined" size="large" sx={{ float: 'right', mb: 2 }} color="primary" onClick={() => setEditMode(true)}>
+                    <Button variant="outlined" size="small" sx={{ float: 'right', mb: 2 }} color="primary" onClick={() => setEditMode(true)}>
                         New &nbsp;<AddBoxIcon fontSize="inherit" />
                     </Button>
                     <TableContainer component={Paper} style={{ marginTop: '20px', minHeight: 500 }}>
@@ -236,7 +236,7 @@ const PdfTemplatePage: React.FC = () => {
             )}
             {editMode && (
                 <>
-                    <Button variant="outlined" size="large" color="primary" onClick={() => handleBack(false)}>
+                    <Button variant="outlined" size="large" color="primary" onClick={() => handleBack(true)}>
                         <FastRewindIcon fontSize="inherit" />&nbsp;Back
                     </Button>
                     <HtmlToPdfEditor addons_={addons_} handleBack={handleBack} id={selectedTemplate ? selectedTemplate?.id : undefined} />

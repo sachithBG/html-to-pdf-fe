@@ -190,7 +190,7 @@ const HtmlTestEditor = () => {
                                 </body>
                                 <footer>${footerContent}</footer>
                             </html>
-                            `} />
+                            `} id={null} isIconButton={false} />
                     </Grid>
                     <Grid >
                         <Button

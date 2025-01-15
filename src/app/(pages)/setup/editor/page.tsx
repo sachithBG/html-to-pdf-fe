@@ -75,7 +75,7 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
     const [isLoding, setIsLoding] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
     const [isGenerating, setIsGenerating] = useState(false);
-    const [isEditMode, setIsEditMode] = useState(false);
+    const [isEditMode, setIsEditMode] = useState(id ? true : false);
 
     const { data: session }: any = useSession();
 
@@ -189,7 +189,7 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
     // Fetch Initial Data for Edit Mode
     useEffect(() => {
         if (id) {
-            setIsEditMode(true);
+            setIsEditMode((prev) => true);
             setIsLoding(true);
             const fetchData = async () => {
                 try {
@@ -279,8 +279,8 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
             } else {
                 const response = !isEditMode ? await createPdfTemplate(payload, session?.user?.token) :
                     await updatePdfTemplate(id, { ...payload, id: id }, session?.user?.token);
-                if (response.status == 201 || response.status == 200) {
-                    // handleBack(true);
+                if (response.status == 201) {
+                    handleBack(true);
                 }
             }
 
@@ -918,7 +918,7 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
                 <Button
                     variant="contained"
                     color="primary"
-                    onClick={handleGeneratePdf}
+                    onClick={savePdfTmpl}
                     startIcon={<SaveIcon />}
                     disabled={selectedAddons.length === 0 || isUploading}
                     sx={{ float: 'right' }}

@@ -56,6 +56,15 @@ export const readAllPdfTemplatePage = async (
 export const updatePdfTemplate = async (id: number, data: any, token: string) => {
     return API.put(`/pdf-templates/resource/${id}`, data, {
         headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json"
+        }
+    });
+}
+
+export const updateDummyDataPdfTemplate = async (id: number, data: any, token: string) => {
+    return API.put(`/pdf-templates/resource/dummy-data/${id}`, { json: data }, {
+        headers: {
             Authorization: `Bearer ${token}`
         }
     });

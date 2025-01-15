@@ -1,152 +1,369 @@
-"use client";
-import { SyntheticEvent, useCallback, useState } from 'react';
-import Box from '@mui/material/Box';
-import Tab from '@mui/material/Tab';
-import TabContext from '@mui/lab/TabContext';
-import TabList from '@mui/lab/TabList';
-import TabPanel from '@mui/lab/TabPanel';
+'use client'
+import React, { useState, useEffect, useCallback, SyntheticEvent } from 'react';
+import {
+    Box,
+    Tab,
+    Tabs,
+    Typography,
+    Paper,
+    Skeleton,
+    TextField,
+    MenuItem,
+    Select,
+    FormControl,
+    InputLabel,
+    Snackbar,
+    Alert,
+    IconButton,
+    Tooltip,
+    Pagination,
+    Button
+} from '@mui/material';
+import { TabContext, TabPanel } from '@mui/lab';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import { useSelector } from 'react-redux';
+import { useSession } from 'next-auth/react';
+import { findAllAddons } from '@/app/services/addonService';
+import { getDefaultOrganization, Organization, OrganizationState } from '@/redux/slice/organizationSlice';
 import TableManagePage from '../components/tableManagePage';
-import HorizontalNonLinearStepperTblCreation from '../components/horizontalNonLinearStepperTblCreation';
-import { Stack } from '@mui/system';
-import { Chip, Typography } from '@mui/material';
+import { createPdfTable, deletePdfTable, getPdfTable, readAllPdfTablePage, updatePdfTable } from '@/app/services/dynamicHtmlTableService';
+import { initialTableData } from '@/app/utils/constant';
+import { AddBox as AddBoxIcon } from '@mui/icons-material';
 
+const PdfTableManager = () => {
+    const [tabValue, setTabValue] = useState('1');
+    const [isLoading, setIsLoading] = useState(false);
+    const [addons, setAddons] = useState([]);
+    const [tag, setTag] = useState<any>({ id: null, name: '', field_path: '' });
+    const [tables, setTables] = useState([]);
+    // const [pdfTable, setPdfTable] = useState({});
+    const [selectedAddon, setSelectedAddon] = useState<any[]>([]);
+    const [name, setName] = useState('');
+    // const [tableTag, setTableTag] = useState('');
+    const [error, setError] = useState('');
+    const [snackbarOpen, setSnackbarOpen] = useState(false);
+    const [snackbarMessage, setSnackbarMessage] = useState('');
+    const [snackbarOpenError, setSnackbarOpenError] = useState(false);
+    const [snackbarErrorMessage, setSnackbarErrorMessage] = useState('');
+    // const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+    const [currentTable, setCurrentTable] = useState<any>({
+        custom_html: initialTableData.customHtml, table_rows: initialTableData.initialRows,
+        cell_styles: initialTableData.initialStyles, num_columns: initialTableData.initialColumns
+    });
+    const [totalPages, setTotalPages] = useState(0);
+    const [currentPage, setCurrentPage] = useState(1);
+    const pageSize = 10; // Adjust the page size as needed
 
-const addons_ = [
-    { id: 1, name: 'TEXT!' },
-    { id: 2, name: 'TEXT2!' },
-    { id: 3, name: 'TEXT3!' },
-    { id: 4, name: 'TEXT4!' },
-];
+    const currentOrg: Organization | any = useSelector((state: { organization: OrganizationState }) =>
+        getDefaultOrganization(state.organization)
+    );
+    const { data: session }: any = useSession();
 
-export default function LabTabs() {
-    const [value, setValue] = useState('1');
-    const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
-    const [selectedAddonsV2, setSelectedAddonsV2] = useState<any[]>([]);
-    const [addons, setAddons] = useState<any[]>(addons_);
-    const [tagKey, setTagKey] = useState('');
-    const [completed, setCompleted] = useState<{ [k: number]: boolean }>({});
-    const [activeStep, setActiveStep] = useState(0);
-    const [tag, setTag] = useState();
+    // Fetch tables with pagination
+    const fetchTables = useCallback(async (orgId: number, page: number, token: string) => {
+        if (!orgId) return;
+        setIsLoading(true);
+        try {
+            // Replace with your API call to fetch tables for the page
+            const response = await readAllPdfTablePage(orgId, token, {
+                sortOrder: 'desc',
+                startFrom: (page - 1) * pageSize,
+                to: pageSize,
+                search: '',
+                sortBy: 'name'
+            });
+            const data = response.data?.data;
+            setTables(data?.data); // Assuming response contains paginated table data
+            setTotalPages(Math.ceil(data?.total / pageSize)); // Calculate total pages for pagination
+        } catch (error) {
+            console.error('Error fetching tables:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    }, [currentPage, currentOrg?.id]);
 
-    const handleChange = (event: SyntheticEvent, newValue: string) => {
-        setValue(newValue);
+    const fetchTable = useCallback(async (id: number) => {
+        setIsLoading(true);
+        try {
+            // Replace with your API call to fetch tables for the page
+            const response = await getPdfTable(id, session?.user?.token);
+            if (response.status == 200) {
+                setCurrentTable((prev: any) => response.data);
+                let tg = response.data?.tag;
+                if (tg) tg = { ...tg, field_path: tg.field_path.replace('._table_', '') }
+                setTag((prev: any) => tg || { id: null, name: '', field_path: '' });
+                setSelectedAddon(response.data?.addon_ids || []);
+                setName(response.data?.name)
+            }
+        } catch (error) {
+            console.error('Error fetching tables:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    }, [session?.user?.token]);
+
+    const fetchAddons = useCallback(async (orgId: number, token: string) => {
+        // alert(token)
+        if (orgId) {
+            try {
+                const response = await findAllAddons(orgId, token);
+                // console.log(response.data)
+                if (response.status == 200) {
+                    setAddons((prev) => response.data);
+                    setSelectedAddon([]);
+                }
+            } catch (error) {
+                console.error("Error fetching addons:", error);
+            }
+        }
+    }, [currentOrg?.id]);
+
+    useEffect(() => {
+        setIsLoading(true);
+        const tout = setTimeout(() => {
+            if (currentOrg?.id) {
+                fetchAddons(currentOrg.id, session?.user?.token);
+                fetchTables(currentOrg.id, currentPage, session?.user?.token);
+            } else {
+                setIsLoading(false);
+            }
+        }, 1000);
+        return () => {
+            clearTimeout(tout)
+        }
+    }, [currentOrg?.id]);
+
+    // Handle tab change
+    const handleTabChange = (event: SyntheticEvent, newValue: string) => {
+        setTabValue(newValue);
     };
 
+    // Handle snackbar close
+    const handleSnackbarClose = () => {
+        setSnackbarOpen(false);
+        setSnackbarOpenError(false);
+    };
 
-    // Memoizing the function to handle addon selection change
-    const handleAddonChange = useCallback((event: any) => {
-        let val = event.target.value as string[];
-        console.log(val);
-        setSelectedAddons(() => val);
-        setSelectedAddonsV2((pr) => addons.filter((addon: any) => val.includes(addon.id)));
-    }, []);
+    // Handle edit
+    const handleEdit = (table: any) => {
+        fetchTable(table.id);
+        setTabValue("2");
+        // setCurrentTable(table);
+        // setSelectedAddon(table.addonId);
+        // setTableKey(table.key);
+        // setIsEditDialogOpen(true);
+    };
 
-    // Memoizing the function to handle key input change
-    const handleKeyChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-        // console.log(event.target.value);
-        setTagKey(() => event.target.value);
-    }, []);
-
-    // Memoizing the function to handle step completion
-    const handleCompleteStep = useCallback(async () => {
-        const response = await fetch(process.env.NEXT_PUBLIC_BASE_URL + 'v1/tag', {
-            method: 'POST',
-            body: JSON.stringify({ addons: selectedAddonsV2, key: tagKey }),
-            headers: { 'Content-Type': 'application/json' },
+    // Handle new
+    const handleNew = () => {
+        console.log('e')
+        setCurrentTable((prev: any) => {
+            return {
+                custom_html: initialTableData.customHtml, table_rows: initialTableData.initialRows,
+                cell_styles: initialTableData.initialStyles, num_columns: initialTableData.initialColumns
+            }
         });
+        setTag((prev: any) => { return { id: null, name: '', field_path: '' } });
+        setSelectedAddon([]);
+        setName('')
+        setTabValue("2");
+        // setCurrentTable(table);
+        // setSelectedAddon(table.addonId);
+        // setTableKey(table.key);
+        // setIsEditDialogOpen(true);
+    };
 
-        if (response.ok) {
-            const data = await response.json();
-            console.log(data.data);
-            setTag(() => data.data);
-            setCompleted({
-                ...completed,
-                [activeStep]: true,
-            });
-            // Proceed to the next step after successful completion
-            setActiveStep((prevStep) => prevStep + 1);
-        } else {
-            console.error('Failed to complete');
-            setCompleted({
-                ...completed,
-                [activeStep]: true,
-            });
-            setActiveStep((prevStep) => prevStep + 1);
+    // Handle delete
+    const handleDelete = async (id: string) => {
+        try {
+            await deletePdfTable(id, session?.user?.token);
+            fetchTables(currentOrg.id, currentPage, session?.user?.token); // Refresh the table list after deletion
+            setSnackbarMessage('Table deleted successfully.');
+            setSnackbarOpen(true);
+        } catch (error) {
+            console.error('Error deleting table:', error);
         }
-    }, [selectedAddons, tagKey, activeStep, completed]);
+    };
 
-    // Memoizing the function to handle moving to the next step
-    const handleNext = useCallback(() => {
-        setActiveStep((prevActiveStep) => prevActiveStep + 1);
+    // Handle form submission
+    const handleSubmit = useCallback(async (tableData: any) => {
+        console.log(name)
+        if (!selectedAddon || !name || !tag.field_path) {
+            setError('All fields are required.');
+            return;
+        }
+        try {
+            const payload = {
+                ...tableData, name: name, organization_id: currentOrg?.id, addon_ids: selectedAddon,
+                tag_id: tag.id, tag: tag
+            };
+            if (currentTable.id) {
+                // Update table
+                const res = await updatePdfTable(currentTable.id, payload, session?.user?.token);
+                if (res.status == 200) {
+                    setCurrentTable(res.data);
+                    setTag(res.data?.tag || { id: null, name: '', field_path: '' })
+                }
+            } else {
+                // Create table
+                const res = await createPdfTable(payload, session?.user?.token);
+                if (res.status == 201) {
+                    setCurrentTable(res.data);
+                    setTag(res.data?.tag || { id: null, name: '', field_path: '' })
+                }
+            }
+
+            // setIsEditDialogOpen(false);
+            fetchTables(currentOrg.id, currentPage, session?.user?.token);
+            setSnackbarMessage(currentTable ? 'Table updated successfully.' : 'Table created successfully.');
+            setSnackbarOpen(true);
+        } catch (error: any) {
+            setSnackbarOpenError(true);
+            setError('Error saving table: ' + error?.response?.data?.error || error);
+            setSnackbarErrorMessage('Error saving table: ' + error?.response?.data?.error || error)
+            console.error('Error saving table:', error?.response?.data?.error || error);
+        } finally {
+        }
+    }, [name, selectedAddon, tag.field_path, tag.id, currentTable.id]);
+
+    // Handle page change
+    const handlePageChange = (event: any, newPage: number) => {
+        setCurrentPage(newPage);
+    };
+
+    // Cleanup when the component unmounts
+    useEffect(() => {
+        return () => {
+            setTables([]); // Reset tables on component unmount
+            setAddons([]);
+            setTag({ id: null, name: '', field_path: '' });
+            setSelectedAddon([]);
+            // setTableKey('');
+            setError('');
+        };
     }, []);
-
-    // Memoizing the function to handle going back to the previous step
-    const handleBack = useCallback(() => {
-        setActiveStep((prevActiveStep) => prevActiveStep - 1);
-    }, []);
-
-
 
     return (
-        <Box sx={{ width: '100%', typography: 'body1' }}>
-            <TabContext value={value}>
+        <Box sx={{ width: '100%' }}>
+            <TabContext value={tabValue}>
+                <Button sx={{ mx: 3, mt: 1, float: 'right' }} size='small' variant="outlined" onClick={handleNew}>
+                    New &nbsp;<AddBoxIcon fontSize="inherit" />
+                </Button>
                 <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-                    <TabList onChange={handleChange} aria-label="lab API tabs example">
-                        <Tab label="All Tables" value="1" />
-                        <Tab label="New Table" value="2" />
-                        {/* <Tab label="Item Three" value="3" /> */}
-                    </TabList>
+                    <Tabs value={tabValue} onChange={handleTabChange}>
+                        <Tab label="List PDF Tables" value="1" />
+                        <Tab label="New / Edit Table" value="2" />
+                    </Tabs>
                 </Box>
-                <TabPanel value="1">table of image list</TabPanel>
-                <TabPanel value="2">
-                    {
-                        completed[1] ?
-                            <>
-                                {/* Main container */}
-                                <Box className="flex flex-col md:flex-row md:space-x-8 p-4">
-                                    {/* Left Column: Selected Addons */}
-                                    <Box className="mb-4 md:mb-0 flex-1">
-
-                                        <Stack direction="row" spacing={1} flexWrap="wrap">
-                                            <Typography className="font-bold text-lg mb-2">Selected Addons : </Typography>
-                                            {selectedAddonsV2.map((dd: any) => (
-                                                <Typography key={dd.id} variant='inherit' >{dd.name} , </Typography>
-                                            ))}
-                                        </Stack>
-                                    </Box>
-
-                                    {/* Right Column: Key */}
-                                    <Box className="flex-1">
-                                        {/* <h3 className="font-bold text-lg mb-2">Key</h3> */}
-                                        <Stack direction="row" spacing={1}>
-                                            <Typography className="font-bold text-lg mb-2">Key : </Typography>
-                                            <Typography variant='inherit' > {' {{' + tagKey + '}}'}</Typography>
-                                        </Stack>
+                <TabPanel value="1">
+                    {isLoading ? (
+                        <Skeleton variant="rectangular" width="100%" height={200} />
+                    ) : (
+                        <Paper>
+                            {tables.map((table: any) => (
+                                <Box key={table.id} sx={{ display: 'flex', justifyContent: 'space-between', p: 2 }}>
+                                    <Typography>{table.name}</Typography>
+                                    <Box>
+                                        <Tooltip title="Copy Key">
+                                            <IconButton onClick={() => navigator.clipboard.writeText(table.field_path)}>
+                                                <ContentCopyIcon />
+                                            </IconButton>
+                                        </Tooltip>
+                                        <Tooltip title="Edit">
+                                            <IconButton onClick={() => handleEdit(table)}>
+                                                <EditIcon />
+                                            </IconButton>
+                                        </Tooltip>
+                                        <Tooltip title="Delete">
+                                            <IconButton onClick={() => handleDelete(table.id)}>
+                                                <DeleteIcon />
+                                            </IconButton>
+                                        </Tooltip>
                                     </Box>
                                 </Box>
+                            ))}
+                        </Paper>
+                    )}
+                    <Pagination
+                        count={totalPages}
+                        page={currentPage}
+                        onChange={handlePageChange}
+                        sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}
+                    />
+                </TabPanel>
+                <TabPanel value="2">
+                    {/* <Button sx={{ my: 5, float: 'right' }} size='small' variant="contained" onClick={()=> handleSubmit()}>
+                        {currentTable ? 'Update Table' : 'Create Table'}
+                    </Button> */}
+                    <TextField
+                        label="Name"
+                        value={name}
+                        onChange={(e) => { setName((prev) => e.target.value); setError(''); }}
+                        fullWidth
+                        sx={{ mb: 2 }}
+                    />
+                    <FormControl fullWidth sx={{ my: 2 }}>
+                        <InputLabel id="select-label-addon">Addon</InputLabel>
+                        <Select
+                            value={selectedAddon}
+                            multiple
+                            onChange={(e: any) => { setSelectedAddon((prev) => e.target.value); setError(''); }}
+                            // displayEmpty
+                            label="Addon"
+                            labelId="select-label-addon"
+                            id="demo-simple-select"
+                        >
+                            {addons.map((addon: any) => (
+                                <MenuItem key={addon.id} value={addon.id}>
+                                    {addon.name}
+                                </MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+                    {/* <FormControl fullWidth sx={{ mb: 2 }}>
+                        <InputLabel>Type/Status</InputLabel>
+                        <Select
+                            value={typeStatus}
+                            onChange={(e) => setTypeStatus(e.target.value)}
+                            // displayEmpty
+                            disabled={!selectedAddon}
+                            label="Type/Status"
+                        >
+                            {types.map((type: any) => (
+                                <MenuItem key={type.id} value={type.id}>
+                                    {type.key_value}
+                                </MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl> */}
 
-                                {/* Table Component */}
-                                <TableManagePage id={null} tag={tag} />
-                            </>
-
-                            :
-                            <HorizontalNonLinearStepperTblCreation
-                                addons={addons}
-                                selectedAddons={selectedAddons}
-                                tag={tagKey}
-                                activeStep={activeStep}
-                                completed={completed}
-                                handleAddonChange={handleAddonChange}
-                                handleKeyChange={handleKeyChange}
-                                handleCompleteStep={handleCompleteStep}
-                                handleNext={handleNext}
-                                handleBack={handleBack}
-                            />
-                    }
+                    <TextField
+                        label="Key"
+                        value={tag.field_path}
+                        onChange={(e) => setTag((prev: any) => { setError(''); return { ...prev, field_path: e.target.value } })}
+                        fullWidth
+                        sx={{ mb: 2 }}
+                    />
+                    {error && <Alert severity="error">{error}</Alert>}
+                    <TableManagePage id={currentTable?.id} fetchTable={fetchTable}
+                        handleSubmit={handleSubmit} currentTable={currentTable} />
 
                 </TabPanel>
-                {/* <TabPanel value="3">Item Three</TabPanel> */}
             </TabContext>
+            <Snackbar open={snackbarOpen} autoHideDuration={3000} onClose={handleSnackbarClose} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
+                <Alert onClose={handleSnackbarClose} severity='success' >
+                    {snackbarMessage}
+                </Alert>
+            </Snackbar>
+            <Snackbar open={snackbarOpenError} autoHideDuration={3000} onClose={handleSnackbarClose} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
+                <Alert onClose={handleSnackbarClose} severity='warning' >
+                    {snackbarErrorMessage}
+                </Alert>
+            </Snackbar>
         </Box>
     );
-}
+};
+
+export default PdfTableManager;

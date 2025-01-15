@@ -1,39 +1,20 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { TextField, Button, Typography, Box, InputAdornment, Grid2 } from "@mui/material";
+import { useSession } from "next-auth/react";
 
-const initialData = {
-    initialColumns: 3,
-    initialRows: [
-        { col1: "Data 1", col2: "Data 2", col3: "Data 3" }, // Default row data
-    ],
-    initialStyles: Array.from({ length: 3 }, () => ({
-        backgroundColor: "#f4f4f4", // Default background color
-        fontSize: "14", // Default font size
-        padding: "8px", // Default padding
-        color: "#000", // Default text color
-    })),
-    customHtml: `<table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
-                        <thead>
-                            <tr style="background-color: #007bff; color: #ffffff;">
-                                <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Header 1</th>
-                                <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Header 2</th>
-                                <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Header 3</th>
-                            </tr>
-                        </thead><tbody></tbody></table>`
-}
 
-const TableManagePage = ({ id, tag }: any) => {
-    const initialColumns = initialData.initialColumns; // Initial number of columns
-    const initialRows = initialData.initialRows;
-    const initialStyles: any[] = initialData.initialStyles;
+const TableManagePage = ({ id, fetchTable, handleSubmit, currentTable }: any) => {
 
-    const [rows, setRows] = useState<any>(initialRows); // Row data
-    const [numColumns, setNumColumns] = useState(initialColumns); // Number of columns
-    const [customHtml, setCustomHtml] = useState(initialData.customHtml); // Custom HTML table
+    const [rows, setRows] = useState<any>(currentTable.table_rows); // Row data
+    const [colKeys, setColKeys] = useState<any>(currentTable.col_keys || {}); // Row data
+    const [numColumns, setNumColumns] = useState(currentTable.num_columns); // Number of columns
+    const [customHtml, setCustomHtml] = useState(currentTable.custom_html); // Custom HTML table
     const [previewHtml, setPreviewHtml] = useState(""); // Preview HTML table
-    const [cellStyles, setCellStyles] = useState(initialStyles); // Cell styles
-    const [isEdit, setIsEdit] = useState(id && Number(id) > 0); // Flag to check if editing existing table
+    const [cellStyles, setCellStyles] = useState(currentTable.cell_styles); // Cell styles
+    const [isEdit, setIsEdit] = useState<boolean>(id && Number(id) > 0); // Flag to check if editing existing table
+
+    const { data: session }: any = useSession();
 
     // Handle changes to form inputs for dynamic rows
     const handleRowChange = (e: React.ChangeEvent<HTMLInputElement> | any, index: number) => {
@@ -42,6 +23,17 @@ const TableManagePage = ({ id, tag }: any) => {
             const updatedRows = [...prevRows];
             updatedRows[index][name] = value;
             generatePreview(updatedRows); // Regenerate preview when data changes
+            return updatedRows;
+        });
+    };
+
+    const handleColKeyChange = (e: React.ChangeEvent<HTMLInputElement> | any) => {
+        const { name, value } = e.target;
+        // console.log(colKeys)
+        setColKeys((prev: any) => {
+            const updatedRows = { ...prev };
+            updatedRows[name] = value;
+            // generatePreview(updatedRows); // Regenerate preview when data changes
             return updatedRows;
         });
     };
@@ -79,7 +71,7 @@ const TableManagePage = ({ id, tag }: any) => {
 
     // Handle changes to individual cell styles (background, font size, padding, text color)
     const handleCellStyleChange = (index: number, style: string, value: string) => {
-        setCellStyles((prevStyles) => {
+        setCellStyles((prevStyles: any) => {
             const updatedStyles = [...prevStyles];
             updatedStyles[index] = { ...updatedStyles[index], [style]: value };
             generatePreview(rows); // Regenerate preview when styles are updated
@@ -116,26 +108,14 @@ const TableManagePage = ({ id, tag }: any) => {
     };
 
     // Function to save table data (called when the user clicks save)
-    const saveTableData = async () => {
-        const tableData = {
-            customHtml,
-            rows,
-            cellStyles,
-            numColumns,
-            tag
-        };
-        try {
-            // Make API call to save table data
-            const response = await fetch(process.env.NEXT_PUBLIC_BASE_URL + "v1/dynamic-html-table", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(tableData),
-            });
-            const result = await response.json();
-            alert(result.message);
-        } catch (error) {
-            console.error("Error saving table data:", error);
-        }
+    const saveTableData = async (e: any) => {
+        e.preventDefault();
+        handleSubmit({
+            ...currentTable,
+            custom_html: customHtml, table_rows: rows,
+            cell_styles: cellStyles, num_columns: numColumns,
+            col_keys: colKeys
+        });
     };
 
     useEffect(() => {
@@ -145,21 +125,28 @@ const TableManagePage = ({ id, tag }: any) => {
     useEffect(() => {
         if (id) {
             // Make API call to save table data
-            fetch(process.env.NEXT_PUBLIC_BASE_URL + "dynamic-html-table/" + id, {
-                method: "GET",
-                headers: { "Content-Type": "application/json" }
-            }).then(response => {
-                return response.json()
-            }).then(res => {
-                alert(res.message);
-            }).catch(error => {
-                console.error("Error saving table data:", error);
-            });
+            setIsEdit((prev) => true);
+            fetchTable(id);
+            // getExternalKey(id, session?.user?.token)
+            setRows(currentTable.table_rows);
+            setColKeys(currentTable.col_keys);
+            setNumColumns(currentTable.num_columns);
+            setCustomHtml(currentTable.custom_html);
+            setCellStyles(currentTable.cell_styles);
+            //     .then(response => {
+            //         let data = response.data;
+            //         setRows(data.table_rows);
+            //         setCustomHtml(data.custom_html);
+            //         setCellStyles(data.cell_styles);
+            //         setNumColumns(data.num_columns);
+            //     }).catch(error => {
+            //         console.error("Error saving table data:", error);
+            //     });
         }
-    }, []);
+    }, [id]);
 
     return (
-        <Box sx={{ padding: 4, maxWidth: '1200px', margin: '0 auto' }} className="space-y-6">
+        <Box sx={{ margin: '0 auto' }} className="space-y-6">
             {/* <Typography variant="h4" className="text-center font-bold mb-6">
                 {isEdit ? "Edit Table" : "Create Table"}
             </Typography> */}
@@ -177,6 +164,26 @@ const TableManagePage = ({ id, tag }: any) => {
                     sx={{ marginBottom: 2, mt: 4 }}
                     inputProps={{ min: 1, max: 6 }}
                 />
+
+                <Typography variant="h6" className="mb-2">Table Col Keys</Typography>
+
+                {/* Dynamic Table Col Key Input */}
+
+                <Box className="flex items-center space-x-2 mb-3 mt-3">
+                    {Array.from({ length: numColumns }).map((_, colIndex) => (
+                        <TextField
+                            key={colIndex}
+                            label={`Column Key ${colIndex + 1}`}
+                            name={`col_key${colIndex + 1}`}
+                            value={colKeys[`col_key${colIndex + 1}`] || ""}
+                            onChange={(e) => handleColKeyChange(e)}
+                            variant="outlined"
+                            fullWidth
+                            className="flex-1"
+                            size="small"
+                        />
+                    ))}
+                </Box>
 
                 {/* Custom HTML Textarea */}
                 <Typography variant="body1" className="mb-2">Custom HTML Table</Typography>
@@ -310,8 +317,9 @@ const TableManagePage = ({ id, tag }: any) => {
                 variant="contained"
                 color="primary"
                 onClick={saveTableData}
-                size="large"
+                size="small"
                 className="mt-6"
+                sx={{ mt: 5, float: 'right' }}
             >
                 {isEdit ? "Update Table" : "Create Table"}
             </Button>
