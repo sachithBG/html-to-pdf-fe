@@ -17,7 +17,7 @@ import ListItem from '@mui/material/ListItem';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import { Avatar, Menu, MenuItem, useMediaQuery } from '@mui/material';
-import { Settings, Storage, Image, Brightness7, Brightness4 } from '@mui/icons-material';
+import { Settings, Storage, Image as Img, Brightness7, Brightness4 } from '@mui/icons-material';
 import Link from 'next/link';
 import { toggleTheme } from '@/redux/slice/ToggleTheme';
 import { useDispatch, useSelector } from 'react-redux';
@@ -205,7 +205,7 @@ export default function MyLayout({ children }: { children: React.ReactNode }) {
                     </ListItem>
                     <Divider />
                     <ListItem component={Link} href="/setup/media">
-                        <ListItemIcon><Image /></ListItemIcon>
+                        <ListItemIcon><Img /></ListItemIcon>
                         <ListItemText primary="Media" />
                     </ListItem>
                 </List>

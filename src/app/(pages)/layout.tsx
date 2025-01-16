@@ -1,30 +1,27 @@
 "use client";
 import * as React from 'react';
-import { extendTheme, styled } from '@mui/material/styles';
+import { extendTheme } from '@mui/material/styles';
 import DashboardIcon from '@mui/icons-material/Dashboard';
-import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import BarChartIcon from '@mui/icons-material/BarChart';
-import DescriptionIcon from '@mui/icons-material/Description';
 import LayersIcon from '@mui/icons-material/Layers';
-import { AppProvider, Router, type Session } from '@toolpad/core/AppProvider';
+import { AppProvider, Router } from '@toolpad/core/AppProvider';
 import { DashboardLayout, SidebarFooterProps } from '@toolpad/core/DashboardLayout';
 import { PageContainer } from '@toolpad/core/PageContainer';
 import Grid from '@mui/material/Grid2';
-import { Settings, Storage, Image, Brightness7, Brightness4 } from '@mui/icons-material';
+import { Storage, Image as Img } from '@mui/icons-material';
 import { usePathname, useRouter } from 'next/navigation';
-import { Box, IconButton, Typography } from '@mui/material';
+import { Box } from '@mui/material';
 import LineStyleIcon from '@mui/icons-material/LineStyle';
 import ReceiptIcon from '@mui/icons-material/Receipt';
 import AddCardIcon from '@mui/icons-material/AddCard';
 import BallotIcon from '@mui/icons-material/Ballot';
 import BackupTableIcon from '@mui/icons-material/BackupTable';
 import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
-import SignIn from './auth/ThemeSignInPage';
 import AccountSlotsAccountSwitcher from './auth/components/AccountSlotsAccountSwitcher';
 
-import { SessionProvider, useSession } from 'next-auth/react';
+import { useSession } from 'next-auth/react';
 import { useSelector } from 'react-redux';
-import AuthGuard from './guard/authGuard';
+import { authEvents } from '../utils/authEvents';
 
 type NavigationItem = {
     topNav?: {
@@ -94,7 +91,7 @@ const NAVIGATION: Navigation | any = [
             {
                 segment: 'media',
                 title: 'Media  (PLANED ...)',
-                icon: <Image />,
+                icon: <Img />,
             },
             {
                 segment: 'data-manage',
@@ -164,25 +161,30 @@ const demoTheme = extendTheme({
 function useDemoRouter(initialPath: string): Router {
     const [pathname, setPathname] = React.useState(initialPath);
     const nextRouter = useRouter();
+    const { status }: any = useSession();
 
     return {
         pathname,
         searchParams: new URLSearchParams(),
         navigate: (path: string | URL) => {
-            if (path == '/setup') path = '/setup/editor';
+            if (path == '/setup') {
+                path = '/setup/editor';
+            } else if (status === 'unauthenticated') {
+                path = '/dashboard';
+                authEvents.emit('triggerSignIn');
+            }
             nextRouter.push(String(path));
             return setPathname(String(path));
-
         },
     };
 }
 
-const Skeleton = styled('div')<{ height: number }>(({ theme, height }) => ({
-    backgroundColor: theme.palette.action.hover,
-    borderRadius: theme.shape.borderRadius,
-    height,
-    content: '" "',
-}));
+// const Skeleton = styled('div')<{ height: number }>(({ theme, height }) => ({
+//     backgroundColor: theme.palette.action.hover,
+//     borderRadius: theme.shape.borderRadius,
+//     height,
+//     content: '" "',
+// }));
 
 function SidebarFooter({ mini }: SidebarFooterProps) {
     const { organizations } = useSelector((state: any) => state.organization);
@@ -207,7 +209,12 @@ export default function DashboardLayoutBasic(props: any) {
     const [mounted, setMounted] = React.useState(false);
     // cuurent route url
     const pathname = usePathname();
+    // const { data: session, status }: any = useSession();
+    // const router_ = useRouter();
     const router = useDemoRouter(pathname ?? '/');
+    // const r = useDemoRouter('/dashboard');
+    // const [router_app, setRouter_app] = React.useState(router);
+
     // const [session, setSession] = React.useState<Session | null>({
     //     user: {
     //         name: 'Bharat Kashyap',
@@ -235,6 +242,13 @@ export default function DashboardLayoutBasic(props: any) {
     //     };
     // }, []);
 
+    // React.useEffect(() => {
+    //     if (status === 'unauthenticated') {
+    //         router_.push('/dashboard');
+    //         setRouter_app(r);
+    //     } else
+    //         setRouter_app(router);
+    // }, []);
     React.useEffect(() => {
         console.log(pathname, 'Pathname');
         setMounted(true);
@@ -249,33 +263,30 @@ export default function DashboardLayoutBasic(props: any) {
     const demoWindow = window ? window() : undefined;
 
     return (
-        // 
-        <SessionProvider >
-            <AuthGuard>
-                <AppProvider
-                    navigation={NAVIGATION}
-                    branding={{
-                        title: 'PDF Crafter: HTML to PDF Tool',
-                        logo: <LineStyleIcon color='info' />
-                    }}
-                    router={router}
-                    theme={demoTheme}
-                    window={demoWindow}
-                // authentication={authentication}
-                // session={session}
+        //
 
-                >
-                    {/* <SignIn></SignIn> */}
-                    <DashboardLayout slots={{ sidebarFooter: SidebarFooter, toolbarActions: AccountSlotsAccountSwitcher }}>
-                        <PageContainer>
-                            <Grid container spacing={1}>
-                                {/* {JSON.stringify(session)} */}
-                            </Grid>
-                            {props.children}
-                        </PageContainer>
-                    </DashboardLayout>
-                </AppProvider>
-            </AuthGuard>
-        </SessionProvider>
+        <AppProvider
+            navigation={NAVIGATION}
+            branding={{
+                title: 'PDF Crafter: HTML to PDF Tool',
+                logo: <LineStyleIcon color='info' />
+            }}
+            router={router}
+            theme={demoTheme}
+            window={demoWindow}
+        // authentication={authentication}
+        // session={session}
+
+        >
+            {/* <SignIn></SignIn> */}
+            <DashboardLayout slots={{ sidebarFooter: SidebarFooter, toolbarActions: AccountSlotsAccountSwitcher }}>
+                <PageContainer>
+                    <Grid container spacing={1}>
+                        {/* {JSON.stringify(session)} */}
+                    </Grid>
+                    {props.children}
+                </PageContainer>
+            </DashboardLayout>
+        </AppProvider>
     );
 }

@@ -33,7 +33,7 @@ export const findAllAddonsByUser = async (token: string) => {
     });
 }
 
-export const findAllAddons = async (organization_id: Number, token: string) => {
+export const findAllAddons = async (organization_id: number, token: string) => {
     return API.get('/addons/' + organization_id + '/organization', {
         headers: {
             Authorization: `Bearer ${token}`
@@ -42,12 +42,12 @@ export const findAllAddons = async (organization_id: Number, token: string) => {
 }
 
 export const findAddonPage = async (
-    page: Number,
-    pageSize: Number,
-    field: String,
-    sort: String,
-    quickFilterValues: String,
-    active: Boolean,
+    page: number,
+    pageSize: number,
+    field: string,
+    sort: string,
+    quickFilterValues: string,
+    active: boolean,
     token: string
 ) => {
     return API.get('/addons/page', {

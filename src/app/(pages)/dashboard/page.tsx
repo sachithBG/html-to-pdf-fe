@@ -9,13 +9,6 @@ import {
     Skeleton,
     IconButton,
     Tooltip,
-    Table,
-    TableBody,
-    TableCell,
-    TableContainer,
-    TableHead,
-    TableRow,
-    Paper,
     useTheme,
 } from '@mui/material';
 import { Line } from 'react-chartjs-2';
@@ -27,9 +20,9 @@ import { addOrganizationAll, clearOrganizationState, getDefaultOrganization, Org
 import { setDefaultOrganization } from '@/app/services/organizationService';
 import { useSession } from 'next-auth/react';
 import { chartMonthlyData } from '@/app/services/logsService';
-import PdfTemplatesList from '../setup/pdf-template/PdfTemplatesList';
 import { readAllPdfTemplatePage } from '@/app/services/pdfService';
 import dynamic from 'next/dynamic';
+const PdfTemplatesList = dynamic(() => import('@/app/(pages)/setup/pdf-template/PdfTemplatesList'), { ssr: false });
 
 
 // Registering Chart.js components
@@ -84,9 +77,6 @@ const Dashboard = () => {
     );
     const [isLoading, setIsLoading] = useState(true);
     const [orgs, setOrgs] = useState<Organization[]>(organizations);
-    const [pdfTemplates, setPdfTemplates] = useState<string[]>([]);
-    const [media, setMedia] = useState<string[]>([]);
-    const [integrations, setIntegrations] = useState<string[]>([]);
     const [copiedToken, setCopiedToken] = useState(false);
     const [chartData, setChartData] = useState<any>({});
 
@@ -134,10 +124,6 @@ const Dashboard = () => {
             if (currentOrg?.id && session?.user?.token) {
                 fetchChartData();
             }
-            setPdfTemplates(['Invoice Template', 'Receipt Template', 'Summary Report']);
-            setMedia(['Image 1', 'Image 2', 'Video 1']);
-            setIntegrations(['Zapier', 'Google Sheets', 'Slack']);
-
         }, 1500);
     }, [currentOrg]);
 
@@ -153,7 +139,7 @@ const Dashboard = () => {
         // This function should update the default organization
         setDefaultOrganization(orgId, session?.user?.token).then((res: any) => {
             if (res?.status == 200) {
-                let updatedOrgs = organizations.map((org: any) => ({ ...org, is_default: org.id === orgId }));
+                const updatedOrgs = organizations.map((org: any) => ({ ...org, is_default: org.id === orgId }));
                 dispatch(clearOrganizationState());
                 dispatch(addOrganizationAll(updatedOrgs));
             }

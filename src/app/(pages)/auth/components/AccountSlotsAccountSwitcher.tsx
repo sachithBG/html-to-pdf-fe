@@ -7,13 +7,13 @@ import {
 import { Account } from '@toolpad/core/Account';
 import CustomMenu from './CustomMenu';
 import { ThemeSwitcher } from '@toolpad/core/DashboardLayout';
-import { Link, Drawer } from '@mui/material';
 import SignIn from '../ThemeSignInPage';
 import { signOut, useSession } from 'next-auth/react';
 import SignUp from '../ThemeSignUpPage';
 import { findOrganizationsByUserId } from '@/app/services/organizationService';
 import { useDispatch } from 'react-redux';
-import { addOrganization, addOrganizationAll, clearOrganizationState } from '@/redux/slice/organizationSlice';
+import { addOrganizationAll, clearOrganizationState } from '@/redux/slice/organizationSlice';
+import { authEvents } from '@/app/utils/authEvents';
 
 // const demoSession = {
 //     user: {
@@ -45,10 +45,14 @@ export default function AccountSlotsAccountSwitcher() {
     const [isSignInModalOpen, setSignInModalOpen] = React.useState(false);
     const [isSignUpModalOpen, setSignUpModalOpen] = React.useState(false);
     const dispatch = useDispatch();
+
+    const handleSignIn = () => {
+        setSignInModalOpen(true);
+    };
     const authentication = React.useMemo(() => {
         return {
             signIn: () => {
-                setSignInModalOpen(true)
+                handleSignIn();
                 // setSession(new DemoSession(session2?.user));
             },
             signOut: () => {
@@ -79,8 +83,10 @@ export default function AccountSlotsAccountSwitcher() {
         // if (!session2) {
         //     dispatch(clearOrganizationState());
         // }
+        authEvents.on('triggerSignIn', handleSignIn);
         return () => {
             dispatch(clearOrganizationState());
+            authEvents.off('triggerSignIn', handleSignIn);
         }
     }, [session2?.user?.id]);
 

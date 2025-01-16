@@ -9,12 +9,11 @@ import {
     CircularProgress,
     IconButton,
     Box,
+    Skeleton,
 } from '@mui/material';
 import { CloudUpload, Save, FormatAlignLeft } from '@mui/icons-material';
 import Ajv from 'ajv';
 import { readPdfTemplate, updateDummyDataPdfTemplate } from '@/app/services/pdfService';
-import { getDefaultOrganization, Organization, OrganizationState } from '@/redux/slice/organizationSlice';
-import { useSelector } from 'react-redux';
 import { useSession } from 'next-auth/react';
 
 interface DataUploadButtonProps {
@@ -29,9 +28,9 @@ const DataUploadButton: React.FC<DataUploadButtonProps> = ({ onSave, id }) => {
     const [isSaving, setSaving] = useState(false);
     const [isLoding, setIsLoding] = useState(false);
 
-    const currentOrg: Organization | any = useSelector((state: { organization: OrganizationState }) =>
-        getDefaultOrganization(state.organization)
-    );
+    // const currentOrg: Organization | any = useSelector((state: { organization: OrganizationState }) =>
+    //     getDefaultOrganization(state.organization)
+    // );
     const { data: session }: any = useSession();
 
     useEffect(() => {
@@ -39,12 +38,12 @@ const DataUploadButton: React.FC<DataUploadButtonProps> = ({ onSave, id }) => {
             setIsLoding(true);
             const fetchData = async () => {
                 try {
-                    let response = await readPdfTemplate(id, session?.user?.token);
+                    const response = await readPdfTemplate(id, session?.user?.token);
                     if (response.status == 200) {
                         const { data } = response.data;
                         // console.log(response.data.json)
                         if (data?.json) {
-                            let json = JSON.parse(data.json);
+                            const json = JSON.parse(data.json);
                             // json = JSON.parse(json);
                             // console.log(json)
                             setJsonText(JSON.stringify(json, null, 2)); // Format with 2-space indentation
@@ -123,33 +122,46 @@ const DataUploadButton: React.FC<DataUploadButtonProps> = ({ onSave, id }) => {
 
             <Dialog open={isDialogOpen} onClose={handleCloseDialog} maxWidth="lg" fullWidth>
                 <DialogTitle>Upload JSON Data</DialogTitle>
-                <DialogContent>
-                    <Box sx={{ display: 'flex', float: 'right', justifyContent: 'space-between', mt: 2 }}>
-                        <Button
-                            startIcon={<FormatAlignLeft />}
-                            onClick={handleFormatJson}
-                            color="secondary"
-                            variant="outlined"
-                        >
-                            Format JSON
-                        </Button>
-                    </Box>
-                    <TextField
-                        label="JSON Data"
-                        multiline
-                        rows={20}
-                        fullWidth
-                        variant="outlined"
-                        value={jsonText}
-                        onChange={handleJsonChange}
-                        error={!!error}
-                        helperText={error || ''}
-                        sx={{ mt: 2 }}
-                    />
 
+                <DialogContent>
+                    {!isLoding ? <>
+                        <Box sx={{ display: 'flex', float: 'right', justifyContent: 'space-between', mt: 2 }}>
+                            <Button
+                                startIcon={<FormatAlignLeft />}
+                                onClick={handleFormatJson}
+                                color="secondary"
+                                variant="outlined"
+                                size='small'
+                            >
+                                Format JSON
+                            </Button>
+                        </Box>
+                        <TextField
+                            label="JSON Data"
+                            multiline
+                            rows={20}
+                            fullWidth
+                            variant="outlined"
+                            value={jsonText}
+                            onChange={handleJsonChange}
+                            error={!!error}
+                            helperText={error || ''}
+                            sx={{ mt: 2 }}
+                        />
+                    </> :
+                        <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', mt: 2 }}>
+                            <Skeleton variant="text" width="90%" height={30} />
+                            <Skeleton variant="text" width="90%" height={30} />
+                            <Skeleton variant="text" width="90%" height={30} />
+                            <Skeleton variant="text" width="90%" height={30} />
+                            <Skeleton variant="text" width="90%" height={30} />
+                            <Skeleton variant="text" width="90%" height={30} />
+                        </Box>
+                    }
                 </DialogContent>
+
                 <DialogActions>
-                    <Button onClick={handleCloseDialog} color="inherit">
+                    <Button onClick={handleCloseDialog} color="inherit" size='small'>
                         Cancel
                     </Button>
                     <Button
@@ -158,10 +170,12 @@ const DataUploadButton: React.FC<DataUploadButtonProps> = ({ onSave, id }) => {
                         variant="contained"
                         disabled={isSaving || !!error}
                         startIcon={isSaving ? <CircularProgress size={20} /> : <Save />}
+                        size='small'
                     >
                         Save
                     </Button>
                 </DialogActions>
+
             </Dialog>
         </>
     );

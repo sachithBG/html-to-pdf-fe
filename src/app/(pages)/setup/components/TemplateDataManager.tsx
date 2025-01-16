@@ -7,11 +7,12 @@ import {
     Skeleton,
     Pagination,
 } from '@mui/material';
-import DataUploadButton from './DataUploadButton';
-import { readAllPdfTemplatePage, updateDummyDataPdfTemplate } from '@/app/services/pdfService';
+import { readAllPdfTemplatePage } from '@/app/services/pdfService';
 import { getDefaultOrganization, Organization, OrganizationState } from '@/redux/slice/organizationSlice';
 import { useSelector } from 'react-redux';
 import { useSession } from 'next-auth/react';
+import dynamic from 'next/dynamic';
+const DataUploadButton = dynamic(() => import('@/app/(pages)/setup/components/DataUploadButton'), { ssr: false });
 
 interface Template {
     id: string;
@@ -19,7 +20,7 @@ interface Template {
     json: string;
 }
 
-const TemplateDataManager: React.FC = () => {
+const TemplateDataManager: React.FC = (id) => {
     const [templates, setTemplates] = useState<Template[]>([]);
     const [isLoading, setLoading] = useState(false);
     const [page, setPage] = useState(1);
@@ -46,7 +47,7 @@ const TemplateDataManager: React.FC = () => {
             });
             if (response.status === 200) {
                 if (response.data?.data) {
-                    let d = response.data?.data;
+                    const d = response.data?.data;
                     setTemplates(d.data);
                     setTotalPages(Math.ceil(d.total / pageSize));
                 }

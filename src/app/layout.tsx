@@ -5,7 +5,6 @@ import "./globals.css";
 import ThemeProvidr from "@/provider/ThemeProvidr";
 import ReduxProvider from "@/provider/ReduxProvider";
 import ErrorBoundary from "./components/ErrorBoundary";
-import { SessionProvider } from "next-auth/react";
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
   variable: "--font-geist-sans",

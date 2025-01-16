@@ -1,15 +1,16 @@
 'use client'
 import React, { useState, useEffect, useCallback } from 'react';
-import { Container, Typography, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, IconButton, Paper, Pagination, Box, CircularProgress, FormControl, InputLabel, Select, MenuItem, Skeleton, Grid2 } from '@mui/material';
+import { Container, Typography, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, IconButton, Paper, Pagination, Box, FormControl, InputLabel, Select, MenuItem, Skeleton, Grid2 } from '@mui/material';
 import { AddBox as AddBoxIcon, Edit as EditIcon, Delete as DeleteIcon, FastRewind as FastRewindIcon } from '@mui/icons-material';
 import { useSelector } from 'react-redux';
 import { useSession } from 'next-auth/react';
 import { getDefaultOrganization, Organization, OrganizationState } from '@/redux/slice/organizationSlice';
-import HtmlToPdfEditor from '../editor/page';
+// import HtmlToPdfEditor from '../editor/page';
 import { deletePdfTemplate, readAllPdfTemplatePage } from '@/app/services/pdfService';
 import { findAllAddons } from '@/app/services/addonService';
 import dynamic from 'next/dynamic';
 const PdfPreviewButton = dynamic(() => import('@/app/components/PdfPreviewButton'), { ssr: false });
+const HtmlToPdfEditor = dynamic(() => import('../editor/page'), { ssr: false });
 
 const PdfTemplatePage: React.FC = () => {
     const [templates, setTemplates] = useState<any[]>([]);
@@ -22,7 +23,6 @@ const PdfTemplatePage: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [pageToggle, setPageToggle] = useState(false);
     const [addons_, setAddons_] = useState<any[]>();
-    const [pdfPreview, setPdfPreview] = useState<any>({ headerContent: '', bodyContent: '', footerContent: '' });
 
     const currentOrg: Organization | any = useSelector((state: { organization: OrganizationState }) =>
         getDefaultOrganization(state.organization)
@@ -44,10 +44,10 @@ const PdfTemplatePage: React.FC = () => {
 
             if (response.status === 200) {
                 if (response.data?.data) {
-                    let d = response.data?.data;
+                    const d = response.data?.data;
                     setTemplates(d.data); // Assuming response.data contains the templates for the current page
-                    setTotalPages((pre) => Math.ceil(d.total / pageSize)); // Calculate total pages
-                    setTotal((pre) => d.total);
+                    setTotalPages(() => Math.ceil(d.total / pageSize)); // Calculate total pages
+                    setTotal(() => d.total);
                 }
             }
         } catch (error) {
@@ -155,7 +155,7 @@ const PdfTemplatePage: React.FC = () => {
                                 <TableRow>
                                     <TableCell>Name</TableCell>
                                     <TableCell>Addons</TableCell>
-                                    <TableCell>Actions</TableCell>
+                                    <TableCell sx={{ textAlign: 'center' }}>Actions</TableCell>
                                 </TableRow>
                             </TableHead>
                             <TableBody>
@@ -173,7 +173,7 @@ const PdfTemplatePage: React.FC = () => {
                                             No templates available.
                                         </TableCell>
                                     </TableRow>
-                                ) : templates?.map((template, i) => (
+                                ) : templates?.map((template) => (
                                     <TableRow hover key={`${template.id}-${template.name}-${template.addons}`}>
                                         <TableCell >
 
@@ -182,17 +182,17 @@ const PdfTemplatePage: React.FC = () => {
 
                                                 <PdfPreviewButton htmlContent={
                                                     `<html>
-                                                            <div>${pdfPreview.headerContent}</div>
+                                                            <div>${template.headerContent}</div>
                                                             <body>
-                                                            <div>${pdfPreview.bodyContent}</div>
+                                                            <div>${template.bodyContent}</div>
                                                             </body>
-                                                            <footer>${pdfPreview.footerContent}</footer>
+                                                            <footer>${template.footerContent}</footer>
                                                         </html>
-                                                        `} isIconButton={true} id={template.id} />
+                                                        `} isIconButton={true} id={template.id} organization_id={currentOrg?.id} />
                                             </Grid2>
                                         </TableCell>
                                         <TableCell>{template?.addons?.join(', ')}</TableCell>
-                                        <TableCell>
+                                        <TableCell sx={{ textAlign: 'center' }}>
                                             <IconButton color="primary" onClick={() => handleEdit(template)}>
                                                 <EditIcon />
                                             </IconButton>
@@ -236,7 +236,7 @@ const PdfTemplatePage: React.FC = () => {
             )}
             {editMode && (
                 <>
-                    <Button variant="outlined" size="large" color="primary" onClick={() => handleBack(true)}>
+                    <Button variant="outlined" size="small" color="primary" onClick={() => handleBack(true)}>
                         <FastRewindIcon fontSize="inherit" />&nbsp;Back
                     </Button>
                     <HtmlToPdfEditor addons_={addons_} handleBack={handleBack} id={selectedTemplate ? selectedTemplate?.id : undefined} />

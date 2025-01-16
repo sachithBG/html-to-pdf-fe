@@ -23,10 +23,10 @@ export default function PageNotFound() {
                             <Typography variant="h3" gutterBottom>
                                 404 - Page Not Found 1234
                             </Typography>
-                            <Typography variant="h6" paragraph>
-                                Oops! It seems the page you're looking for doesn't exist.
+                            <Typography variant="h6" component={'p'}>
+                                Oops! It seems the page you&#39;re looking for doesn&apos;t exist.
                             </Typography>
-                            <Button variant="contained" color="primary" onClick={handleBack}>
+                            <Button variant="outlined" size="small" color="primary" onClick={handleBack}>
                                 Go to Homepage
                             </Button>
                         </Box>

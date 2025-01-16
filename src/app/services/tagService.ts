@@ -1,4 +1,4 @@
-import { API, baseURL } from "./api";
+import { API } from "./api";
 
 export const createTag = async (data: any, token: string) => {
   return API.post(`/tags`, data,
@@ -26,7 +26,7 @@ export const findTagById = async (id: any, token: string) => {
   });
 }
 
-export const findAllTags = async (addon_ids: Number[], token: string) => {
+export const findAllTags = async (addon_ids: number[], token: string) => {
   // const queryParams = new URLSearchParams({ addon_ids: JSON.stringify(addon_ids) }).toString();
   return API.get(`/tags`, {
     headers: {
@@ -39,12 +39,12 @@ export const findAllTags = async (addon_ids: Number[], token: string) => {
 }
 
 export const findTagPage = async (
-  page: Number,
-  pageSize: Number,
-  field: String,
-  sort: String,
-  quickFilterValues: String,
-  active: Boolean
+  page: number,
+  pageSize: number,
+  field: string,
+  sort: string,
+  quickFilterValues: string,
+  active: boolean
 ) => {
   const res = await fetch(`/api/public/tag/page`, {
     method: 'PUT',

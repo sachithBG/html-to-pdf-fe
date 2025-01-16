@@ -45,9 +45,10 @@ const ManageAddonsPage: React.FC = () => {
             // Replace with your API call
             const response = await findAllAddons(currentOrg.id, session?.user?.token);
             if (response.status == 200) {
-                setAddons((prev) => response.data)
+                setAddons(() => response.data)
             }
         } catch (fetchError) {
+            console.error(fetchError);
             setError('Error fetching addons.');
         } finally {
             setLoading(false);
@@ -79,13 +80,16 @@ const ManageAddonsPage: React.FC = () => {
             } else {
                 const res = await createAddon(newAddon.name, currentOrg?.id || 0, session?.user?.token);
                 // console.log(res.data)
-                setAddons((prev) => [...prev, { id: newAddon.id, name: newAddon.name, organization_id: currentOrg.id }]);
-                setSuccessMessage('Addon created successfully.');
+                if (res.status == 200 || res.status == 201) {
+                    setAddons((prev) => [...prev, { id: newAddon.id, name: newAddon.name, organization_id: currentOrg.id }]);
+                    setSuccessMessage('Addon created successfully.');
+                }
             }
 
             // fetchAddons();
             setNewAddon({ id: null, name: '' });
         } catch (createError) {
+            console.error(createError)
             setError('Error creating addon.');
         } finally {
             setIsSubmitting(false);
@@ -107,6 +111,7 @@ const ManageAddonsPage: React.FC = () => {
             setIsDeleteDialogOpen(false);
         } catch (deleteError) {
             setError('Error deleting addon.');
+            console.log(deleteError);
         } finally {
             setIsSubmitting(false);
         }
@@ -141,11 +146,12 @@ const ManageAddonsPage: React.FC = () => {
                     helperText={errors.addonName}
                 />
                 <Button
-                    variant="contained"
+                    variant="outlined"
                     onClick={handleCreateAddon}
                     disabled={isSubmitting}
                     startIcon={isSubmitting && <CircularProgress size={20} />}
                     sx={{ marginTop: 2, float: 'right' }}
+                    size='small'
                 >
                     {isSubmitting ? 'Creating...' : newAddon.id ? 'Update' : 'Create Addon'}
                 </Button>
@@ -179,7 +185,7 @@ const ManageAddonsPage: React.FC = () => {
                             <Typography>{addon.name}</Typography>
                             <Box>
                                 <Tooltip title="Edit">
-                                    <IconButton onClick={() => handleEditAddon(addon)}>
+                                    <IconButton onClick={() => handleEditAddon(addon)} size='small'>
                                         <EditIcon />
                                     </IconButton>
                                 </Tooltip>
@@ -207,14 +213,16 @@ const ManageAddonsPage: React.FC = () => {
                     <Typography>Are you sure you want to delete this addon?</Typography>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={() => setIsDeleteDialogOpen(false)} disabled={isSubmitting}>
+                    <Button variant='outlined' onClick={() => setIsDeleteDialogOpen(false)} disabled={isSubmitting} size='small'>
                         Cancel
                     </Button>
                     <Button
                         onClick={handleDeleteAddon}
                         color="error"
+                        variant='outlined'
                         disabled={isSubmitting}
                         startIcon={isSubmitting && <CircularProgress size={20} />}
+                        size='small'
                     >
                         {isSubmitting ? 'Deleting...' : 'Delete'}
                     </Button>

@@ -1,6 +1,6 @@
 "use client";
 import React from 'react';
-import { Button, Typography, Box, Container } from "@mui/material";
+import { Button, Typography, Container } from "@mui/material";
 import { useRouter } from "next/navigation"; // Next.js 13 navigation hook
 
 export default function SetupPageNotFound() {
@@ -17,9 +17,9 @@ export default function SetupPageNotFound() {
                 404 - Page Not Found
             </Typography>
             <Typography variant="h6">
-                Oops! The page you're looking for under /setup doesn't exist.
+                Oops! The page you&apos;re looking for under /setup doesn&apos;t exist.
             </Typography>
-            <Button variant="contained" color="primary" onClick={handleBack}>
+            <Button variant="outlined" size='small' color="primary" onClick={handleBack}>
                 Go to Setup Home
             </Button>
         </Container>

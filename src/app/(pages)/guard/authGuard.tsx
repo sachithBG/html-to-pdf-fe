@@ -1,6 +1,5 @@
 'use client';
 import React from 'react'
-import { useSelector } from 'react-redux';
 import { ReactNode, useEffect } from 'react';
 import { signOut, useSession } from 'next-auth/react';
 import { usePathname, useRouter } from 'next/navigation';

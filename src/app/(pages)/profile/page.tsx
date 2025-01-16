@@ -1,6 +1,6 @@
 'use client';
 import React, { useEffect, useState } from 'react';
-import { Button, TextField, Avatar, Switch, FormControlLabel, FormGroup, Paper, Typography, Box, Container, Grid, Divider, IconButton, Grid2 } from '@mui/material';
+import { Button, TextField, Avatar, Switch, FormControlLabel, FormGroup, Paper, Typography, Box, Container, Divider, IconButton, Grid2 } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ErrorIcon from '@mui/icons-material/Error';
@@ -113,7 +113,7 @@ const ProfilePage: React.FC = () => {
         return (
             <Container>
                 <Typography>Please sign in to view your profile.</Typography>
-                <Button onClick={() => signIn()}>Sign In</Button>
+                <Button variant='outlined' size='small' onClick={() => signIn()}>Sign In</Button>
             </Container>
         );
     }
@@ -140,8 +140,9 @@ const ProfilePage: React.FC = () => {
                         </Grid2>
                         <Grid2 size={4} sx={{ display: 'flex', alignItems: 'center' }}>
                             <LoadingButton
-                                variant="contained"
+                                variant="outlined"
                                 color="inherit"
+                                size='small'
                                 onClick={handleChangeName}
                                 loading={loadingName}
                                 startIcon={success.name === true ? <CheckCircleIcon color="success" /> : success.name === false ? <ErrorIcon color="error" /> : null}
@@ -193,7 +194,8 @@ const ProfilePage: React.FC = () => {
                         </Typography>
                         {success.avatar === true && <CheckCircleIcon color="success" sx={{ ml: 1 }} />}
                         <LoadingButton
-                            variant="contained"
+                            variant="outlined"
+                            size='small'
                             color="primary"
                             onClick={handleSubmit}
                             loading={loadingAvatar}

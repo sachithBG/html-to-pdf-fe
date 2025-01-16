@@ -15,8 +15,6 @@ import {
     ListItemText,
     CircularProgress,
     Autocomplete,
-    Snackbar,
-    Alert,
     IconButton,
     Tooltip,
     InputAdornment,
@@ -41,8 +39,9 @@ import { useSelector } from "react-redux";
 import { findAllTags } from "@/app/services/tagService";
 import { bdy, ftr, hdr, TAG_TYPES } from "@/app/utils/constant";
 import { getDefaultOrganization, Organization, OrganizationState } from "@/redux/slice/organizationSlice";
-import { createPdfTemplate, generatePdfBuffer, readPdfTemplate, updatePdfTemplate } from "@/app/services/pdfService";
+import { createPdfTemplate, generatePdfBuffer, generatePdfBufferById, readPdfTemplate, updatePdfTemplate } from "@/app/services/pdfService";
 import { findAllByAddonId } from "@/app/services/externalKeyService";
+import { useSnackbar } from "notistack";
 // const EditableTextField = dynamic(() => import('@/app/components/EditableTextField'), { ssr: false });
 const PdfPreviewButton = dynamic(() => import('@/app/components/PdfPreviewButton'), { ssr: false });
 const DownloadButton = dynamic(() => import('@/app/components/DownloadButton'), { ssr: false });
@@ -79,9 +78,6 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
 
     const { data: session }: any = useSession();
 
-    const [snackbarOpen, setSnackbarOpen] = useState(false);
-    const [copiedText, setCopiedText] = useState('');
-
     const [pdfName, setPdfName] = useState<string>('');
     const [pdfKey, setPdfKey] = useState<string>('');
     const [errors, setErrors] = useState<{ pdfName?: string, pdfKey?: string, addons?: string, externalKey?: string }>({});
@@ -91,6 +87,8 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
     const [defVal, setDefVal] = useState('-');
     const [selectedType, setSelectedType] = useState<number | null>(null);
     const [externalKeys, setExternalKeys] = useState<any[]>([]);
+    const [pdfPrevButton, setPdfPrevButton] = useState(true);
+    const { enqueueSnackbar } = useSnackbar();
 
     const handleMarginChange = (side: 'l' | 't' | 'r' | 'b', value: string) => {
         setMargin((prev) => ({ ...prev, [side]: value }));
@@ -105,7 +103,7 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
         try {
             const response = await findAllTags(addons.filter(a => selectedAddons.includes(a.id)).map(a => a.id), session?.user?.token);
             if (response.status == 200) {
-                setTags((prev) => response.data);
+                setTags(() => response.data);
             }
         } catch (error) {
             console.error("Error fetching tags:", error);
@@ -116,7 +114,7 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
         try {
             const response = await findAllByAddonId(addons.filter(a => selectedAddons.includes(a.id))[0]?.id, session?.user?.token);
             if (response.status == 200) {
-                setExternalKeys((prev) => response.data);
+                setExternalKeys(() => response.data);
             }
         } catch (error) {
             console.error("Error fetching tags:", error);
@@ -158,19 +156,12 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
         setSelectedAddons([event.target.value]);
     };
 
-    // Handle Tag Change
-    const handleTagChange = (event: any) => {
-        setSelectedTags(event.target.value);
-    };
-
     // Handle Copy Tag
     const handleCopyTag = (tag: string) => {
         console.log(tag)
         if (!tag) return;
         navigator.clipboard.writeText(`{{${tag}}}`).then(() => {
-            setCopiedText(`{{${tag}}}`);
-            setSnackbarOpen(true); // Show snackbar when copied
-            setTimeout(() => setSnackbarOpen(false), 3000); // Hide snackbar after 3 seconds
+            enqueueSnackbar(`Tag key copied: {{${tag}}}`, { variant: 'success' });
         }).catch(err => {
             console.error('Failed to copy: ', err);
         });
@@ -178,18 +169,29 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
 
     useEffect(() => {
         setIsClient(true); // Ensures PDF rendering runs on the client side
-        setTimeout(() => {
-            setHeaderContent(hdr);
-            setBodyContent(bdy);
-            setFooterContent(ftr);
-        }, 100)
-
+        if (!id) {
+            setPdfPrevButton(false);
+            const tt = setTimeout(() => {
+                setHeaderContent(hdr);
+                setBodyContent(bdy);
+                setFooterContent(ftr);
+                setPdfPrevButton(true);
+                clearTimeout(tt);
+            }, 100);
+        }
     }, []);
 
+    useEffect(() => {
+        setPdfPrevButton(false);
+        const tt = setTimeout(() => {
+            setPdfPrevButton(true);
+            clearTimeout(tt);
+        }, 2000);
+    }, [headerContent, bodyContent, footerContent]);
     // Fetch Initial Data for Edit Mode
     useEffect(() => {
         if (id) {
-            setIsEditMode((prev) => true);
+            setIsEditMode(() => true);
             setIsLoding(true);
             const fetchData = async () => {
                 try {
@@ -273,19 +275,23 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
                 external_key: selectedType
             };
             if (isGenerate) {
-                const response = await generatePdfBuffer(payload, session?.user?.token);
+                const response = !isEditMode ? await generatePdfBuffer(payload, session?.user?.token) :
+                    await generatePdfBufferById(id, currentOrg?.id, session?.user?.token);
                 const { pdf } = response.data;
-                setPdfData((pr: any) => pdf); // Base64 PDF data
+                setPdfData(() => pdf); // Base64 PDF data
             } else {
                 const response = !isEditMode ? await createPdfTemplate(payload, session?.user?.token) :
                     await updatePdfTemplate(id, { ...payload, id: id }, session?.user?.token);
                 if (response.status == 201) {
                     handleBack(true);
+                    setPdfPrevButton(false)
                 }
+                enqueueSnackbar(`Template Saved successfully.`, { variant: 'success' });
             }
 
         } catch (error) {
             console.error("Error generating PDF:", error);
+            enqueueSnackbar(`Fail generating PDF.`, { variant: 'error' });
         } finally {
             if (isGenerate) setIsGenerating(false);
             else setIsUploading(false)
@@ -364,9 +370,10 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
                     direction={isMobile ? 'column' : 'row'} // Stack vertically on mobile, horizontally on larger screens
                     alignItems="right" // Align items to the center
                     justifyContent="right" // Center the items horizontally
+                    sx={{ mt: -5 }}
                 >
                     <Grid >
-                        <PdfPreviewButton htmlContent={
+                        {!isLoding && pdfPrevButton && <PdfPreviewButton htmlContent={
                             `<html>
                                 <div>${headerContent}</div>
                                 <body>
@@ -374,19 +381,9 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
                                 </body>
                                 <footer>${footerContent}</footer>
                             </html>
-                            `} isIconButton={false} id={null} />
+                            `} isIconButton={false} id={isEditMode ? id : null} organization_id={currentOrg?.id} />}
                     </Grid>
-                    <Grid >
-                        <Button
-                            variant="outlined"
-                            color="primary"
-                            disabled={isGenerating}
-                            onClick={handleGeneratePdf}
-                        >
-                            Generate PDF
-                            {isGenerating && <CircularProgress size={24} />}
-                        </Button>
-                    </Grid>
+
 
                     {pdfData && <> <Grid >
                         <Button
@@ -394,6 +391,7 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
                             color="primary"
                             // startIcon={<SaveIcon />}
                             onClick={openPdfInNewTab}
+                            size="small"
                         >
                             Open In New Tab
                         </Button>
@@ -402,18 +400,51 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
                             <DownloadButton pdfData={pdfData} />
                         </Grid></>
                     }
-
-                    {/* Save Button 1 */}
                     <Grid >
                         <Button
-                            variant="contained"
+                            variant="outlined"
+                            color="primary"
+                            disabled={isGenerating}
+                            onClick={handleGeneratePdf}
+                            size="small"
+                        >
+                            Generate PDF
+                            {isGenerating && <CircularProgress size={24} />}
+                        </Button>
+                    </Grid>
+
+                </Grid>
+                <Grid
+                    container
+                    spacing={2} // Spacing between the buttons
+                    direction={isMobile ? 'column' : 'row'} // Stack vertically on mobile, horizontally on larger screens
+                    alignItems="right" // Align items to the center
+                    justifyContent="right" // Center the items horizontally
+                >
+                    {/* Save Button 1 */}
+                    <Grid mt={2} mb={-3}>
+                        <Button
+                            variant="outlined"
                             color="primary"
                             onClick={savePdfTmpl}
-                            startIcon={<SaveIcon />}
+                            endIcon={<SaveIcon />}
                             disabled={selectedAddons.length === 0 || isUploading}
                             sx={{ float: 'right' }}
+                            size="small"
                         >
                             {isEditMode ? "Update" : "Save"}
+                            {isUploading && <CircularProgress size={24} />}
+                        </Button>
+                        <Button
+                            variant="outlined"
+                            color="primary"
+                            onClick={savePdfTmpl}
+                            endIcon={<SaveIcon />}
+                            disabled={true}
+                            sx={{ float: 'right', mx: 2 }}
+                            size="small"
+                        >
+                            Clone
                             {isUploading && <CircularProgress size={24} />}
                         </Button>
                     </Grid>
@@ -421,7 +452,7 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
             </Box>
 
             <Box key={'setting'} mb={4}>
-                <Button onClick={() => handleCollapse('setting')}>
+                <Button variant="outlined" size="small" onClick={() => handleCollapse('setting')}>
                     {'setting'.charAt(0).toUpperCase() + 'setting'.slice(1)} Editor{" "}
                     {collapsed['setting'] ? "▲" : "▼"}
                 </Button>
@@ -916,29 +947,18 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
             {/* Save Button */}
             <Box mb={4} mt={5}>
                 <Button
-                    variant="contained"
+                    variant="outlined"
                     color="primary"
                     onClick={savePdfTmpl}
-                    startIcon={<SaveIcon />}
+                    endIcon={<SaveIcon />}
                     disabled={selectedAddons.length === 0 || isUploading}
                     sx={{ float: 'right' }}
+                    size="small"
                 >
                     {isEditMode ? "Update" : "Save"}
                     {isUploading && <CircularProgress size={24} />}
                 </Button>
             </Box>
-            {/* Snackbar to show copied text */}
-            <Snackbar
-                open={snackbarOpen}
-                autoHideDuration={3000}
-                onClose={() => setSnackbarOpen(false)}
-                anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-                sx={{ marginTop: 8 }}
-            >
-                <Alert onClose={() => setSnackbarOpen(false)} severity="success" sx={{ width: '100%' }}>
-                    Tag key copied: {copiedText}
-                </Alert>
-            </Snackbar>
         </Box>
     );
 };

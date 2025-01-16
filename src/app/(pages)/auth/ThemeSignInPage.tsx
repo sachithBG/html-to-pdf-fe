@@ -1,11 +1,10 @@
 import * as React from 'react';
-import { AppProvider } from '@toolpad/core/AppProvider';
 import {
     SignInPage,
     type AuthProvider,
     type AuthResponse,
 } from '@toolpad/core/SignInPage';
-import { Alert, Button, Checkbox, Dialog, FormControl, FormControlLabel, IconButton, InputAdornment, InputLabel, Link, OutlinedInput, TextField, Typography } from '@mui/material';
+import { Button, Checkbox, Dialog, FormControl, FormControlLabel, IconButton, InputAdornment, InputLabel, OutlinedInput, TextField, Typography } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { signIn } from 'next-auth/react';
 import { AccountCircle, Visibility, VisibilityOff } from '@mui/icons-material';

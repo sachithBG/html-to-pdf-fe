@@ -1,7 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Card, Typography, Pagination, TextField, Skeleton, IconButton, Grid2 } from '@mui/material';
+import { Card, Typography, Pagination, TextField, Skeleton, Grid2 } from '@mui/material';
 import { motion } from 'framer-motion';
-import ArrowForwardIcon from '@mui/icons-material/ArrowForward'; // MUI Icon for "view" action
 import { debounce } from 'lodash'; // Lodash debounce for efficient search
 import { fadeIn } from '@/app/utils/constant';
 import dynamic from 'next/dynamic';
@@ -14,7 +13,6 @@ const PdfTemplatesList = ({ currentOrg, session, readAllPdfTemplatePage }: any) 
     const [isLoading, setIsLoading] = useState(true);
     const [totalPages, setTotalPages] = useState(0);
     const pageSize = 5;
-    const [pdfPreview, setPdfPreview] = useState<any>({ headerContent: '', bodyContent: '', footerContent: '' });
 
     // Optimized search function with debouncing
     const debouncedSearch = useMemo(
@@ -31,7 +29,7 @@ const PdfTemplatesList = ({ currentOrg, session, readAllPdfTemplatePage }: any) 
                     });
 
                     if (response.status === 200 && response.data?.data) {
-                        let d = response.data?.data;
+                        const d = response.data?.data;
                         setPdfTemplates(d.data);
                         setTotalPages(Math.ceil(d.count / pageSize)); // Assuming 'totalCount' is in the response
                     }
@@ -70,7 +68,7 @@ const PdfTemplatesList = ({ currentOrg, session, readAllPdfTemplatePage }: any) 
                 });
 
                 if (response.status === 200 && response.data?.data) {
-                    let d = response.data?.data;
+                    const d = response.data?.data;
                     setPdfTemplates(d.data);
                     setTotalPages(Math.ceil(d.count / pageSize));
                 }
@@ -118,13 +116,13 @@ const PdfTemplatesList = ({ currentOrg, session, readAllPdfTemplatePage }: any) 
                                                 <Grid2 ml={2}>
                                                     <PdfPreviewButton htmlContent={
                                                         `<html>
-                                                            <div>${pdfPreview.headerContent}</div>
+                                                            <div>${template.headerContent}</div>
                                                             <body>
-                                                            <div>${pdfPreview.bodyContent}</div>
+                                                            <div>${template.bodyContent}</div>
                                                             </body>
-                                                            <footer>${pdfPreview.footerContent}</footer>
+                                                            <footer>${template.footerContent}</footer>
                                                         </html>
-                                                        `} isIconButton={true} id={template.id} />
+                                                        `} isIconButton={true} id={template.id} organization_id={currentOrg?.id} />
                                                 </Grid2>
                                             </Typography>
                                             <Typography className="text-gray-500">{new Date(template.modified_at).toLocaleDateString()}</Typography>

@@ -18,25 +18,9 @@ import {
 import AddIcon from '@mui/icons-material/Add';
 import { useDispatch, useSelector } from 'react-redux';
 import { addOrganizationAll, clearOrganizationState, Organization } from '@/redux/slice/organizationSlice';
-import { OrganizationVM } from '@/app/utils/vm/Organization';
 import { setDefaultOrganization } from '@/app/services/organizationService';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-
-// const accounts = [
-//     {
-//         id: 1,
-//         name: 'Bharat Kashyap',
-//         email: 'bharatkashyap@outlook.com',
-//         image: 'https://avatars.githubusercontent.com/u/19550456',
-//     },
-//     {
-//         id: 2,
-//         name: 'Bharat MUI',
-//         email: 'bharat@mui.com',
-//         color: '#8B4513', // Brown color
-//     },
-// ];
 
 export default function CustomMenu() {
     const { organizations } = useSelector((state: any) => state.organization);
@@ -48,10 +32,8 @@ export default function CustomMenu() {
         // This function should update the default organization
         setDefaultOrganization(orgId, session?.user?.token).then((res: any) => {
             if (res?.status == 200) {
-                let updatedOrgs = organizations.map((org: any) => ({ ...org, is_default: org.id === orgId }));
-
                 dispatch(clearOrganizationState());
-                dispatch(addOrganizationAll(updatedOrgs));
+                dispatch(addOrganizationAll(organizations.map((org: any) => ({ ...org, is_default: org.id === orgId }))));
             }
         }).catch((err: any) => {
             console.error(err);

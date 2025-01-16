@@ -1,6 +1,6 @@
 "use client";
-import React, { useEffect, useMemo, useState } from "react";
-import { TextField, Typography } from "@mui/material";
+import React, { useEffect, useState } from "react";
+import { TextField } from "@mui/material";
 
 interface EditableTextFieldProps {
     section: string;

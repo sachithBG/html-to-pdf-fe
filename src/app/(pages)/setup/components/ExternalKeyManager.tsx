@@ -1,12 +1,11 @@
-import { useState, useEffect, useMemo } from 'react';
-import { TextField, Button, Card, Typography, IconButton, Tooltip, CircularProgress, Snackbar, Alert, Box, Skeleton, InputAdornment } from '@mui/material';
+import { useState, useEffect } from 'react';
+import { TextField, Button, Card, Typography, IconButton, Tooltip, CircularProgress, Box, Skeleton, InputAdornment } from '@mui/material';
 import { CopyAll, Delete } from '@mui/icons-material';
-import axios from 'axios';
-import { useRouter } from 'next/navigation';
 import { addExternalKey, deleteExternalKey, findAllByAddonId, updateExternalKey } from '@/app/services/externalKeyService';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import ClearIcon from '@mui/icons-material/Clear';
 import { useSession } from 'next-auth/react';
+import { useSnackbar } from 'notistack';
 
 const ExternalKeyManager = ({ addonId }: any) => {
     const [externalKey, setExternalKey] = useState<{ id: number | undefined, key: string }>({ id: undefined, key: '' });
@@ -14,13 +13,8 @@ const ExternalKeyManager = ({ addonId }: any) => {
     const [isLoading, setIsLoading] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [errors, setErrors] = useState('');
-    const [snackbarOpen, setSnackbarOpen] = useState(false);
-    const [copiedText, setCopiedText] = useState('');
-    const router = useRouter();
     const { data: session }: any = useSession();
-    const [snackbarMessage, setSnackbarMessage] = useState("");
-    const [snackbarSeverity, setSnackbarSeverity] = useState("success"); // or "error"
-
+    const { enqueueSnackbar } = useSnackbar();
 
     const handleExternalKeyChange = (e: any) => {
         setExternalKey((prev) => { return { ...prev, key: e.target.value } });
@@ -40,15 +34,13 @@ const ExternalKeyManager = ({ addonId }: any) => {
             const response = externalKey.id ? await updateExternalKey(externalKey.id, { addon_id: addonId, key_value: externalKey.key }, session?.user?.token) :
                 await addExternalKey(addonId, externalKey.key, session?.user?.token);
             if (response.status == 201 || response.status == 200) {
-                setSnackbarOpen(true);
-                setCopiedText(externalKey.key);
+                enqueueSnackbar(`External Key copied: ${externalKey.key}`, { variant: 'success' });
                 setExternalKey({ id: undefined, key: '' });
                 setExternalKeys((prev: any) => [...prev, response.data]);
             }
         } catch (error) {
             console.error('Error creating external key:', error);
-            setSnackbarOpen(true);
-            setCopiedText('Failed to create External Key');
+            enqueueSnackbar(`Failed to create External Key`, { variant: 'error' });
         } finally {
             setIsSaving(false);
         }
@@ -56,8 +48,7 @@ const ExternalKeyManager = ({ addonId }: any) => {
 
     const handleCopyKey = (key: string) => {
         navigator.clipboard.writeText(key);
-        setSnackbarOpen(true);
-        setCopiedText(`External Key copied: ${key}`);
+        enqueueSnackbar(`External Key copied: ${key}`, { variant: 'success' });
     };
 
     const handleDeleteKey = async (id: number) => {
@@ -68,16 +59,12 @@ const ExternalKeyManager = ({ addonId }: any) => {
 
         try {
             await deleteExternalKey(id, session?.user?.token);
-            setSnackbarMessage("Key deleted successfully.");
-            setSnackbarSeverity("success");
-            setSnackbarOpen(true);
+            enqueueSnackbar("Key deleted successfully.", { variant: 'success' });
             // Refresh the external keys list after deletion
             fetchExternalKeys();
         } catch (error) {
             console.error("Error deleting key:", error);
-            setSnackbarMessage("Failed to delete the key. Please try again.");
-            setSnackbarSeverity("error");
-            setSnackbarOpen(true);
+            enqueueSnackbar("Failed to delete the key. Please try again.", { variant: 'error' });
         }
     };
 
@@ -99,12 +86,6 @@ const ExternalKeyManager = ({ addonId }: any) => {
 
         if (addonId) fetchExternalKeys();
     }, [addonId]);
-
-    const sortedKeys = useMemo(() => {
-        if (externalKeys)
-            return externalKeys?.slice().sort((a, b) => a.key_value.localeCompare(b.key_value));
-        else[]
-    }, [externalKeys]);
 
     return (
         <div className="space-y-6">
@@ -139,6 +120,7 @@ const ExternalKeyManager = ({ addonId }: any) => {
                         color="primary"
                         onClick={handleCreateExternalKey}
                         disabled={isSaving}
+                        size='small'
                     >
                         {isSaving ? <CircularProgress size={24} color="inherit" /> : externalKey.id ? 'Update Key' : 'Create Key'}
                     </Button>
@@ -173,18 +155,6 @@ const ExternalKeyManager = ({ addonId }: any) => {
                     </Card>
                 )
             )}
-
-            <Snackbar
-                open={snackbarOpen}
-                autoHideDuration={3000}
-                onClose={() => setSnackbarOpen(false)}
-                anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-                sx={{ marginTop: 8 }}
-            >
-                <Alert onClose={() => setSnackbarOpen(false)} severity={copiedText.includes('Failed') ? "error" : "success"} sx={{ width: '100%' }}>
-                    {copiedText}
-                </Alert>
-            </Snackbar>
         </div>
     );
 };

@@ -1,6 +1,6 @@
 'use client';
-import React, { useEffect, useMemo } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import React, { useMemo } from 'react';
+import { useSelector } from 'react-redux';
 import {
     IconButton,
     PaletteMode,
@@ -9,7 +9,8 @@ import {
 } from '@mui/material';
 import { SnackbarProvider, closeSnackbar } from 'notistack';
 import CloseIcon from '@mui/icons-material/Close';
-import { toggleTheme } from '../redux/slice/ToggleTheme';
+import AuthGuard from '@/app/(pages)/guard/authGuard';
+import { SessionProvider } from 'next-auth/react';
 
 export const secondary_main = '#E4E8F8';
 
@@ -19,22 +20,6 @@ export default function ThemeProvidr({
     children: React.ReactNode;
 }) {
     const theme = useSelector((state: any) => state.toggleTheme.theme);
-    const dispatch = useDispatch();
-
-    // useEffect(() => {
-    //     let prefersDarkMode: any = window?.localStorage.getItem('theme'); // useMediaQuery('(prefers-color-scheme: dark)');
-    //     if (!prefersDarkMode) window?.localStorage.setItem('theme', 'light');
-    //     prefersDarkMode = window?.localStorage.getItem('theme');
-    //     if (prefersDarkMode != theme)
-    //         dispatch(toggleTheme(prefersDarkMode === 'dark' ? 'light' : 'dark'));
-    //     // console.log('dis ' + theme);
-    // }, []);
-
-    // useEffect(() => {
-    //     window?.localStorage.setItem('theme', theme);
-    //     // console.log('local ' + theme);
-    // }, [theme]);
-
     const getDesignTokens = (mode: PaletteMode) => ({
         palette: {
             mode,
@@ -73,29 +58,45 @@ export default function ThemeProvidr({
         },
     });
 
-    let themeAction = useMemo(() => createTheme(getDesignTokens(theme)), [theme]);
+    const themeAction = useMemo(() => createTheme(getDesignTokens(theme)), [theme]);
 
     return (
         <ThemeProvider theme={themeAction}>
-            <SnackbarProvider
-                maxSnack={3}
-                anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-                preventDuplicate
-                dense
-                action={(key) => (
-                    <IconButton
-                        key="close"
-                        color="inherit"
-                        onClick={() => closeSnackbar(key)}
-                        size="small"
-                        aria-label="Alert"
+            <SessionProvider >
+                <AuthGuard>
+                    <SnackbarProvider
+                        maxSnack={3}
+                        autoHideDuration={3000}
+                        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+                        preventDuplicate
+                        dense
+                        hideIconVariant
+                        action={(key) => (
+                            <IconButton
+                                key="close"
+                                color="inherit"
+                                onClick={() => closeSnackbar(key)}
+                                size="small"
+                                aria-label="Alert"
+                            >
+                                <CloseIcon />
+                            </IconButton>
+                        )}
+
+                        classes={{
+                            root: 'custom-snackbar', // Use your custom class
+                        }}
+                    // iconVariant={{
+                    //     success: null,
+                    //     error: null,
+                    //     warning: null,
+                    //     info: null,
+                    // }}
                     >
-                        <CloseIcon />
-                    </IconButton>
-                )}
-            >
-                {children}
-            </SnackbarProvider>
+                        {children}
+                    </SnackbarProvider>
+                </AuthGuard>
+            </SessionProvider>
         </ThemeProvider>
     );
 }

@@ -22,7 +22,7 @@ export const authOptions: NextAuthOptions = {
         const { email, password, rememberMe }: any = credentials;
         console.log(rememberMe, 'Remember me');
         try {
-          let result: any = await signInUser(email, password, rememberMe);
+          const result: any = await signInUser(email, password, rememberMe);
           // console.log(result.data.token, 'Token received from the backend');
 
           if (!result.data.token) {

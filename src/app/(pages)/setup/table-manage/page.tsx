@@ -12,7 +12,6 @@ import {
     Select,
     FormControl,
     InputLabel,
-    Snackbar,
     Alert,
     IconButton,
     Tooltip,
@@ -27,10 +26,12 @@ import { useSelector } from 'react-redux';
 import { useSession } from 'next-auth/react';
 import { findAllAddons } from '@/app/services/addonService';
 import { getDefaultOrganization, Organization, OrganizationState } from '@/redux/slice/organizationSlice';
-import TableManagePage from '../components/tableManagePage';
 import { createPdfTable, deletePdfTable, getPdfTable, readAllPdfTablePage, updatePdfTable } from '@/app/services/dynamicHtmlTableService';
 import { initialTableData } from '@/app/utils/constant';
 import { AddBox as AddBoxIcon } from '@mui/icons-material';
+import { useSnackbar } from 'notistack';
+import dynamic from 'next/dynamic';
+const TableManagePage = dynamic(() => import('@/app/(pages)/setup/components/TableManagePage'), { ssr: false });
 
 const PdfTableManager = () => {
     const [tabValue, setTabValue] = useState('1');
@@ -43,10 +44,6 @@ const PdfTableManager = () => {
     const [name, setName] = useState('');
     // const [tableTag, setTableTag] = useState('');
     const [error, setError] = useState('');
-    const [snackbarOpen, setSnackbarOpen] = useState(false);
-    const [snackbarMessage, setSnackbarMessage] = useState('');
-    const [snackbarOpenError, setSnackbarOpenError] = useState(false);
-    const [snackbarErrorMessage, setSnackbarErrorMessage] = useState('');
     // const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const [currentTable, setCurrentTable] = useState<any>({
         custom_html: initialTableData.customHtml, table_rows: initialTableData.initialRows,
@@ -55,6 +52,7 @@ const PdfTableManager = () => {
     const [totalPages, setTotalPages] = useState(0);
     const [currentPage, setCurrentPage] = useState(1);
     const pageSize = 10; // Adjust the page size as needed
+    const { enqueueSnackbar } = useSnackbar();
 
     const currentOrg: Organization | any = useSelector((state: { organization: OrganizationState }) =>
         getDefaultOrganization(state.organization)
@@ -90,10 +88,10 @@ const PdfTableManager = () => {
             // Replace with your API call to fetch tables for the page
             const response = await getPdfTable(id, session?.user?.token);
             if (response.status == 200) {
-                setCurrentTable((prev: any) => response.data);
+                setCurrentTable(() => response.data);
                 let tg = response.data?.tag;
                 if (tg) tg = { ...tg, field_path: tg.field_path.replace('._table_', '') }
-                setTag((prev: any) => tg || { id: null, name: '', field_path: '' });
+                setTag(() => tg || { id: null, name: '', field_path: '' });
                 setSelectedAddon(response.data?.addon_ids || []);
                 setName(response.data?.name)
             }
@@ -111,7 +109,7 @@ const PdfTableManager = () => {
                 const response = await findAllAddons(orgId, token);
                 // console.log(response.data)
                 if (response.status == 200) {
-                    setAddons((prev) => response.data);
+                    setAddons(() => response.data);
                     setSelectedAddon([]);
                 }
             } catch (error) {
@@ -140,12 +138,6 @@ const PdfTableManager = () => {
         setTabValue(newValue);
     };
 
-    // Handle snackbar close
-    const handleSnackbarClose = () => {
-        setSnackbarOpen(false);
-        setSnackbarOpenError(false);
-    };
-
     // Handle edit
     const handleEdit = (table: any) => {
         fetchTable(table.id);
@@ -159,13 +151,13 @@ const PdfTableManager = () => {
     // Handle new
     const handleNew = () => {
         console.log('e')
-        setCurrentTable((prev: any) => {
+        setCurrentTable(() => {
             return {
                 custom_html: initialTableData.customHtml, table_rows: initialTableData.initialRows,
                 cell_styles: initialTableData.initialStyles, num_columns: initialTableData.initialColumns
             }
         });
-        setTag((prev: any) => { return { id: null, name: '', field_path: '' } });
+        setTag(() => { return { id: null, name: '', field_path: '' } });
         setSelectedAddon([]);
         setName('')
         setTabValue("2");
@@ -180,10 +172,11 @@ const PdfTableManager = () => {
         try {
             await deletePdfTable(id, session?.user?.token);
             fetchTables(currentOrg.id, currentPage, session?.user?.token); // Refresh the table list after deletion
-            setSnackbarMessage('Table deleted successfully.');
-            setSnackbarOpen(true);
+            enqueueSnackbar('Table deleted successfully.', { variant: 'success' });
+            // setSnackbarOpen(true);
         } catch (error) {
             console.error('Error deleting table:', error);
+            enqueueSnackbar('Error deleting table', { variant: 'error' });
         }
     };
 
@@ -192,6 +185,7 @@ const PdfTableManager = () => {
         console.log(name)
         if (!selectedAddon || !name || !tag.field_path) {
             setError('All fields are required.');
+            enqueueSnackbar('All fields are required.', { variant: 'error' })
             return;
         }
         try {
@@ -217,12 +211,10 @@ const PdfTableManager = () => {
 
             // setIsEditDialogOpen(false);
             fetchTables(currentOrg.id, currentPage, session?.user?.token);
-            setSnackbarMessage(currentTable ? 'Table updated successfully.' : 'Table created successfully.');
-            setSnackbarOpen(true);
+            enqueueSnackbar(currentTable ? 'Table updated successfully.' : 'Table created successfully.', { variant: 'success' });
         } catch (error: any) {
-            setSnackbarOpenError(true);
             setError('Error saving table: ' + error?.response?.data?.error || error);
-            setSnackbarErrorMessage('Error saving table: ' + error?.response?.data?.error || error)
+            enqueueSnackbar('Error saving table: ' + error?.response?.data?.error || error, { variant: 'error' });
             console.error('Error saving table:', error?.response?.data?.error || error);
         } finally {
         }
@@ -267,7 +259,7 @@ const PdfTableManager = () => {
                                     <Typography>{table.name}</Typography>
                                     <Box>
                                         <Tooltip title="Copy Key">
-                                            <IconButton onClick={() => navigator.clipboard.writeText(table.field_path)}>
+                                            <IconButton onClick={() => navigator.clipboard.writeText('{{' + table.field_path + '}}')}>
                                                 <ContentCopyIcon />
                                             </IconButton>
                                         </Tooltip>
@@ -300,7 +292,7 @@ const PdfTableManager = () => {
                     <TextField
                         label="Name"
                         value={name}
-                        onChange={(e) => { setName((prev) => e.target.value); setError(''); }}
+                        onChange={(e) => { setName(() => e.target.value); setError(''); }}
                         fullWidth
                         sx={{ mb: 2 }}
                     />
@@ -309,7 +301,7 @@ const PdfTableManager = () => {
                         <Select
                             value={selectedAddon}
                             multiple
-                            onChange={(e: any) => { setSelectedAddon((prev) => e.target.value); setError(''); }}
+                            onChange={(e: any) => { setSelectedAddon(() => e.target.value); setError(''); }}
                             // displayEmpty
                             label="Addon"
                             labelId="select-label-addon"
@@ -352,16 +344,6 @@ const PdfTableManager = () => {
 
                 </TabPanel>
             </TabContext>
-            <Snackbar open={snackbarOpen} autoHideDuration={3000} onClose={handleSnackbarClose} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
-                <Alert onClose={handleSnackbarClose} severity='success' >
-                    {snackbarMessage}
-                </Alert>
-            </Snackbar>
-            <Snackbar open={snackbarOpenError} autoHideDuration={3000} onClose={handleSnackbarClose} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
-                <Alert onClose={handleSnackbarClose} severity='warning' >
-                    {snackbarErrorMessage}
-                </Alert>
-            </Snackbar>
         </Box>
     );
 };

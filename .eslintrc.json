@@ -1,5 +1,14 @@
 {
-  "extends": ["next/core-web-vitals", "next/typescript"]
+  "extends": ["next/core-web-vitals", "next/typescript"],
+  "plugins": [
+    "react",
+    "@typescript-eslint",
+    "react-hooks"
+  ],
+    "rules": {
+    "@typescript-eslint/no-explicit-any": "off",
+    "react-hooks/exhaustive-deps": "off"
+  }
   //   "rules": {
   //   "@typescript-eslint/no-require-imports": "off"
   // }

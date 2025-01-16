@@ -8,7 +8,7 @@ import {
     Grid2 as Grid,
     useMediaQuery,
 } from "@mui/material";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
 import { Save as SaveIcon } from "@mui/icons-material";
 import dynamic from "next/dynamic";
@@ -129,22 +129,12 @@ const HtmlTestEditor = () => {
     };
 
     const handleGeneratePdf = async () => {
-        const htmlContent = `
-      <html>
-        <body>
-          <div>${headerContent}</div>
-          <div>${bodyContent}</div>
-          <footer>${footerContent}</footer>
-        </body>
-      </html>
-    `;
-
         try {
             const response = await axios.post("http://localhost:4000/api/v1/pdf-templates/test", {
                 headerContent, bodyContent, footerContent
             });
             const { pdf } = response.data;
-            setPdfData((pr: any) => pdf); // Base64 PDF data
+            setPdfData(() => pdf); // Base64 PDF data
         } catch (error) {
             console.error("Error generating PDF:", error);
         }
@@ -190,14 +180,15 @@ const HtmlTestEditor = () => {
                                 </body>
                                 <footer>${footerContent}</footer>
                             </html>
-                            `} id={null} isIconButton={false} />
+                            `} id={null} isIconButton={false} organization_id={0} />
                     </Grid>
                     <Grid >
                         <Button
-                            variant="contained"
+                            variant="outlined"
                             color="primary"
                             startIcon={<SaveIcon />}
                             onClick={handleGeneratePdf}
+                            size="small"
                         >
                             Generate PDF
                         </Button>
@@ -205,10 +196,11 @@ const HtmlTestEditor = () => {
 
                     {pdfData && <> <Grid >
                         <Button
-                            variant="contained"
+                            variant="outlined"
                             color="primary"
                             startIcon={<SaveIcon />}
                             onClick={openPdfInNewTab}
+                            size="small"
                         >
                             Open In New Tab
                         </Button>

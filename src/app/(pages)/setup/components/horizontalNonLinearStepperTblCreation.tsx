@@ -88,7 +88,7 @@ export default function HorizontalNonLinearStepperTblCreation({
                 {allStepsCompleted() ? (
                     <React.Fragment>
                         <Typography sx={{ mt: 2, mb: 1 }}>
-                            All steps completed - you're finished
+                            All steps completed - you&#39;re finished
                         </Typography>
                     </React.Fragment>
                 ) : (
@@ -108,7 +108,7 @@ export default function HorizontalNonLinearStepperTblCreation({
                                     label="Addons"
                                     required
                                     MenuProps={MenuProps}
-                                    renderValue={(selected) => addons.filter((addon) => selectedAddons.includes(addon.id)).map((addon) => addon.name).join(', ')}
+                                    renderValue={() => addons.filter((addon) => selectedAddons.includes(addon.id)).map((addon) => addon.name).join(', ')}
                                 >
                                     {addons.map((ad) => (
                                         <MenuItem key={ad.id} value={ad.id} >
@@ -140,6 +140,8 @@ export default function HorizontalNonLinearStepperTblCreation({
                                 disabled={activeStep === 0}
                                 onClick={handleBack}
                                 sx={{ mr: 1 }}
+                                variant='outlined'
+                                size='small'
                             >
                                 Back
                             </Button>
@@ -149,12 +151,14 @@ export default function HorizontalNonLinearStepperTblCreation({
                                     onClick={handleCompleteStep}
                                     sx={{ mr: 1 }}
                                     disabled={tag?.match(/^[a-zA-Z].*/) === null || completed[activeStep]}
+                                    variant='outlined'
+                                    size='small'
                                 >
                                     Complete
                                 </Button>
                             )}
                             {activeStep !== steps.length - 1 && !completed[activeStep] && (
-                                <Button onClick={handleNext} disabled={error}>
+                                <Button variant='outlined' size='small' onClick={handleNext} disabled={error}>
                                     {completed[activeStep] ? 'Completed' : 'Next'}
                                 </Button>
                             )}

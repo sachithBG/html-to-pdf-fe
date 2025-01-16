@@ -1,7 +1,9 @@
 "use client";
 import React, { useState, useCallback } from 'react';
 import { Box, Tab, Tabs, Typography, Container, Grid2 as Grid, Button, Stack } from '@mui/material';
-import ImageManage from '../components/imageManage';
+import Image from 'next/image';
+import dynamic from 'next/dynamic';
+const ImageManage = dynamic(() => import('@/app/(pages)/setup/components/ImageManage'), { ssr: false });
 
 function MediaManageParent() {
     const [tabValue, setTabValue] = useState('1');
@@ -38,7 +40,7 @@ function MediaManageParent() {
                     {imageList.map((image, index) => (
                         <Grid size={{ xs: 6, md: 4 }} key={index}>
                             <Box sx={{ border: '1px solid #ccc', padding: 2 }}>
-                                <img src={image.preview} alt={`image-${index}`} className="w-full h-auto" />
+                                <Image src={image.preview} alt={`image-${index}`} className="w-full h-auto" />
                                 <Typography variant="body2" mt={1}>
                                     Key: {image.key}
                                 </Typography>

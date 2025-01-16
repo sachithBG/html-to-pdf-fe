@@ -1,8 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { TextField, Button, Typography, Box, InputAdornment, Grid2 } from "@mui/material";
-import { useSession } from "next-auth/react";
-
+import { TextField, Button, Typography, Box, InputAdornment, Grid2, Divider } from "@mui/material";
 
 const TableManagePage = ({ id, fetchTable, handleSubmit, currentTable }: any) => {
 
@@ -13,8 +11,6 @@ const TableManagePage = ({ id, fetchTable, handleSubmit, currentTable }: any) =>
     const [previewHtml, setPreviewHtml] = useState(""); // Preview HTML table
     const [cellStyles, setCellStyles] = useState(currentTable.cell_styles); // Cell styles
     const [isEdit, setIsEdit] = useState<boolean>(id && Number(id) > 0); // Flag to check if editing existing table
-
-    const { data: session }: any = useSession();
 
     // Handle changes to form inputs for dynamic rows
     const handleRowChange = (e: React.ChangeEvent<HTMLInputElement> | any, index: number) => {
@@ -125,7 +121,7 @@ const TableManagePage = ({ id, fetchTable, handleSubmit, currentTable }: any) =>
     useEffect(() => {
         if (id) {
             // Make API call to save table data
-            setIsEdit((prev) => true);
+            setIsEdit(() => true);
             fetchTable(id);
             // getExternalKey(id, session?.user?.token)
             setRows(currentTable.table_rows);
@@ -206,7 +202,18 @@ const TableManagePage = ({ id, fetchTable, handleSubmit, currentTable }: any) =>
 
             <Box>
                 <Typography variant="h6" className="mb-2">Table Data</Typography>
-
+                {/* Add Row Button */}
+                <Button
+                    variant="outlined"
+                    color="primary"
+                    onClick={addRow}
+                    size="small"
+                    className="mb-3"
+                    sx={{ float: 'right', mb: 2, mt: -2 }}
+                >
+                    Add Row
+                </Button>
+                <Divider sx={{ width: '100%', my: 2 }}></Divider>
                 {/* Dynamic Table Data Input */}
                 {rows.map((row: any, index: number) => (
                     <Box key={index} className="flex items-center space-x-2 mb-3 mt-3">
@@ -224,7 +231,7 @@ const TableManagePage = ({ id, fetchTable, handleSubmit, currentTable }: any) =>
                             />
                         ))}
                         <Button
-                            variant="contained"
+                            variant="outlined"
                             color="error"
                             onClick={() => removeRow(index)}
                             size="small"
@@ -233,17 +240,6 @@ const TableManagePage = ({ id, fetchTable, handleSubmit, currentTable }: any) =>
                         </Button>
                     </Box>
                 ))}
-
-                {/* Add Row Button */}
-                <Button
-                    variant="contained"
-                    color="primary"
-                    onClick={addRow}
-                    size="small"
-                    className="mb-3"
-                >
-                    Add Row
-                </Button>
             </Box>
 
             {/* Cell Styles */}
@@ -314,14 +310,14 @@ const TableManagePage = ({ id, fetchTable, handleSubmit, currentTable }: any) =>
 
             {/* Save or Update Button */}
             <Button
-                variant="contained"
+                variant="outlined"
                 color="primary"
                 onClick={saveTableData}
                 size="small"
                 className="mt-6"
                 sx={{ mt: 5, float: 'right' }}
             >
-                {isEdit ? "Update Table" : "Create Table"}
+                {isEdit ? "Update Table" : "Save Table"}
             </Button>
         </Box>
     );

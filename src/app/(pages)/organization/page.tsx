@@ -18,11 +18,8 @@ import {
     Switch,
     Divider,
     FormGroup,
-    FormControlLabel,
-    Checkbox,
     Box,
     Chip,
-    Stack,
     Grid2,
     Avatar,
     Popover,
@@ -94,7 +91,7 @@ export default function OrganizationPage() {
     };
 
     const validate = () => {
-        let tempErrors: { name?: string } = {};
+        const tempErrors: { name?: string } = {};
         if (!currentOrg.name) tempErrors.name = "Name is required";
         setErrors(tempErrors);
         return Object.keys(tempErrors).length === 0;
@@ -104,13 +101,16 @@ export default function OrganizationPage() {
         if (!validate()) return;
 
         const uploadImage = (file: any) => {
+
             // Implement the image upload logic here
             // This function should return a promise that resolves with the uploaded image URL
+            if (file) console.log('file exsit');
             return new Promise<string>((resolve, reject) => {
                 // Mock image upload
                 setTimeout(() => {
                     resolve('https://via.placeholder.com/150');
                 }, 1000);
+                console.log(reject);
             });
         };
 
@@ -146,11 +146,16 @@ export default function OrganizationPage() {
 
         if (currentOrg.logo && currentOrg.logo.startsWith('blob:')) {
             // If the logo is a blob URL, upload the image first
+            setLoadingSave(true);
             uploadImage(currentOrg.logo).then((uploadedImageUrl) => {
                 const updatedOrg: any = { ...currentOrg, logo: uploadedImageUrl };
                 saveOrganization(updatedOrg);
+                setLoadingSave(false);
+                setSaveSuccess(true);
             }).catch((err: any) => {
                 console.error('Image upload failed', err);
+                setLoadingSave(false);
+                setSaveSuccess(false);
             });
         } else {
             // If the logo is already a URL, proceed with saving the organization
@@ -163,8 +168,8 @@ export default function OrganizationPage() {
         // This function should update the default organization
         setDefaultOrganization(orgId, session?.user?.token).then((res: any) => {
             if (res?.status == 200) {
-                let updatedOrgs = organizations.map((org) => ({ ...org, is_default: org.id === orgId }));
-                setOrganizations((pre) => updatedOrgs);
+                const updatedOrgs = organizations.map((org) => ({ ...org, is_default: org.id === orgId }));
+                setOrganizations(() => updatedOrgs);
                 dispatch(clearOrganizationState());
                 dispatch(addOrganizationAll(updatedOrgs));
             }
@@ -249,7 +254,7 @@ export default function OrganizationPage() {
         const fetchAddons = async () => {
             const res = await findAllAddons(currentOrg.id, session?.user?.token);
             if (res.status == 200) {
-                setAddons((prev) => res.data)
+                setAddons(() => res.data)
             }
         }
         if (session?.user?.token) fetchAddons();
@@ -260,7 +265,7 @@ export default function OrganizationPage() {
             {/* <Typography variant="h4" gutterBottom>
                 Manage Organizations
             </Typography> */}
-            <Button variant="contained" color="primary" sx={{ float: 'right' }} startIcon={<AddIcon />} onClick={() => handleOpen()}>
+            <Button variant="outlined" size='small' color="primary" sx={{ float: 'right' }} startIcon={<AddIcon />} onClick={() => handleOpen()}>
                 New
             </Button>
             <Table>
@@ -359,6 +364,8 @@ export default function OrganizationPage() {
                         loading={loadingSave}
                         startIcon={saveSuccess === true ? <CheckCircleIcon color="success" /> : saveSuccess === false ? <ErrorIcon color="error" /> : null}
                         sx={{ float: 'right' }}
+                        variant='outlined'
+                        size='small'
                     >
                         Save
                     </LoadingButton>
@@ -398,6 +405,8 @@ export default function OrganizationPage() {
                                 loading={loadingAddons}
                                 startIcon={addonsSuccess === true ? <CheckCircleIcon color="success" /> : addonsSuccess === false ? <ErrorIcon color="error" /> : null}
                                 sx={{ m: 1, float: 'right' }}
+                                size='small'
+                                variant='outlined'
                             >
                                 Save
                             </LoadingButton>
@@ -467,10 +476,10 @@ export default function OrganizationPage() {
                                     <Box sx={{ p: 2, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                                         <Typography>Are you sure you want to delete this addon?</Typography>
                                         <Box sx={{ mt: 1, display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-                                            <Button onClick={handleDeleteClose} color="primary">
+                                            <Button variant='outlined' size='small' onClick={handleDeleteClose} color="primary">
                                                 Cancel
                                             </Button>
-                                            <Button onClick={handleConfirmDelete} color="secondary">
+                                            <Button variant='outlined' size='small' onClick={handleConfirmDelete} color="secondary">
                                                 Confirm
                                             </Button>
                                         </Box>
@@ -481,7 +490,7 @@ export default function OrganizationPage() {
                     </Box>}
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={handleClose} color="primary">
+                    <Button variant='outlined' size='small' onClick={handleClose} color="primary">
                         Cancel
                     </Button>
 

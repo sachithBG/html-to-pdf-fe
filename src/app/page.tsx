@@ -47,7 +47,8 @@ export default function Home() {
         {/* CTA Button to Setup Page */}
         <div className="flex justify-center mt-8">
           <Button
-            variant="contained"
+            variant="outlined"
+            size="small"
             color="primary"
             onClick={handleNavigateToSetup}
             className="py-3 px-8 text-xl sm:text-lg"
@@ -87,7 +88,7 @@ export default function Home() {
           <p className="text-lg text-gray-600 mt-4">
             1. Enter your HTML content. <br />
             2. Customize PDF settings (size, orientation). <br />
-            3. Click 'Generate PDF' and download your document.
+            3. Click &apos;Generate PDF&lsquo; and download your document.
           </p>
         </section>
       </main>

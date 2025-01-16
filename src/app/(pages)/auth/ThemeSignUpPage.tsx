@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Modal, Box, TextField, Typography, Button, Alert, IconButton, Dialog, DialogTitle } from '@mui/material';
+import { Box, TextField, Typography, Button, Alert, IconButton, Dialog } from '@mui/material';
 import Grid2 from '@mui/material/Grid2'; // Grid2 component
 import LineStyleIcon from '@mui/icons-material/LineStyle';
 import { signUpUser } from '@/app/services/authService';
@@ -18,7 +18,7 @@ const SignUp = ({ setSignInModalOpen, openSignUp, setSignUpModalOpen }: any) => 
     const emailRef = useRef<HTMLInputElement | null>(null);
     const passwordRef = useRef<HTMLInputElement | null>(null);
 
-    const handleOpen = () => setSignUpModalOpen(true);
+    // const handleOpen = () => setSignUpModalOpen(true);
     const handleClose = () => setSignUpModalOpen(false);
 
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -179,6 +179,7 @@ const SignUp = ({ setSignInModalOpen, openSignUp, setSignUpModalOpen }: any) => 
                     margin="normal"
                     slotProps={{
                         htmlInput(ownerState) {
+                            console.log(ownerState);
                             return { maxLength: 8, minLength: 3 };
                         },
                     }}
@@ -198,7 +199,7 @@ const SignUp = ({ setSignInModalOpen, openSignUp, setSignUpModalOpen }: any) => 
                     </Alert>
                 )}
 
-                <Button type="submit" variant="contained" color="primary" fullWidth>
+                <Button type="submit" variant="outlined" size='small' color="primary" fullWidth>
                     Sign Up
                 </Button>
 

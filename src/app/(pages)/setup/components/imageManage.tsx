@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, Button, TextField, FormControl, InputLabel, Select, MenuItem, Chip, CircularProgress, Grid2 } from '@mui/material';
+import { Box, Button, TextField, FormControl, InputLabel, Select, MenuItem, CircularProgress, Grid2 } from '@mui/material';
 import { Checkbox, ListItemText } from '@mui/material';
 import Image from 'next/image';
 
@@ -120,15 +120,16 @@ const ImageManage = ({ onImageUpload }: { onImageUpload: (image: any) => void })
 
             {preview && <div className="mb-4">
                 <h3 className="text-xl mb-2">Image Preview</h3>
-                <img src={preview} alt="Preview" className="w-60 h-auto" />
+                <Image src={preview} alt="Preview" className="w-60 h-auto" />
             </div>}
 
             <Box sx={{ marginTop: 2 }}>
                 <Button
                     onClick={handleUploadImage}
-                    variant="contained"
+                    variant="outlined"
                     color="primary"
                     disabled={!isValidForm() || isUploading}
+                    size='small'
                 >
                     {isUploading ? <CircularProgress size={24} /> : 'Upload Image'}
                 </Button>

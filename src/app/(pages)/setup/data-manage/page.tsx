@@ -1,23 +1,19 @@
 "use client";
-import { useState, useEffect, useCallback } from 'react';
-import { Button, TextField, Chip, IconButton, Popover, MenuItem, Select, InputLabel, FormControl, Paper, Box, Typography, Checkbox, ListItemText, Grid2, useTheme, Tooltip, Snackbar, Alert, Tabs, Tab, Card, CircularProgress, Skeleton } from '@mui/material';
-import { AddCircle, Edit, Delete } from '@mui/icons-material';
+import { useState, useEffect } from 'react';
+import { Button, TextField, Chip, IconButton, Popover, MenuItem, Select, InputLabel, FormControl, Paper, Box, Typography, Checkbox, ListItemText, Grid2, useTheme, Tooltip, Snackbar, Alert, Tabs, Tab, CircularProgress, Skeleton } from '@mui/material';
 import { useSession } from 'next-auth/react';
 import { useSelector } from 'react-redux';
 import { getDefaultOrganization, Organization, OrganizationState } from '@/redux/slice/organizationSlice';
 import { findAllAddons } from '@/app/services/addonService';
 import { createTag, deleteTag, findAllTags, updateTag } from '@/app/services/tagService';
 import EditIcon from '@mui/icons-material/Edit';
-import AddIcon from '@mui/icons-material/Add';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import ErrorIcon from '@mui/icons-material/Error';
 import DeleteIcon from '@mui/icons-material/Delete';
 import SaveIcon from '@mui/icons-material/Save';
 import FileCopyIcon from '@mui/icons-material/FileCopy';
-import CloseIcon from '@mui/icons-material/Close';
-import ExternalKeyManager from '../components/ExternalKeyManager';
-import TemplateDataManager from '../components/TemplateDataManager';
-import ManageAddonsPage from '../components/ManageAddons';
+import dynamic from 'next/dynamic';
+const ManageAddonsPage = dynamic(() => import('@/app/(pages)/setup/components/ManageAddons'), { ssr: false });
+const ExternalKeyManager = dynamic(() => import('@/app/(pages)/setup/components/ExternalKeyManager'), { ssr: false });
+const TemplateDataManager = dynamic(() => import('@/app/(pages)/setup/components/TemplateDataManager'), { ssr: false });
 
 interface Addon {
     id: number;
@@ -94,14 +90,6 @@ const TagManagementPage = () => {
 
     const [chosenAddon, setChosenAddon] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    // const [templates, setTemplates] = useState<any[]>([
-    //     { id: '1', name: 'Template 1', json: '{ "key": "value" }' },
-    //     { id: '2', name: 'Template 2', json: '{ "example": 123 }' },
-    // ]);
-
-    // const fetchLatestAddons = useCallback(async (addons: any[]) => {
-    //     setAddons((prev) => addons);
-    // }, [currentOrg?.id, tabValue]);
 
     useEffect(() => {
         // Fetch the available addons from the API
@@ -111,7 +99,7 @@ const TagManagementPage = () => {
                 setIsLoading(true);
                 const res = await findAllAddons(currentOrg?.id, session?.user?.token);
                 if (res.status == 200) {
-                    setAddons((prev) => res.data);
+                    setAddons(() => res.data);
                     try {
                         const response = await findAllTags(res.data?.filter((a: any) => selectedAddons.includes(a.name)), session?.user?.token);
                         // axios.get(process.env.NEXT_PUBLIC_BASE_URL + "v1/tags", {
@@ -148,14 +136,6 @@ const TagManagementPage = () => {
         } catch (error) {
             console.error("Error fetching tags:", error);
         }
-    };
-
-    const handleTagKeyChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setTagKey(event.target.value);
-    };
-
-    const handleTagNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setTagName(event.target.value);
     };
 
     const handleSaveTag = async () => {
@@ -335,8 +315,8 @@ const TagManagementPage = () => {
                     margin="normal"
                     error={Boolean(errors.name)}
                     helperText={errors.name}
+                    disabled={selectedType == 'TABLE'}
                 />
-
                 {/* Tag Key Input */}
                 <TextField
                     label="Tag Key"
@@ -346,10 +326,11 @@ const TagManagementPage = () => {
                     margin="normal"
                     error={Boolean(errors.field_path)}
                     helperText={errors.field_path}
+                    disabled={selectedType == 'TABLE'}
                 />
 
                 {/* Save Button */}
-                <Button variant="contained" color="primary" sx={{ float: 'right' }} onClick={handleSaveTag}>
+                <Button size='small' variant="outlined" color="primary" sx={{ float: 'right' }} onClick={handleSaveTag} disabled={selectedType == 'TABLE'}>
                     Save Tag
                 </Button>
 
@@ -442,6 +423,14 @@ const TagManagementPage = () => {
                             value={editTag?.name || ''}
                             onChange={(e: any) => setEditTag({ ...editTag, name: e.target.value })}
                             size="small"
+                            placeholder='name'
+                        />
+                        <TextField
+                            value={editTag?.field_path?.split('._table_')[0] || ''}
+                            onChange={(e: any) => setEditTag({ ...editTag, field_path: e.target.value })}
+                            size="small"
+                            placeholder='path'
+                            sx={{ ml: 1 }}
                         />
                         <IconButton onClick={handleUpdateTag}>
                             <SaveIcon />
@@ -467,10 +456,10 @@ const TagManagementPage = () => {
                     <Box sx={{ p: 2, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                         <Typography>Are you sure you want to delete this addon?</Typography>
                         <Box sx={{ mt: 1, display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-                            <Button onClick={handleDeleteClose} color="primary">
+                            <Button variant='outlined' onClick={handleDeleteClose} color="primary" size='small'>
                                 Cancel
                             </Button>
-                            <Button onClick={handleConfirmDelete} color="secondary">
+                            <Button variant='outlined' onClick={handleConfirmDelete} color="secondary" size='small'>
                                 Confirm
                             </Button>
                         </Box>
