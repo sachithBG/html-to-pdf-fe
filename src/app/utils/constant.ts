@@ -7,7 +7,10 @@ export const fadeIn = {
   visible: { opacity: 1, y: 0 },
 };
 
-
+export const isValidS3Url = (url: string): boolean => {
+    const s3UrlPattern = /^https:\/\/pdf-crafter2\.s3\.us-east-1\.amazonaws\.com\/.+$/;
+    return s3UrlPattern.test(url);
+};
 
 
 

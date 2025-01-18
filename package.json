@@ -25,6 +25,8 @@
     "axios": "^1.7.9",
     "bcrypt": "^5.1.1",
     "bcryptjs": "^2.4.3",
+    "ckeditor5": "^43.3.1",
+    "dompurify": "^3.2.3",
     "framer-motion": "^11.15.0",
     "jsonlint-mod": "^1.7.6",
     "jsonwebtoken": "^9.0.2",
@@ -41,6 +43,7 @@
     "styled-components": "^6.1.13"
   },
   "devDependencies": {
+    "@ckeditor/ckeditor5-react": "^9.4.0",
     "@types/bcryptjs": "^2.4.6",
     "@types/lodash": "^4.17.14",
     "@types/node": "^20",

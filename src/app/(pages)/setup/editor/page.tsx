@@ -42,9 +42,13 @@ import { getDefaultOrganization, Organization, OrganizationState } from "@/redux
 import { createPdfTemplate, generatePdfBuffer, generatePdfBufferById, readPdfTemplate, updatePdfTemplate } from "@/app/services/pdfService";
 import { findAllByAddonId } from "@/app/services/externalKeyService";
 import { useSnackbar } from "notistack";
-// const EditableTextField = dynamic(() => import('@/app/components/EditableTextField'), { ssr: false });
+// import CKTextField from "../components/CKTextField";
+const CKTextField = dynamic(() => import('@/app/(pages)/setup/components/CKTextField'), { ssr: false });
 const PdfPreviewButton = dynamic(() => import('@/app/components/PdfPreviewButton'), { ssr: false });
 const DownloadButton = dynamic(() => import('@/app/components/DownloadButton'), { ssr: false });
+const SectionEditor = dynamic(() => import('@/app/(pages)/setup/components/SectionEditor'), { ssr: false });
+const SubcategoryEditor = dynamic(() => import('@/app/(pages)/setup/components/SubcategoryEditor'), { ssr: false });
+
 
 const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
     const [headerContent, setHeaderContent] = useState<string>("");
@@ -88,7 +92,11 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
     const [selectedType, setSelectedType] = useState<number | null>(null);
     const [externalKeys, setExternalKeys] = useState<any[]>([]);
     const [pdfPrevButton, setPdfPrevButton] = useState(true);
+    const [sections, setSections] = useState<any[]>([]);
+    const [pdfSubcategories, setPdfSubcategories] = useState<any[]>([]);
     const { enqueueSnackbar } = useSnackbar();
+    const [editorValue, setEditorValue] = useState<string>('<p>Start typing here...</p>');
+    const [isEditorLoading, setIsEditorLoading] = useState<boolean>(true);
 
     const handleMarginChange = (side: 'l' | 't' | 'r' | 'b', value: string) => {
         setMargin((prev) => ({ ...prev, [side]: value }));
@@ -141,6 +149,7 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
 
     // Fetch Tags based on selected Addons
     useEffect(() => {
+        console.log(session)
         if (selectedAddons.length > 0) {
             fetchTags();
             fetchExternalKeys();
@@ -150,22 +159,10 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
         }
     }, [selectedAddons]);
 
-    // Handle Addon Change
-    const handleAddonChange = (event: any) => {
-        setErrors((prev) => ({ ...prev, addons: undefined }));
-        setSelectedAddons([event.target.value]);
-    };
-
-    // Handle Copy Tag
-    const handleCopyTag = (tag: string) => {
-        console.log(tag)
-        if (!tag) return;
-        navigator.clipboard.writeText(`{{${tag}}}`).then(() => {
-            enqueueSnackbar(`Tag key copied: {{${tag}}}`, { variant: 'success' });
-        }).catch(err => {
-            console.error('Failed to copy: ', err);
-        });
-    };
+    useEffect(() => {
+        const timeout = setTimeout(() => setIsEditorLoading(false), 2000); // Simulate loading
+        return () => clearTimeout(timeout);
+    }, []);
 
     useEffect(() => {
         setIsClient(true); // Ensures PDF rendering runs on the client side
@@ -208,6 +205,8 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
                         setDisplayHeaderFooter(() => response.data.displayHeaderFooter);
                         setMargin(() => response.data.margin);
                         setSelectedType(() => response.data.external_key);
+                        setSections(() => response.data.sections || []);
+                        setPdfSubcategories(() => response.data.subcategories || []);
                     }
 
                 } catch (error) {
@@ -224,6 +223,23 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
     if (!isClient) {
         return null; // Or render a loading state
     }
+
+    // Handle Addon Change
+    const handleAddonChange = (event: any) => {
+        setErrors((prev) => ({ ...prev, addons: undefined }));
+        setSelectedAddons([event.target.value]);
+    };
+
+    // Handle Copy Tag
+    const handleCopyTag = (tag: string) => {
+        console.log(tag)
+        if (!tag) return;
+        navigator.clipboard.writeText(`{{${tag}}}`).then(() => {
+            enqueueSnackbar(`Tag key copied: {{${tag}}}`, { variant: 'success' });
+        }).catch(err => {
+            console.error('Failed to copy: ', err);
+        });
+    };
 
 
     const handleCollapse = (section: "setting" | "header" | "body" | "footer") => {
@@ -272,7 +288,9 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
                 displayHeaderFooter: displayHeaderFooter,
                 defVal: defVal,
                 organization_id: currentOrg.id,
-                external_key: selectedType
+                external_key: selectedType,
+                sections: sections,
+                subcategories: pdfSubcategories
             };
             if (isGenerate) {
                 const response = !isEditMode ? await generatePdfBuffer(payload, session?.user?.token) :
@@ -359,10 +377,54 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
         setErrors((prev) => ({ ...prev, externalKey: undefined }));
     };
 
+    const handleAddSection = () => {
+        setSections([
+            ...sections,
+            { id: Date.now(), name: "", subcategories: [], htmlContent: "" },
+        ]);
+    };
 
+    const handleSectionChange = (id: number, updatedSection: any) => {
+        setSections((prevSections) =>
+            prevSections.map((section) =>
+                section.id === id ? { ...section, ...updatedSection } : section
+            )
+        );
+    };
 
     return (
         <Box className="container mx-auto p-4">
+            <div>
+                <h1>CKEditor</h1>
+                <CKTextField
+                    value={headerContent}
+                    onChange={setHeaderContent}
+                    isLoading={isEditorLoading}
+                    placeholder="Start typing your content..."
+                    config={{}}
+                />
+                <div style={{ marginTop: '20px' }} className="ck ck-editor__main">
+                    <h3>Preview:</h3>
+                    <div dangerouslySetInnerHTML={{
+                        __html: '<div class=" ck ck-content ">' +
+                            headerContent +
+                            '</div>' }} />
+                </div>
+            </div>
+            <div>
+                <h1>CKEditor 2</h1>
+                <CKTextField
+                    value={editorValue}
+                    onChange={setEditorValue}
+                    isLoading={isEditorLoading}
+                    placeholder="Start typing your content..."
+                    config={{}}
+                />
+                <div style={{ marginTop: '20px' }}>
+                    <h3>Preview:</h3>
+                    <div dangerouslySetInnerHTML={{ __html: editorValue }} />
+                </div>
+            </div>
             <Box mb={4}>
                 <Grid
                     container
@@ -381,7 +443,7 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
                                 </body>
                                 <footer>${footerContent}</footer>
                             </html>
-                            `} isIconButton={false} id={isEditMode ? id : null} organization_id={currentOrg?.id} />}
+                            `} isIconButton={false} id={isEditMode ? id : null} organization_id={currentOrg?.id} subcategories={pdfSubcategories?.map(sc => sc.name) || []} />}
                     </Grid>
 
 
@@ -452,7 +514,7 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
             </Box>
 
             <Box key={'setting'} mb={4}>
-                <Button variant="outlined" size="small" onClick={() => handleCollapse('setting')}>
+                <Button size="small" onClick={() => handleCollapse('setting')}>
                     {'setting'.charAt(0).toUpperCase() + 'setting'.slice(1)} Editor{" "}
                     {collapsed['setting'] ? "▲" : "▼"}
                 </Button>
@@ -468,6 +530,7 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
                                 error={Boolean(errors.pdfName)}
                                 helperText={errors.pdfName}
                                 required
+                                size="small"
                             />
                             <Box sx={{ display: 'none' }}>{/* flex */}
                                 Key: &nbsp;
@@ -494,12 +557,12 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
                                 error={Boolean(errors.pdfKey)}
                                 helperText={errors.pdfKey}
                                 disabled
-
+                                size="small"
                             />
                         </Grid2>
                         {/* Addon Selector */}
                         <Grid2 size={4}>
-                            <FormControl fullWidth sx={{ mt: 2 }} error={errors.addons ? true : false}>
+                            <FormControl fullWidth sx={{ mt: 2 }} error={errors.addons ? true : false} size="small">
                                 <InputLabel>Addons</InputLabel>
                                 {/* {addons?.filter(a => a.id == selectedAddons[0])[0]?.name} */}
                                 {!isLoding && <Select
@@ -510,7 +573,7 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
                                     required
                                     renderValue={(selected) => addons?.filter(a => a.id == selected)[0]?.name}//selected.join(", ")
                                     error={Boolean(errors.addons)}
-
+                                    size="small"
                                 >
                                     {addons?.map((addon) => (
                                         <MenuItem key={addon.id} value={addon.id}>
@@ -534,6 +597,7 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
                                     label="Type/Status"
                                     renderValue={(selected) => externalKeys.filter(k => k.id == selected)[0]?.key_value} // Display selected addons or "None"
                                     required
+                                    size="small"
                                 >
                                     {externalKeys?.map((keys) => (
                                         <MenuItem key={keys.id} value={keys.id}>
@@ -582,6 +646,7 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
                                 onChange={(e) => handleMarginChange('l', e.target.value)}
                                 fullWidth
                                 type="number"
+                                size="small"
                                 slotProps={{
                                     input: {
                                         endAdornment: (
@@ -599,6 +664,7 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
                                 onChange={(e) => handleMarginChange('t', e.target.value)}
                                 fullWidth
                                 type="number"
+                                size="small"
                                 slotProps={{
                                     input: {
                                         endAdornment: (
@@ -616,6 +682,7 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
                                 onChange={(e) => handleMarginChange('r', e.target.value)}
                                 fullWidth
                                 type="number"
+                                size="small"
                                 slotProps={{
                                     input: {
                                         endAdornment: (
@@ -633,6 +700,7 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
                                 onChange={(e) => handleMarginChange('b', e.target.value)}
                                 fullWidth
                                 type="number"
+                                size="small"
                                 slotProps={{
                                     input: {
                                         endAdornment: (
@@ -651,6 +719,7 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
                                 value={defVal}
                                 onChange={(e) => setDefVal(e.target.value)}
                                 fullWidth
+                                size="small"
                             // InputProps={{
                             //     startAdornment: <InputAdornment position="start">{"'"}</InputAdornment>,
                             //     endAdornment: <InputAdornment position="end">{"'"}</InputAdornment>,
@@ -684,6 +753,7 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
                                         multiple
                                         disableCloseOnSelect
                                         autoHighlight
+                                        size="small"
                                         options={tags.filter((tag) => TAG_TYPES.includes(tag.tag_type + ''))
                                             .filter((tag) => tagFlter && tagFlter != '' ? tagFlter == tag.tag_type : true)
                                             .sort((a, b) => -b.tag_type.localeCompare(a.tag_type))
@@ -740,6 +810,7 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
                                         renderInput={(params: any) => <TextField
                                             {...params}
                                             label="Tags"
+                                            size="small"
                                             slotProps={{
                                                 input: {
                                                     ...params.InputProps,
@@ -750,33 +821,37 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
                                                         handleCopyTag(tag_?.field_path); // Handle copy action when clicking the tag
                                                     },
                                                     endAdornment: (
-                                                        <InputAdornment position="end" sx={{ display: 'flex', alignItems: 'center', mr: -4 }}>
-                                                            <FormControl size="small" variant="standard" sx={{ minWidth: 100 }} >
-                                                                {/* <InputLabel>Type</InputLabel> */}
-                                                                <Select
-                                                                    value={tagFlter}
-                                                                    onChange={(event) => {
-                                                                        setTagFlter(event.target.value);
-                                                                    }}
-                                                                    required
-                                                                    // label="Filter"
-                                                                    size="small"
-                                                                    variant="standard"
-                                                                    disabled={selectedAddons.length < 1}
-                                                                    endAdornment={<InputAdornment position="end" ><FilterListIcon /></InputAdornment>}
+                                                        <>
+                                                            <InputAdornment position="end" sx={{ display: 'flex', alignItems: 'center', mr: -4 }}>
+                                                                <FormControl size="small" variant="standard" sx={{ minWidth: 100 }} >
+                                                                    {/* <InputLabel>Type</InputLabel> */}
+                                                                    <Select
+                                                                        value={tagFlter}
+                                                                        onChange={(event) => {
+                                                                            setTagFlter(event.target.value);
+                                                                        }}
+                                                                        required
+                                                                        // label="Filter"
+                                                                        size="small"
+                                                                        variant="standard"
+                                                                        disabled={selectedAddons.length < 1}
+                                                                        endAdornment={<InputAdornment position="end" ><FilterListIcon /></InputAdornment>}
 
-                                                                >
-                                                                    <MenuItem value="">
-                                                                        <em>None</em>
-                                                                    </MenuItem>
-                                                                    {["CONTENT", "TABLE", "IMAGE"].map((t) => (
-                                                                        <MenuItem key={t} value={t}>
-                                                                            {t}
+                                                                    >
+                                                                        <MenuItem value="">
+                                                                            <em>None</em>
                                                                         </MenuItem>
-                                                                    ))}
-                                                                </Select>
-                                                            </FormControl>
-                                                        </InputAdornment>
+                                                                        {["CONTENT", "TABLE", "IMAGE"].map((t) => (
+                                                                            <MenuItem key={t} value={t}>
+                                                                                {t}
+                                                                            </MenuItem>
+                                                                        ))}
+                                                                    </Select>
+                                                                </FormControl>
+                                                            </InputAdornment>
+                                                            <Box ml={5}>{params.InputProps.endAdornment}</Box>
+
+                                                        </>
                                                     ),
                                                 },
                                             }}
@@ -810,6 +885,25 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
                             </Box>
 
                         </Grid2>
+                        <Grid2 size={12}>
+                            <SubcategoryEditor
+                                subcategories={pdfSubcategories}
+                                onAddSubcategory={(name) => {
+                                    setPdfSubcategories((prev) => [...prev, { id: Date.now(), name }]
+                                        .sort((a, b) => a.name.localeCompare(b.name)));
+                                }}
+                                onDeleteSubcategory={(id) => {
+                                    setPdfSubcategories((prev) => prev.filter((s) => s.id !== id)
+                                        .sort((a, b) => a.name.localeCompare(b.name)));
+                                }}
+                                onEditSubcategory={(id, name) => {
+                                    setPdfSubcategories((prev) => prev.map((s) => s.id === id ? { ...s, name } : s)
+                                        .sort((a, b) => a.name.localeCompare(b.name)));
+                                }}
+                                loading={isLoding}
+                            />
+
+                        </Grid2>
 
                     </Grid2>
 
@@ -817,7 +911,7 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
                 </Collapse>
             </Box>
             <Grid2 size={12}><Divider /></Grid2>
-            <Grid2 size={12}><Divider /></Grid2>
+            <Grid2 size={12} mb={2}><Divider /></Grid2>
             <Box key={'header'} mb={4}>
                 <Button onClick={() => handleCollapse('header')}>
                     {'header'.charAt(0).toUpperCase() + 'header'.slice(1)} Editor{" "}
@@ -834,6 +928,7 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
                                 onChange={(e) => setHeaderContent(e.target.value)}
                                 multiline
                                 focused={true}
+                                size="small"
                                 sx={{
                                     height: "100%", // Full height of the container
                                     "& .MuiOutlinedInput-root": {
@@ -850,9 +945,9 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
                         {/* Preview Section */}
                         <Box flex={1} p={2} border="1px solid var(--foreground)">
                             <Typography variant="h6">Preview</Typography>
-                            <div
+                            <Box
                                 dangerouslySetInnerHTML={{
-                                    __html: `<h1>${headerContent}</h1>`
+                                    __html: `${headerContent}`
                                 }}
                             />
                         </Box>
@@ -876,6 +971,7 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
                                 onChange={(e) => setBodyContent(e.target.value)}
                                 multiline
                                 focused={true}
+                                size="small"
                                 sx={{
                                     height: "100%", // Full height of the container
                                     "& .MuiOutlinedInput-root": {
@@ -892,12 +988,34 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
                         {/* Preview Section */}
                         <Box flex={1} p={2} border="1px solid var(--foreground)">
                             <Typography variant="h6">Preview</Typography>
-                            <div
+                            <Box
                                 dangerouslySetInnerHTML={{
-                                    __html: `<h1>${bodyContent}</h1>`
+                                    __html: `${bodyContent}`
                                 }}
                             />
                         </Box>
+                    </Box>
+
+
+                    <Box display="flex" flexDirection={'column'} gap={4} mt={3}>
+                        {sections.map((section: any) => (
+                            <>
+                                <SectionEditor
+                                    key={section.id}
+                                    section={section}
+                                    onChange={(updatedSection: any) =>
+                                        handleSectionChange(section.id, updatedSection)
+                                    }
+                                    subcategories={pdfSubcategories?.map(c => c.name)}
+                                />
+                                <Divider sx={{ width: '100%' }} />
+                            </>
+                        ))}
+                    </Box>
+                    <Box display="flex" gap={4} justifyContent={'end'}>
+                        <Button variant="outlined" size="small" onClick={handleAddSection} sx={{ my: 2, float: 'right' }}>
+                            Add New Section
+                        </Button>
                     </Box>
                 </Collapse>
             </Box>
@@ -918,6 +1036,7 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
                                 onChange={(e) => setFooterContent(e.target.value)}
                                 multiline
                                 focused={true}
+                                size="small"
                                 sx={{
                                     height: "100%", // Full height of the container
                                     "& .MuiOutlinedInput-root": {
@@ -934,9 +1053,9 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
                         {/* Preview Section */}
                         <Box flex={1} p={2} border="1px solid var(--foreground)">
                             <Typography variant="h6">Preview</Typography>
-                            <div
+                            <Box
                                 dangerouslySetInnerHTML={{
-                                    __html: `<h1>${footerContent}</h1>`
+                                    __html: `${footerContent}`
                                 }}
                             />
                         </Box>

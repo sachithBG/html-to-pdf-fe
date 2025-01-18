@@ -38,6 +38,8 @@ import { useSession } from 'next-auth/react';
 import { addOrganization, addOrganizationAll, clearOrganizationState, Organization, updateOrganization } from '@/redux/slice/organizationSlice';
 import { useDispatch } from 'react-redux';
 import { createAddon, deleteAddon, findAllAddons, updateAddon } from '@/app/services/addonService';
+import { uploadOrgLogo } from '@/app/services/mediaService';
+import { isValidS3Url } from '@/app/utils/constant';
 
 export default function OrganizationPage() {
     const [organizations, setOrganizations] = useState<Organization[]>([]);
@@ -58,6 +60,13 @@ export default function OrganizationPage() {
 
     const { data: session }: any = useSession();
     const dispatch = useDispatch();
+
+    const avatarUrl =
+        typeof currentOrg?.logo === 'string' && isValidS3Url(currentOrg?.logo)
+            ? currentOrg?.logo // Use the validated URL
+            : currentOrg?.logo instanceof File
+                ? URL.createObjectURL(currentOrg?.logo) // Use a blob URL for a File object
+                : undefined;
 
     useEffect(() => {
         // Fetch organizations from API
@@ -88,6 +97,7 @@ export default function OrganizationPage() {
         setOpen(false);
         setCurrentOrg({});
         setErrors({});
+        setSaveSuccess(null);
     };
 
     const validate = () => {
@@ -100,19 +110,13 @@ export default function OrganizationPage() {
     const handleSave = () => {
         if (!validate()) return;
 
-        const uploadImage = (file: any) => {
-
+        const uploadImage = async (file: any) => {
             // Implement the image upload logic here
             // This function should return a promise that resolves with the uploaded image URL
             if (file) console.log('file exsit');
-            return new Promise<string>((resolve, reject) => {
-                // Mock image upload
-                setTimeout(() => {
-                    resolve('https://via.placeholder.com/150');
-                }, 1000);
-                console.log(reject);
-            });
+            return await uploadOrgLogo(currentOrg?.id, file!, session?.user?.token);
         };
+        
 
         const saveOrganization = (org: Organization | any) => {
             if (org.id) {
@@ -141,14 +145,15 @@ export default function OrganizationPage() {
                         console.error(err);
                     });
             }
-            handleClose();
+            // handleClose();
         };
 
-        if (currentOrg.logo && currentOrg.logo.startsWith('blob:')) {
+        if (currentOrg.logo) {// && currentOrg.logo.startsWith('blob:')
             // If the logo is a blob URL, upload the image first
             setLoadingSave(true);
             uploadImage(currentOrg.logo).then((uploadedImageUrl) => {
-                const updatedOrg: any = { ...currentOrg, logo: uploadedImageUrl };
+                // console.log(uploadedImageUrl)
+                const updatedOrg: any = { ...currentOrg, logo: uploadedImageUrl?.url || currentOrg.logo };
                 saveOrganization(updatedOrg);
                 setLoadingSave(false);
                 setSaveSuccess(true);
@@ -296,11 +301,11 @@ export default function OrganizationPage() {
                     ))}
                 </TableBody>
             </Table>
-            <Dialog open={open} onClose={(event, reason) => {
+            <Dialog  open={open} onClose={(event, reason) => {
                 if (reason !== 'backdropClick') {
                     handleClose();
                 }
-            }} hideBackdrop={false} >
+            }} hideBackdrop={false} maxWidth='md' fullWidth>
                 <IconButton
                     aria-label="close"
                     onClick={() => handleClose()}
@@ -332,14 +337,15 @@ export default function OrganizationPage() {
                         type="file"
                         onChange={(e: any) => {
                             const file = e.target?.files[0];
-                            if (file) {
-                                const reader = new FileReader();
-                                reader.onloadend = () => {
-                                    const logoUrl = URL.createObjectURL(file);
-                                    setCurrentOrg({ ...currentOrg, logo: logoUrl });
-                                };
-                                reader.readAsDataURL(file);
-                            }
+                            setCurrentOrg({ ...currentOrg, logo: file });
+                            // if (file && false) {
+                            //     const reader = new FileReader();
+                            //     reader.onloadend = () => {
+                            //         const logoUrl = URL.createObjectURL(file);
+                            //         setCurrentOrg({ ...currentOrg, logo: logoUrl });
+                            //     };
+                            //     reader.readAsDataURL(file);
+                            // }
                         }}
                         // style={{ display: 'none' }}
                         id="logo-upload"
@@ -348,7 +354,7 @@ export default function OrganizationPage() {
                     <label htmlFor="logo-upload" style={{ alignItems: 'center', justifyContent: 'center' }}>
                         <IconButton component="span">
                             <Avatar
-                                src={currentOrg.logo || undefined}
+                                src={avatarUrl}
                                 alt="logo"
                                 sx={{ width: 100, height: 100 }}
                             >

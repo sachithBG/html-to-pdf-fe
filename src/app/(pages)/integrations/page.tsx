@@ -68,6 +68,8 @@ export default function Page() {
                         --header 'Content-Type: application/json' \
                         --header 'Authorization: Bearer ${curlToken}' \
                         --data-raw '{
+                            "subcategoriesFilter": [],
+                            "allowAllSections": false,
                             "jsonData": {}
                         }'
                         `);
@@ -77,6 +79,8 @@ export default function Page() {
                         --data-raw '{
                             "addonName": "${'{addonName}'}",
                             "typeStatus": "${'{typeStatus}'}",
+                            "subcategoriesFilter": [],
+                            "allowAllSections": false,
                             "jsonData": {}
                         }'
                         `);

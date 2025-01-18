@@ -61,7 +61,7 @@ export default function ThemeProvidr({
     const themeAction = useMemo(() => createTheme(getDesignTokens(theme)), [theme]);
 
     return (
-        <ThemeProvider theme={themeAction}>
+        // <ThemeProvider theme={themeAction}>
             <SessionProvider >
                 <AuthGuard>
                     <SnackbarProvider
@@ -97,6 +97,6 @@ export default function ThemeProvidr({
                     </SnackbarProvider>
                 </AuthGuard>
             </SessionProvider>
-        </ThemeProvider>
+        // </ThemeProvider>
     );
 }

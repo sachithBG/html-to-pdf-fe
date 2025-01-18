@@ -207,6 +207,7 @@ function SidebarFooter({ mini }: SidebarFooterProps) {
 export default function DashboardLayoutBasic(props: any) {
     const { window } = props;
     const [mounted, setMounted] = React.useState(false);
+    const theme = useSelector((state: any) => state.toggleTheme.theme);
     // cuurent route url
     const pathname = usePathname();
     // const { data: session, status }: any = useSession();
@@ -261,7 +262,7 @@ export default function DashboardLayoutBasic(props: any) {
 
     // Remove this const when copying and pasting into your project.
     const demoWindow = window ? window() : undefined;
-
+    // const theme = mode === 'light' ? lightTheme : darkTheme;
     return (
         //
 
@@ -274,6 +275,7 @@ export default function DashboardLayoutBasic(props: any) {
             router={router}
             theme={demoTheme}
             window={demoWindow}
+
         // authentication={authentication}
         // session={session}
 

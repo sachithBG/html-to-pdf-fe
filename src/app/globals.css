@@ -2,6 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
+@import 'ckeditor5/ckeditor5.css';
+
 body {
   font-family: Inter var, ui-sans-serif, system-ui, -apple-system,
     BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans,
@@ -40,4 +42,45 @@ input:-webkit-autofill, input:-webkit-autofill:hover, input:-webkit-autofill:foc
 
 .custom-snackbar {
   margin-top: 64px; /* Adjust this value as needed */
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+
+@media print {
+	body {
+		margin: 0 !important;
+	}
+}
+
+.main-container {
+	font-family: 'Lato';
+	width: fit-content;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.ck-content {
+	font-family: 'Lato';
+	line-height: 1.6;
+	word-break: break-word;
+  padding: 0 2rem 0  2rem !important;
+}
+
+/* Hide the first <h1> with placeholder */
+.ck-content > h1[data-placeholder="Type your title"] {
+    display: none !important;
+}
+
+.editor-container_classic-editor .editor-container__editor {
+	min-width: 795px;
+	max-width: 795px;
+}
+
+.editor-container_include-block-toolbar {
+	margin-left: 42px;
+
+}
+
+.ck-powered-by-balloon{
+  display: none !important;
 }

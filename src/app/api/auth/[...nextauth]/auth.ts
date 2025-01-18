@@ -69,7 +69,7 @@ export const authOptions: NextAuthOptions = {
           theme: token.user?.profile?.theme,
         };
       }
-      // console.log(dynamicMaxAge, 'Dynamic max age');
+      console.log(dynamicMaxAge, 'Dynamic max age');
       session.maxAge = dynamicMaxAge;
       session.expires = new Date(Date.now() + dynamicMaxAge * 1000).toISOString();
       return session;

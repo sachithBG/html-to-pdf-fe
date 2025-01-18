@@ -1,12 +1,13 @@
 "use client";
 import React, { useEffect, useRef, useState } from 'react';
-import { Box, Button, Typography, Modal, ToggleButton, ToggleButtonGroup, Skeleton } from '@mui/material';
+import { Box, Button, Typography, Modal, ToggleButton, ToggleButtonGroup, Skeleton, FormControl, InputLabel, Select, ListItemText, MenuItem, OutlinedInput, SelectChangeEvent } from '@mui/material';
 import { generatePdfBufferById, readPdfTemplate } from '../services/pdfService';
 import { useSession } from 'next-auth/react';
 import LaunchIcon from '@mui/icons-material/Launch';
+import DOMPurify from 'dompurify';
 
-const PdfPreviewButton = ({ htmlContent, isIconButton, id, organization_id }:
-    { htmlContent: string | null, isIconButton: boolean, id: number | null, organization_id: number }) => {
+const PdfPreviewButton = ({ htmlContent, isIconButton, id, organization_id, subcategories }:
+    { htmlContent: string | null, isIconButton: boolean, id: number | null, organization_id: number, subcategories: string[] }) => {
     const [open, setOpen] = useState(false);
     const [loading, setLoading] = useState(false);  // Loading state
     const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -15,6 +16,7 @@ const PdfPreviewButton = ({ htmlContent, isIconButton, id, organization_id }:
     const [previewMode, setPreviewMode] = useState("withoutData");
     const [dataLoaded, setDataLoaded] = useState(false);
     const [dataError, setDataError] = useState('');
+    const [subcategoriesFilter, setSubcategoriesFilter] = useState([]);
 
 
     const { data: session }: any = useSession();
@@ -27,6 +29,7 @@ const PdfPreviewButton = ({ htmlContent, isIconButton, id, organization_id }:
         setPreviewMode('withoutData');
         setDataError('')
         setLoading(false)
+        setSubcategoriesFilter([])
     };
 
     const handleToggle = (event: any, newMode: any) => {
@@ -39,7 +42,7 @@ const PdfPreviewButton = ({ htmlContent, isIconButton, id, organization_id }:
         if (id) {
             setLoading(true)
             try {
-                const response = await generatePdfBufferById(id, organization_id, session?.user?.token);
+                const response = await generatePdfBufferById(id, organization_id, session?.user?.token, subcategoriesFilter);
                 if (response.status == 200) {
                     const { pdf } = response.data;
                     const blobUrl = await openPdfInDialog(pdf);
@@ -106,11 +109,46 @@ const PdfPreviewButton = ({ htmlContent, isIconButton, id, organization_id }:
     };
 
     useEffect(() => {
-        if (iframeRef.current && htmlCntnt) {
+
+        if (iframeRef.current && htmlCntnt && false) {
+            // const sanitizedHtmlContent = DOMPurify.sanitize(htmlCntnt, {
+            //     ALLOWED_TAGS: ['img', 'div', 'p', 'span', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'br'],
+            //     ALLOWED_ATTR: ['src', 'alt', 'title', 'class', 'style'],
+            // });
             const doc = iframeRef.current.contentDocument;
             if (doc) {
                 doc.open();
-                doc.write(htmlCntnt); // Write HTML content to iframe
+                doc.write(`
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <style>
+                    /* Include CKEditor styles here or link to the external stylesheet */
+                    @import url('https://cdn.ckeditor.com/ckeditor5/35.0.1/classic/theme.css');
+                    body {
+                        margin: 0;
+                        padding: 0;
+                    }
+                    .image {
+                                text-align: center;
+                            }
+                            .image img {
+                                max-width: 100%;
+                                height: auto;
+                                display: block;
+                                margin: 0 auto;
+                            }
+                            .image_resized {
+                                display: block;
+                                margin: 0 auto;
+                            }
+                </style>
+            </head>
+            <body>
+                <div class="ck ck-content">${htmlCntnt}</div>
+            </body>
+            </html>
+        `); // Write HTML content to iframe
                 doc.close();
             }
         }
@@ -131,7 +169,7 @@ const PdfPreviewButton = ({ htmlContent, isIconButton, id, organization_id }:
             setDataLoaded(true);
         }
 
-    }, [previewMode]);
+    }, [previewMode, subcategoriesFilter]);
     // useEffect(() => {
     //     return () => {
     //         setDataLoaded(false);
@@ -168,14 +206,14 @@ const PdfPreviewButton = ({ htmlContent, isIconButton, id, organization_id }:
                         width: '80%',
                         height: '80%',
                         bgcolor: 'background.paper',
-                        border: '2px solid #000',
-                        boxShadow: 24,
+                        // border: '2px solid #000',
+                        // boxShadow: 24,
                         p: 4,
                         pb: 15,
                         overflow: 'hidden',
                     }}
                 >
-                    <Box sx={{ display: 'flex' }}>
+                    <Box sx={{ display: 'flex', mb: 2 }}>
                         <Typography
                             id="pdf-preview-title"
                             variant="h5"
@@ -192,7 +230,7 @@ const PdfPreviewButton = ({ htmlContent, isIconButton, id, organization_id }:
                             sx={{
                                 ml: 2, mt: .6,
                                 "& .MuiToggleButton-root": {
-                                    borderRadius: "2px",
+                                    // borderRadius: "2px",
                                     width: 125,
                                     height: 25,
                                 },
@@ -204,7 +242,39 @@ const PdfPreviewButton = ({ htmlContent, isIconButton, id, organization_id }:
                             <ToggleButton size='small' id='withData' value="withData" aria-label="Preview with Data">
                                 With Data
                             </ToggleButton>
+
                         </ToggleButtonGroup>}
+                        {previewMode != 'withoutData' && <FormControl variant="standard" sx={{ ml: 1, width: 200 }} size='small' >
+                            {/* <InputLabel id="demo-multiple-checkbox-label">Section Filter</InputLabel> */}
+                            <Select
+                                labelId="demo-multiple-checkbox-label"
+                                id="demo-multiple-checkbox"
+                                multiple
+                                value={subcategoriesFilter}
+
+                                onChange={(event: SelectChangeEvent<any>) => {
+                                    const {
+                                        target: { value },
+                                    } = event;
+                                    setSubcategoriesFilter(() =>
+                                        // On autofill we get a stringified value.
+                                        typeof value === 'string' ? value.split(',') : value,
+                                    );
+                                    setDataLoaded(false)
+                                }}
+                                // input={<OutlinedInput label="Section Filter" />}
+                                renderValue={(selected) => selected.join(', ')}
+                                // MenuProps={MenuProps}
+                                size='small'
+
+                            >
+                                {subcategories?.map((name) => (
+                                    <MenuItem key={name} value={name}>
+                                        <ListItemText primary={name} />
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>}
                     </Box>
                     {/* Show loading state while iframe is loading */}
                     {loading && (
@@ -256,7 +326,25 @@ const PdfPreviewButton = ({ htmlContent, isIconButton, id, organization_id }:
                                 height="100%"
                                 title="HTML Preview"
                                 style={{ border: 'none' }}
-                                srcDoc={htmlCntnt}
+                                srcDoc={DOMPurify.sanitize(`
+                                    <!DOCTYPE html>
+                                    <html lang="en">
+                                    <head>
+                                    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@ckeditor/ckeditor5-build-classic/build/ckeditor.css">
+                                        <style>
+                                            /* Include CKEditor styles here or link to the external stylesheet */
+                                            @import url('https://cdn.ckeditor.com/ckeditor5/35.0.1/classic/theme.css');
+                                            body {
+                                                margin: 0;
+                                                padding: 0;
+                                            }
+                                        </style>
+                                    </head>
+                                    <body>
+                                        <div class="ck ck-content">${htmlCntnt}</div>
+                                    </body>
+                                    </html>
+                                `)}
                             // src=''
                             />
                         </Box>

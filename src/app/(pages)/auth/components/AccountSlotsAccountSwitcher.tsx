@@ -14,6 +14,7 @@ import { findOrganizationsByUserId } from '@/app/services/organizationService';
 import { useDispatch } from 'react-redux';
 import { addOrganizationAll, clearOrganizationState } from '@/redux/slice/organizationSlice';
 import { authEvents } from '@/app/utils/authEvents';
+import { useColorScheme } from '@mui/material';
 
 // const demoSession = {
 //     user: {
@@ -33,7 +34,7 @@ class DemoSession {
         this.user = {
             name: data?.name,
             email: data?.email,
-            image: data?.avator,
+            image: data?.avatar,
         }
     }
 }
@@ -45,6 +46,7 @@ export default function AccountSlotsAccountSwitcher() {
     const [isSignInModalOpen, setSignInModalOpen] = React.useState(false);
     const [isSignUpModalOpen, setSignUpModalOpen] = React.useState(false);
     const dispatch = useDispatch();
+    const { setMode } = useColorScheme();
 
     const handleSignIn = () => {
         setSignInModalOpen(true);
@@ -77,6 +79,7 @@ export default function AccountSlotsAccountSwitcher() {
             }).catch((err) => {
                 console.log(err, 'Error fetching organizations');
             });
+             setMode(session2?.user?.theme || 'light');
         }
 
         //clear the organization state on signout

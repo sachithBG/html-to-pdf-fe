@@ -1,6 +1,7 @@
 
 import type { Metadata } from "next";
 import localFont from "next/font/local";
+import 'ckeditor5/ckeditor5.css';
 import "./globals.css";
 import ThemeProvidr from "@/provider/ThemeProvidr";
 import ReduxProvider from "@/provider/ReduxProvider";

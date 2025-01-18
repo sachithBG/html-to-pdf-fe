@@ -150,7 +150,7 @@ export default function MyLayout({ children }: { children: React.ReactNode }) {
                     >
                         <MenuIcon />
                     </IconButton>
-                    <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
+                    <Typography variant="h6" noWrap sx={{ flexGrow: 1 }}>
                         PDF Generator
                     </Typography>
 

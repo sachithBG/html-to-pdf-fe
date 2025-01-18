@@ -159,6 +159,7 @@ const TableManagePage = ({ id, fetchTable, handleSubmit, currentTable }: any) =>
                     fullWidth
                     sx={{ marginBottom: 2, mt: 4 }}
                     inputProps={{ min: 1, max: 6 }}
+                    size="small"
                 />
 
                 <Typography variant="h6" className="mb-2">Table Col Keys</Typography>

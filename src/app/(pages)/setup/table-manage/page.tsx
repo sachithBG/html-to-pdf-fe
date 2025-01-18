@@ -295,8 +295,9 @@ const PdfTableManager = () => {
                         onChange={(e) => { setName(() => e.target.value); setError(''); }}
                         fullWidth
                         sx={{ mb: 2 }}
+                        size="small"
                     />
-                    <FormControl fullWidth sx={{ my: 2 }}>
+                    <FormControl fullWidth sx={{ my: 2 }} size='small'>
                         <InputLabel id="select-label-addon">Addon</InputLabel>
                         <Select
                             value={selectedAddon}
@@ -306,6 +307,7 @@ const PdfTableManager = () => {
                             label="Addon"
                             labelId="select-label-addon"
                             id="demo-simple-select"
+                            size="small"
                         >
                             {addons.map((addon: any) => (
                                 <MenuItem key={addon.id} value={addon.id}>
@@ -337,6 +339,7 @@ const PdfTableManager = () => {
                         onChange={(e) => setTag((prev: any) => { setError(''); return { ...prev, field_path: e.target.value } })}
                         fullWidth
                         sx={{ mb: 2 }}
+                        size="small"
                     />
                     {error && <Alert severity="error">{error}</Alert>}
                     <TableManagePage id={currentTable?.id} fetchTable={fetchTable}

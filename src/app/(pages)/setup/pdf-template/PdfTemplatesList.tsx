@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Card, Typography, Pagination, TextField, Skeleton, Grid2 } from '@mui/material';
+import { Card, Typography, Pagination, TextField, Skeleton, Grid2, Box } from '@mui/material';
 import { motion } from 'framer-motion';
 import { debounce } from 'lodash'; // Lodash debounce for efficient search
 import { fadeIn } from '@/app/utils/constant';
@@ -109,10 +109,10 @@ const PdfTemplatesList = ({ currentOrg, session, readAllPdfTemplatePage }: any) 
                         ) : (
                             <>
                                 {/* Table with Template List */}
-                                <div className="space-y-2">
+                                <Box className="space-y-2">
                                     {pdfTemplates?.map((template: any, i) => (
-                                        <div key={i} className="flex justify-between items-center py-2 border-b">
-                                            <Typography className="flex-1" sx={{ display: 'flex' }}>{template.name}
+                                        <Box key={i} className="flex justify-between items-center py-2">
+                                            <Box className="flex-1" sx={{ display: 'flex' }}>{template.name}
                                                 <Grid2 ml={2}>
                                                     <PdfPreviewButton htmlContent={
                                                         `<html>
@@ -122,9 +122,10 @@ const PdfTemplatesList = ({ currentOrg, session, readAllPdfTemplatePage }: any) 
                                                             </body>
                                                             <footer>${template.footerContent}</footer>
                                                         </html>
-                                                        `} isIconButton={true} id={template.id} organization_id={currentOrg?.id} />
+                                                        `} isIconButton={true}
+                                                        id={template.id} organization_id={currentOrg?.id} subcategories={[]}/>
                                                 </Grid2>
-                                            </Typography>
+                                            </Box>
                                             <Typography className="text-gray-500">{new Date(template.modified_at).toLocaleDateString()}</Typography>
                                             {/* <IconButton
                                                 onClick={() => window.location.href = `/templates/${template.id}`} // Navigate to template view
@@ -132,9 +133,9 @@ const PdfTemplatesList = ({ currentOrg, session, readAllPdfTemplatePage }: any) 
                                             >
                                                 <ArrowForwardIcon />
                                             </IconButton> */}
-                                        </div>
+                                        </Box>
                                     ))}
-                                </div>
+                                </Box>
 
                                 {/* Pagination */}
                                 <Pagination

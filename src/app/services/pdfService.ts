@@ -8,12 +8,12 @@ export const createPdfTemplate = async (data: any, token: string) => {
     });
 }
 
-export const generatePdfBufferById = async (id: number, organization_id: number, token: string) => {
+export const generatePdfBufferById = async (id: number, organization_id: number, token: string, subcategoriesFilter: string[] = []) => {
     return API.get('/pdf-templates/preview/' + id, {
         headers: {
             Authorization: `Bearer ${token}`
         },
-        params: { organization_id: organization_id }
+        params: { organization_id: organization_id, subcategoriesFilter: subcategoriesFilter }
     });
 }
 

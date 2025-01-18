@@ -1,12 +1,16 @@
 'use client';
-import React, { useEffect, useState } from 'react';
-import { Button, TextField, Avatar, Switch, FormControlLabel, FormGroup, Paper, Typography, Box, Container, Divider, IconButton, Grid2 } from '@mui/material';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Button, TextField, Avatar, Switch, FormControlLabel, FormGroup, Paper, Typography, Box, Container, Divider, IconButton, Grid2, createTheme, useColorScheme } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ErrorIcon from '@mui/icons-material/Error';
 import { updateImageByUserId, updateNameByUserId, updateThemeByUserId } from '@/app/services/profileService';
 import { signIn, useSession } from 'next-auth/react';
-import { uploadImage } from '@/app/services/mediaService';
+import { uploadAvator } from '@/app/services/mediaService';
+import { useDispatch } from 'react-redux';
+import { toggleTheme } from '@/redux/slice/ToggleTheme';
+import { isValidS3Url } from '@/app/utils/constant';
+
 
 const ProfilePage: React.FC = () => {
     const [theme, setTheme] = useState<'dark' | 'light'>('light');
@@ -18,10 +22,21 @@ const ProfilePage: React.FC = () => {
     const [loadingAvatar, setLoadingAvatar] = useState(false);
     const [success, setSuccess] = useState<{ name?: boolean; avatar?: boolean; theme?: boolean }>({});
     const { data: session, status }: any = useSession();
+    const dispatch = useDispatch();
+    const { setMode } = useColorScheme();
+    
+    const avatarUrl =
+        typeof avatar === 'string' && isValidS3Url(avatar)
+            ? avatar // Use the validated URL
+            : avatar instanceof File
+                ? URL.createObjectURL(avatar) // Use a blob URL for a File object
+                : undefined;
 
     const handleThemeToggle = async (t: 'dark' | 'light') => {
         setTheme(t);
         setLoadingTheme(true);
+        dispatch(toggleTheme(t));
+        setMode(t);
         try {
             await updateThemeByUserId(session?.user?.id, t, session?.user?.token);
             setSuccess((prev) => ({ ...prev, theme: true }));
@@ -79,13 +94,13 @@ const ProfilePage: React.FC = () => {
         if (!validate()) return;
         setLoadingAvatar(true);
         try {
-            const avatarUrl = await uploadImage(avatar!, session?.user?.token);
+            const avatarUrl = await uploadAvator(session?.user?.id, avatar!, session?.user?.token);
             if (!avatarUrl?.url) {
                 setErrors((prev) => ({ ...prev, avatar: 'Error uploading avatar' }));
                 setSuccess((prev) => ({ ...prev, avatar: false }));
                 return;
             }
-            await updateImageByUserId(session?.user?.id, avatarUrl.url, session?.user?.token);
+            // await updateImageByUserId(session?.user?.id, avatarUrl.url, session?.user?.token);
             setSuccess((prev) => ({ ...prev, avatar: true }));
         } catch (error) {
             setSuccess((prev) => ({ ...prev, avatar: false }));
@@ -102,6 +117,9 @@ const ProfilePage: React.FC = () => {
         }
         if (session?.user?.theme) {
             setTheme(session?.user?.theme);
+        }
+        if (session?.user?.avatar) {
+            setAvatar(session?.user?.avatar);
         }
     }, [session?.user?.name, session?.user?.theme]);
 
@@ -178,7 +196,7 @@ const ProfilePage: React.FC = () => {
                         <Box sx={{ display: 'flex', justifyContent: 'center', marginTop: 2 }}>
                             <IconButton component="span">
                                 <Avatar
-                                    src={avatar ? URL.createObjectURL(avatar) : undefined}
+                                    src={avatarUrl}
                                     alt="Profile Avatar"
                                     sx={{ width: 100, height: 100 }}
                                 >
