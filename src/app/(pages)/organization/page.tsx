@@ -148,7 +148,7 @@ export default function OrganizationPage() {
             // handleClose();
         };
 
-        if (currentOrg.logo) {// && currentOrg.logo.startsWith('blob:')
+        if (typeof currentOrg?.logo === 'string' && !isValidS3Url(currentOrg.logo)) {// && currentOrg.logo.startsWith('blob:')
             // If the logo is a blob URL, upload the image first
             setLoadingSave(true);
             uploadImage(currentOrg.logo).then((uploadedImageUrl) => {
@@ -201,7 +201,7 @@ export default function OrganizationPage() {
         }
         const res = await createAddon(newAddon, currentOrg?.id || 0, session?.user?.token);
         console.log(res.data)
-        setAddons([...addons, { id: addons.length + 1, name: newAddon, organization_id: currentOrg.id }]);
+        setAddons([...addons, { id: res.data.id, name: newAddon, organization_id: currentOrg.id }]);
         setNewAddon('');
     };
 
@@ -262,7 +262,7 @@ export default function OrganizationPage() {
                 setAddons(() => res.data)
             }
         }
-        if (session?.user?.token) fetchAddons();
+        if (currentOrg.id && session?.user?.token) fetchAddons();
     }, [currentOrg.id])
 
     return (

@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { TextField, Button, Card, Typography, IconButton, Tooltip, CircularProgress, Box, Skeleton, InputAdornment } from '@mui/material';
-import { CopyAll, Delete } from '@mui/icons-material';
+import { CopyAll } from '@mui/icons-material';
 import { addExternalKey, deleteExternalKey, findAllByAddonId, updateExternalKey } from '@/app/services/externalKeyService';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import ClearIcon from '@mui/icons-material/Clear';
 import { useSession } from 'next-auth/react';
 import { useSnackbar } from 'notistack';
+import dynamic from 'next/dynamic';
+const DeleteConfirmDialog = dynamic(() => import('@/app/(pages)/setup/components/DeleteConfirmDialog'), { ssr: false });
 
 const ExternalKeyManager = ({ addonId }: any) => {
     const [externalKey, setExternalKey] = useState<{ id: number | undefined, key: string }>({ id: undefined, key: '' });
@@ -54,8 +56,8 @@ const ExternalKeyManager = ({ addonId }: any) => {
     const handleDeleteKey = async (id: number) => {
         if (!id) return;
 
-        const confirmDelete = window.confirm("Are you sure you want to delete this key?");
-        if (!confirmDelete) return;
+        // const confirmDelete = window.confirm("Are you sure you want to delete this key?");
+        // if (!confirmDelete) return;
 
         try {
             await deleteExternalKey(id, session?.user?.token);
@@ -96,6 +98,7 @@ const ExternalKeyManager = ({ addonId }: any) => {
                     value={externalKey.key}
                     onChange={handleExternalKeyChange}
                     fullWidth
+                    size='small'
                     error={Boolean(errors)}
                     helperText={errors}
                     disabled={isSaving}
@@ -144,9 +147,12 @@ const ExternalKeyManager = ({ addonId }: any) => {
                                             </IconButton>
                                         </Tooltip>
                                         <Tooltip title="Delete Key">
-                                            <IconButton onClick={() => handleDeleteKey(key.id)}>
-                                                <Delete />
-                                            </IconButton>
+                                            <DeleteConfirmDialog
+                                                id={key.id}
+                                                onDelete={(id: any) => handleDeleteKey(id)}
+                                                variant="icon"
+                                                buttonProps={{ size: "small", color: "error" }} // IconButton props
+                                            />
                                         </Tooltip>
                                     </Box>
                                 </div>

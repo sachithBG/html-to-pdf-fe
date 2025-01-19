@@ -1,10 +1,8 @@
 "use client";
 import {
     Box,
-    Typography,
     Button,
     Collapse,
-    TextField,
     Grid2 as Grid,
     useMediaQuery,
 } from "@mui/material";
@@ -15,10 +13,11 @@ import dynamic from "next/dynamic";
 // const EditableTextField = dynamic(() => import('@/app/components/EditableTextField'), { ssr: false });
 const PdfPreviewButton = dynamic(() => import('@/app/components/PdfPreviewButton'), { ssr: false });
 const DownloadButton = dynamic(() => import('@/app/components/DownloadButton'), { ssr: false });
+const CKTextField = dynamic(() => import('@/app/(pages)/setup/components/CKTextField'), { ssr: false });
 
 const imageUrl = 'https://media.istockphoto.com/id/1967543722/photo/the-city-of-london-skyline-at-night-united-kingdom.jpg?s=2048x2048&w=is&k=20&c=ZMquw-lP_vrSVoUlSWjuWIZHdVma7z4ju9pD1EkRPvs='
 
-
+// eslint-disable-next-line
 const hdr = ` <div style="font-family: Arial, sans-serif; line-height: 1.5; margin: 0; padding: 0; text-align: center;text-align: center; width: 100%; border-top: 1px solid #ccc;">
 <div style="background-color: #f4f4f4; padding: 20px; ">
       <img
@@ -29,7 +28,7 @@ const hdr = ` <div style="font-family: Arial, sans-serif; line-height: 1.5; marg
       <h1 style="margin: 10px 0;font-size: 20px; color: #555;">Company Name</h1>
       <p style="margin: 0; font-size: 14px; color: #555;">Your tagline or slogan here</p>
     </div> </div>`
-
+// eslint-disable-next-line
 const ftr = `<div style="font-size: 10px; text-align: center; width: 100%;">
 <div
       style="background-color: #f4f4f4; padding: 20px; text-align: center; font-size: 12px; color: #555;"
@@ -40,7 +39,7 @@ const ftr = `<div style="font-size: 10px; text-align: center; width: 100%;">
       </p>
       <p style="margin: 0;">&copy; 2024 Company Name. All rights reserved.</p>
     </div></div>`;
-
+// eslint-disable-next-line
 const bdy = `<div style="padding: 20px;">
       <h2 style="color: #333;">Welcome to Our Report</h2>
       <p style="margin: 0 0 10px; color: #555;">
@@ -105,16 +104,32 @@ const HtmlTestEditor = () => {
     const [pdfData, setPdfData] = useState<Buffer | null | any>(null);
     const [isClient, setIsClient] = useState(false);
     const isMobile = useMediaQuery((theme) => theme.breakpoints.down('sm'));
+    const [isEditorLoading, setIsEditorLoading] = useState<boolean>(true);
+    const [pdfPrevButton, setPdfPrevButton] = useState(true);
+
+
     useEffect(() => {
         setIsClient(true); // Ensures PDF rendering runs on the client side
-        setTimeout(() => {
-            setHeaderContent(hdr);
-            setBodyContent(bdy);
-            setFooterContent(ftr);
-        }, 100)
+        // setTimeout(() => {
+        //     setHeaderContent(hdr);
+        //     setBodyContent(bdy);
+        //     setFooterContent(ftr);
+        // }, 100)
 
     }, []);
 
+    useEffect(() => {
+        const timeout = setTimeout(() => setIsEditorLoading(false), 2000); // Simulate loading
+        return () => clearTimeout(timeout);
+    }, []);
+
+    useEffect(() => {
+        setPdfPrevButton(false);
+        const tt = setTimeout(() => {
+            setPdfPrevButton(true);
+            clearTimeout(tt);
+        }, 2000);
+    }, [headerContent, bodyContent, footerContent]);
 
     if (!isClient) {
         return null; // Or render a loading state
@@ -127,7 +142,7 @@ const HtmlTestEditor = () => {
             [section]: !prevState[section],
         }));
     };
-
+    // eslint-disable-next-line
     const handleGeneratePdf = async () => {
         try {
             const response = await axios.post("http://localhost:4000/api/v1/pdf-templates/test", {
@@ -158,31 +173,33 @@ const HtmlTestEditor = () => {
         }
     }
 
+
+
     return (
         <Box className="container mx-auto p-4">
-            <Typography variant="h4" component="h1" gutterBottom>
+            {/* <Typography variant="h4" component="h1" gutterBottom>
                 HTML Editor
-            </Typography>
+            </Typography> */}
             <Box mb={4}>
                 <Grid
                     container
                     spacing={2} // Spacing between the buttons
                     direction={isMobile ? 'column' : 'row'} // Stack vertically on mobile, horizontally on larger screens
-                    alignItems="center" // Align items to the center
-                    justifyContent="center" // Center the items horizontally
+                    alignItems="right" // Align items to the center
+                    justifyContent="end" // Center the items horizontally
                 >
                     <Grid >
-                        <PdfPreviewButton htmlContent={
-                            `<html>
-                                <div>${headerContent}</div>
-                                <body>
-                                <div>${bodyContent}</div>
-                                </body>
-                                <footer>${footerContent}</footer>
-                            </html>
-                            `} id={null} isIconButton={false} organization_id={0} />
+                        {pdfPrevButton && <PdfPreviewButton htmlContent={
+                            `<div className="ck ck-editor__main">
+                                    <div class="ck ck-content">
+                                    <div>${headerContent}</div>
+                                    ${bodyContent}
+                                    <footer>${footerContent}</footer>
+                                    </div>
+                                    </div>
+                            `} id={null} isIconButton={false} organization_id={0} subcategories={[]}/>}
                     </Grid>
-                    <Grid >
+                    {/* <Grid >
                         <Button
                             variant="outlined"
                             color="primary"
@@ -192,7 +209,7 @@ const HtmlTestEditor = () => {
                         >
                             Generate PDF
                         </Button>
-                    </Grid>
+                    </Grid> */}
 
                     {pdfData && <> <Grid >
                         <Button
@@ -220,7 +237,7 @@ const HtmlTestEditor = () => {
                     <Box display="flex" gap={4}>
                         {/* Editor Section */}
                         <Box flex={1}>
-                            <TextField
+                            {/* <TextField
                                 fullWidth
                                 label={`${'header'.charAt(0).toUpperCase() + 'header'.slice(1)} Content`}
                                 defaultValue={headerContent}
@@ -237,18 +254,24 @@ const HtmlTestEditor = () => {
                                         },
                                     },
                                 }}
+                            /> */}
+                            <CKTextField
+                                value={headerContent}
+                                onChange={setHeaderContent}
+                                isLoading={isEditorLoading}
+                                placeholder="Start typing your content..."
                             />
                         </Box>
 
                         {/* Preview Section */}
-                        <Box flex={1} p={2} border="1px solid var(--foreground)">
+                        {/* <Box flex={1} p={2} border="1px solid var(--foreground)">
                             <Typography variant="h6">Preview</Typography>
                             <div
                                 dangerouslySetInnerHTML={{
                                     __html: `<h1>${headerContent}</h1>`
                                 }}
                             />
-                        </Box>
+                        </Box> */}
                     </Box>
                 </Collapse>
             </Box>
@@ -262,7 +285,7 @@ const HtmlTestEditor = () => {
                     <Box display="flex" gap={4}>
                         {/* Editor Section */}
                         <Box flex={1}>
-                            <TextField
+                            {/* <TextField
                                 fullWidth
                                 label={`${'body'.charAt(0).toUpperCase() + 'body'.slice(1)} Content`}
                                 defaultValue={bodyContent}
@@ -279,18 +302,24 @@ const HtmlTestEditor = () => {
                                         },
                                     },
                                 }}
+                            /> */}
+                            <CKTextField
+                                value={bodyContent}
+                                onChange={setBodyContent}
+                                isLoading={isEditorLoading}
+                                placeholder="Start typing your content..."
                             />
                         </Box>
 
                         {/* Preview Section */}
-                        <Box flex={1} p={2} border="1px solid var(--foreground)">
+                        {/* <Box flex={1} p={2} border="1px solid var(--foreground)">
                             <Typography variant="h6">Preview</Typography>
                             <div
                                 dangerouslySetInnerHTML={{
                                     __html: `<h1>${bodyContent}</h1>`
                                 }}
                             />
-                        </Box>
+                        </Box> */}
                     </Box>
                 </Collapse>
             </Box>
@@ -303,8 +332,8 @@ const HtmlTestEditor = () => {
                 <Collapse in={collapsed['footer']} aria-expanded>
                     <Box display="flex" gap={4}>
                         {/* Editor Section */}
-                        <Box flex={1}>
-                            <TextField
+                         <Box flex={1}>
+                            {/*<TextField
                                 fullWidth
                                 label={`${'footer'.charAt(0).toUpperCase() + 'footer'.slice(1)} Content`}
                                 defaultValue={footerContent}
@@ -321,18 +350,24 @@ const HtmlTestEditor = () => {
                                         },
                                     },
                                 }}
+                            /> */}
+                            <CKTextField
+                                value={footerContent}
+                                onChange={setFooterContent}
+                                isLoading={isEditorLoading}
+                                placeholder="Start typing your content..."
                             />
                         </Box>
 
                         {/* Preview Section */}
-                        <Box flex={1} p={2} border="1px solid var(--foreground)">
+                        {/* <Box flex={1} p={2} border="1px solid var(--foreground)">
                             <Typography variant="h6">Preview</Typography>
                             <div
                                 dangerouslySetInnerHTML={{
                                     __html: `<h1>${footerContent}</h1>`
                                 }}
                             />
-                        </Box>
+                        </Box> */}
                     </Box>
                 </Collapse>
             </Box>

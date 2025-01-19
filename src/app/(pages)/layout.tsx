@@ -90,7 +90,7 @@ const NAVIGATION: Navigation | any = [
             },
             {
                 segment: 'media',
-                title: 'Media  (PLANED ...)',
+                title: 'Media',
                 icon: <Img />,
             },
             {
@@ -207,7 +207,7 @@ function SidebarFooter({ mini }: SidebarFooterProps) {
 export default function DashboardLayoutBasic(props: any) {
     const { window } = props;
     const [mounted, setMounted] = React.useState(false);
-    const theme = useSelector((state: any) => state.toggleTheme.theme);
+    // const theme = useSelector((state: any) => state.toggleTheme.theme);
     // cuurent route url
     const pathname = usePathname();
     // const { data: session, status }: any = useSession();

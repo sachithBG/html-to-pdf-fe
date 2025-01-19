@@ -1,7 +1,7 @@
 'use client'
 import React, { useState, useEffect, useCallback } from 'react';
 import { Container, Typography, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, IconButton, Paper, Pagination, Box, FormControl, InputLabel, Select, MenuItem, Skeleton, Grid2 } from '@mui/material';
-import { AddBox as AddBoxIcon, Edit as EditIcon, Delete as DeleteIcon, FastRewind as FastRewindIcon } from '@mui/icons-material';
+import { AddBox as AddBoxIcon, Edit as EditIcon, FastRewind as FastRewindIcon } from '@mui/icons-material';
 import { useSelector } from 'react-redux';
 import { useSession } from 'next-auth/react';
 import { getDefaultOrganization, Organization, OrganizationState } from '@/redux/slice/organizationSlice';
@@ -9,6 +9,7 @@ import { getDefaultOrganization, Organization, OrganizationState } from '@/redux
 import { deletePdfTemplate, readAllPdfTemplatePage } from '@/app/services/pdfService';
 import { findAllAddons } from '@/app/services/addonService';
 import dynamic from 'next/dynamic';
+import DeleteConfirmDialog from '../components/DeleteConfirmDialog';
 const PdfPreviewButton = dynamic(() => import('@/app/components/PdfPreviewButton'), { ssr: false });
 const HtmlToPdfEditor = dynamic(() => import('../editor/page'), { ssr: false });
 
@@ -181,14 +182,16 @@ const PdfTemplatePage: React.FC = () => {
                                                 <Typography mr={2}>{template.name}</Typography>
 
                                                 <PdfPreviewButton htmlContent={
-                                                    `<html>
-                                                            <div>${template.headerContent}</div>
-                                                            <body>
-                                                            <div>${template.bodyContent}</div>
-                                                            </body>
-                                                            <footer>${template.footerContent}</footer>
-                                                        </html>
-                                                        `} isIconButton={true} id={template.id} organization_id={currentOrg?.id} />
+                                                    `<div className="ck ck-editor__main">
+                                                        <div class="ck ck-content">
+                                                        <div>${template.headerContent}</div>
+                                                        ${template.bodyContent}
+                                                        ${template.sections ? template.sections.map((se: any) => se.htmlContent) : ''}
+                                                        <footer>${template.footerContent}</footer>
+                                                        </div>
+                                                        </div>
+                                                `} isIconButton={true} id={template.id}
+                                                    organization_id={currentOrg?.id} subcategories={[]}/>
                                             </Grid2>
                                         </TableCell>
                                         <TableCell>{template?.addons?.join(', ')}</TableCell>
@@ -196,9 +199,16 @@ const PdfTemplatePage: React.FC = () => {
                                             <IconButton color="primary" onClick={() => handleEdit(template)}>
                                                 <EditIcon />
                                             </IconButton>
-                                            <IconButton color="inherit" onClick={() => handleDelete(template.id)}>
+                                            <DeleteConfirmDialog
+                                                id={template.id}
+                                                onDelete={(id:any) => handleDelete(id)}
+                                                variant="icon"
+                                                buttonProps={{ size: "small", color: "error" }} // IconButton props
+                                            />
+                                            {/* <IconButton color="inherit" onClick={() => handleDelete(template.id)}>
                                                 <DeleteIcon />
-                                            </IconButton>
+                                            </IconButton> */}
+                                            
                                         </TableCell>
                                     </TableRow>
                                 ))}

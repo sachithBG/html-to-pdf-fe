@@ -21,7 +21,6 @@ import {
 import { TabContext, TabPanel } from '@mui/lab';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
 import { useSelector } from 'react-redux';
 import { useSession } from 'next-auth/react';
 import { findAllAddons } from '@/app/services/addonService';
@@ -31,6 +30,7 @@ import { initialTableData } from '@/app/utils/constant';
 import { AddBox as AddBoxIcon } from '@mui/icons-material';
 import { useSnackbar } from 'notistack';
 import dynamic from 'next/dynamic';
+import DeleteConfirmDialog from '../components/DeleteConfirmDialog';
 const TableManagePage = dynamic(() => import('@/app/(pages)/setup/components/TableManagePage'), { ssr: false });
 
 const PdfTableManager = () => {
@@ -240,9 +240,9 @@ const PdfTableManager = () => {
     return (
         <Box sx={{ width: '100%' }}>
             <TabContext value={tabValue}>
-                <Button sx={{ mx: 3, mt: 1, float: 'right' }} size='small' variant="outlined" onClick={handleNew}>
+                {tabValue =='1'  && <Button sx={{ mx: 3, mt: 1, float: 'right' }} size='small' variant="outlined" onClick={handleNew}>
                     New &nbsp;<AddBoxIcon fontSize="inherit" />
-                </Button>
+                </Button>}
                 <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                     <Tabs value={tabValue} onChange={handleTabChange}>
                         <Tab label="List PDF Tables" value="1" />
@@ -269,9 +269,16 @@ const PdfTableManager = () => {
                                             </IconButton>
                                         </Tooltip>
                                         <Tooltip title="Delete">
-                                            <IconButton onClick={() => handleDelete(table.id)}>
+                                            <DeleteConfirmDialog
+                                                id={table.id}
+                                                onDelete={(id: any) => handleDelete(id)}
+                                                variant="icon"
+                                                buttonProps={{ size: "small", color: "error" }}
+                                                iconType="delete"
+                                            />
+                                            {/* <IconButton onClick={() => handleDelete(table.id)}>
                                                 <DeleteIcon />
-                                            </IconButton>
+                                            </IconButton> */}
                                         </Tooltip>
                                     </Box>
                                 </Box>
@@ -334,8 +341,8 @@ const PdfTableManager = () => {
                     </FormControl> */}
 
                     <TextField
-                        label="Key"
-                        value={tag.field_path}
+                        label="Key | json path"
+                        value={tag.field_path?.split('._table_')[0] || ''}
                         onChange={(e) => setTag((prev: any) => { setError(''); return { ...prev, field_path: e.target.value } })}
                         fullWidth
                         sx={{ mb: 2 }}

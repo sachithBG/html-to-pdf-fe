@@ -114,16 +114,16 @@ const PdfTemplatesList = ({ currentOrg, session, readAllPdfTemplatePage }: any) 
                                         <Box key={i} className="flex justify-between items-center py-2">
                                             <Box className="flex-1" sx={{ display: 'flex' }}>{template.name}
                                                 <Grid2 ml={2}>
-                                                    <PdfPreviewButton htmlContent={
-                                                        `<html>
-                                                            <div>${template.headerContent}</div>
-                                                            <body>
-                                                            <div>${template.bodyContent}</div>
-                                                            </body>
-                                                            <footer>${template.footerContent}</footer>
-                                                        </html>
+                                                    <PdfPreviewButton htmlContent={ 
+                                                        `<div className="ck ck-editor__main">
+                                                            <div class="ck ck-content">
+                                                                <div>${template.headerContent}</div>
+                                                                    ${template.bodyContent}
+                                                                <footer>${template.footerContent}</footer>
+                                                            </div>
+                                                        </div>
                                                         `} isIconButton={true}
-                                                        id={template.id} organization_id={currentOrg?.id} subcategories={[]}/>
+                                                        id={template.id} organization_id={currentOrg?.id} subcategories={[template.subcategories]}/>
                                                 </Grid2>
                                             </Box>
                                             <Typography className="text-gray-500">{new Date(template.modified_at).toLocaleDateString()}</Typography>

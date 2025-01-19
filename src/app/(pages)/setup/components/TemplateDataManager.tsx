@@ -69,6 +69,7 @@ const TemplateDataManager: React.FC = (id) => {
 
     const handleSaveData = (data: string) => {
         console.log('Uploaded JSON Data:', data);
+        console.log('Uploaded JSON Data:', id);
         // Add logic to handle saved data
         // updateDummyDataPdfTemplate
     };

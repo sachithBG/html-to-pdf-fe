@@ -143,6 +143,19 @@ const TableManagePage = ({ id, fetchTable, handleSubmit, currentTable }: any) =>
 
     return (
         <Box sx={{ margin: '0 auto' }} className="space-y-6">
+            {/* Save or Update Button */}
+            <Box sx={{ position: 'relative', width: '100%' }}>
+            <Button
+                variant="outlined"
+                color="primary"
+                onClick={saveTableData}
+                size="small"
+                className="mt-6"
+                sx={{ mt: -34, display: 'flex', justifyContent: 'flex-end', right:'1.2%', float:'right'}}
+            >
+                {isEdit ? "Update Table" : "Save Table"}
+                </Button>
+            </Box>
             {/* <Typography variant="h4" className="text-center font-bold mb-6">
                 {isEdit ? "Edit Table" : "Create Table"}
             </Typography> */}

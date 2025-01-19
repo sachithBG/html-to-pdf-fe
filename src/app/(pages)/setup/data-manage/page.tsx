@@ -127,7 +127,7 @@ const TagManagementPage = () => {
 
     const handleAddonChange = async (event: any) => {
         setSelectedAddons(event.target.value);
-        console.log(event.target.value)
+        // console.log(event.target.value)
         try {
             const response = await findAllTags(event.target.value, session?.user?.token);
             if (response.status == 200) {
@@ -268,7 +268,7 @@ const TagManagementPage = () => {
             <CustomTabPanel value={tabValue} index={0}>
                 {/* Addon Picker */}
                 <Box mb={3} mt={4}>
-                    <FormControl fullWidth>
+                    <FormControl fullWidth size='small'>
                         <InputLabel>Addons</InputLabel>
                         <Select
                             multiple
@@ -276,6 +276,7 @@ const TagManagementPage = () => {
                             onChange={handleAddonChange}
                             label="Addons"
                             required
+                            size='small'
                             renderValue={(selected) => selected.map((id) => addons.find((addon) => addon.id === id)?.name).join(', ')}
                         >
                             {addons?.map((addon) => (
@@ -288,7 +289,7 @@ const TagManagementPage = () => {
                     </FormControl>
                 </Box>
                 <Box mb={2} mt={2}>
-                    <FormControl fullWidth>
+                    <FormControl fullWidth size='small'>
                         <InputLabel>Type</InputLabel>
                         <Select
                             value={selectedType}
@@ -297,6 +298,7 @@ const TagManagementPage = () => {
                             }}
                             required
                             label="Type"
+                            size='small'
                         >
                             {["CONTENT", "TABLE", "IMAGE"].map((t) => (
                                 <MenuItem key={t} value={t}>
@@ -316,6 +318,7 @@ const TagManagementPage = () => {
                     error={Boolean(errors.name)}
                     helperText={errors.name}
                     disabled={selectedType == 'TABLE'}
+                    size='small'
                 />
                 {/* Tag Key Input */}
                 <TextField
@@ -327,6 +330,7 @@ const TagManagementPage = () => {
                     error={Boolean(errors.field_path)}
                     helperText={errors.field_path}
                     disabled={selectedType == 'TABLE'}
+                    size='small'
                 />
 
                 {/* Save Button */}
@@ -481,13 +485,14 @@ const TagManagementPage = () => {
             <CustomTabPanel value={tabValue} index={1}>
 
                 {/* Addon selection */}
-                <FormControl fullWidth sx={{ mb: 3 }}>
+                <FormControl fullWidth sx={{ mb: 3 }} size='small'>
                     <InputLabel>Choose Addon</InputLabel>
                     <Select
                         value={chosenAddon}
                         onChange={handleAddonSelection}
                         label="Choose Addon"
                         sx={{ maxWidth: 250 }}
+                        size='small'
                     >
                         {addons?.map((addon) => (
                             <MenuItem key={addon.id} value={addon.id}>

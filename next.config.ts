@@ -17,6 +17,15 @@ const nextConfig: NextConfig = {
   compiler: {
     // removeConsole: true,
   },
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'pdf-crafter2.s3.us-east-1.amazonaws.com',
+        pathname: '/**', // Allows all paths under this hostname
+      },
+    ],
+  },
 };
 
 export default nextConfig;

@@ -1,6 +1,7 @@
 import { Alignment, Autoformat, AutoImage, Autosave, BalloonToolbar, BlockQuote, BlockToolbar, Bold, Code, CodeBlock, Essentials, FindAndReplace, FontBackgroundColor, FontColor, FontFamily, FontSize, FullPage, GeneralHtmlSupport, Heading, HorizontalLine, HtmlComment, ImageBlock, ImageCaption, ImageInline, ImageInsert, ImageInsertViaUrl, ImageResize, ImageStyle, ImageTextAlternative, ImageToolbar, ImageUpload, Indent, IndentBlock, Italic, Link, LinkImage, List, ListProperties, Markdown, MediaEmbed, Mention, PageBreak, Paragraph, PasteFromMarkdownExperimental, PasteFromOffice, PictureEditing, RemoveFormat, ShowBlocks, SourceEditing, SpecialCharacters, SpecialCharactersArrows, SpecialCharactersCurrency, SpecialCharactersEssentials, SpecialCharactersLatin, SpecialCharactersMathematical, SpecialCharactersText, Strikethrough, Style, Subscript, Superscript, Table, TableCaption, TableCellProperties, TableColumnResize, TableProperties, TableToolbar, TextPartLanguage, TextTransformation, Title, TodoList, Underline, WordCount } from "ckeditor5";
 import { config } from "process";
-const CLOUD_SERVICES_TOKEN_URL = 'https://';
+import { uploadMedia } from "../services/mediaService";
+// const CLOUD_SERVICES_TOKEN_URL = 'https://';
 export const defaultConfig: any = {
     // initialData: value,
     // placeholder: placeholder,
@@ -32,12 +33,13 @@ export const defaultConfig: any = {
             'horizontalLine',
             'pageBreak',
             'link',
-            'bookmark',
+            // 'bookmark',
             'insertImage',
-            'ckbox',
+            'imageUpload',
+            // 'ckbox',
             'mediaEmbed',
             'insertTable',
-            'highlight',
+            // 'highlight',
             'blockQuote',
             'codeBlock',
             '|',
@@ -62,7 +64,7 @@ export const defaultConfig: any = {
         Bold,
         // Bookmark,
         //     //CKBox,
-        //     //CloudServices,
+        // CloudServices,
         Code,
         CodeBlock,
         Essentials,
@@ -304,7 +306,60 @@ export const defaultConfig: any = {
     table: {
         contentToolbar: ['tableColumn', 'tableRow', 'mergeTableCells', 'tableProperties', 'tableCellProperties']
     },
-
+    // cloudServices: {
+    //     tokenUrl: CLOUD_SERVICES_TOKEN_URL
+    // },
+    
     // licenseKey: 'GPL',
     ...config, // Merging default config with any provided overrides
 };
+
+
+export class MyUploadAdapter {
+    private loader: any;
+    private token: string;
+    private orgId: number;
+
+    constructor(loader: any, token: string, orgId: number) {
+        this.loader = loader;
+        this.token = token;
+        this.orgId = orgId;
+    }
+
+    // This method will be called to start the upload
+    upload(): Promise<any> {
+        return new Promise((resolve, reject) => {
+            // const data:any = new FormData();
+            // data.append('file', this.loader.file);
+
+            // Use your server API to handle the file upload
+            // fetch('/upload-endpoint', {
+            //     method: 'POST',
+            //     body: data,
+            // })
+            uploadMedia(this.orgId, this.loader.file, [],this.token)//todo set addons
+                // .then((response) => response.json())
+                .then((result) => {
+                    // On success, return the image URL
+                    resolve({
+                        default: result.data.url,  // The uploaded image URL
+                    });
+                })
+                .catch((error) => {
+                    reject(error);
+                });
+        });
+    }
+
+    // Optional: Implement abort method if you need to support aborting the upload
+    abort() {
+        // Handle the abortion of the upload here if needed
+    }
+}
+
+// Register the custom upload adapter
+// export function uploadAdapterPlugin(editor: any, token: string, orgId: number) {
+//     editor.plugins.get('FileRepository').createUploadAdapter = (loader: any) => {
+//         return new MyUploadAdapter(loader, token, orgId);
+//     };
+// }

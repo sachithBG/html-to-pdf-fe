@@ -2,20 +2,22 @@ import React, { useState } from 'react';
 import { Box, Button, TextField, FormControl, InputLabel, Select, MenuItem, CircularProgress, Grid2 } from '@mui/material';
 import { Checkbox, ListItemText } from '@mui/material';
 import Image from 'next/image';
+import { isValidS3Url } from '@/app/utils/constant';
 
-const addons = [
-    { id: 1, name: 'Addon 1' },
-    { id: 2, name: 'Addon 2' },
-    { id: 3, name: 'Addon 3' },
-    { id: 4, name: 'Addon 4' },
-];
-
-const ImageManage = ({ onImageUpload }: { onImageUpload: (image: any) => void }) => {
+const ImageManage = ({ onImageUpload, addons }: { onImageUpload: (image: any) => void, addons: any[] }) => {
     const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
     const [key, setKey] = useState('');
     const [image, setImage] = useState<File | null>(null);
-    const [preview, setPreview] = useState<string | null>(null);
+    // const [preview, setPreview] = useState<string | null>(null);
     const [isUploading, setIsUploading] = useState(false);
+
+
+    const imgUrl =
+        typeof image === 'string' && isValidS3Url(image)
+            ? image // Use the validated URL
+            : image instanceof File
+                ? URL.createObjectURL(image) // Use a blob URL for a File object
+                : undefined;
 
     // Handle Addon Change
     const handleAddonChange = (event: any) => {
@@ -32,21 +34,21 @@ const ImageManage = ({ onImageUpload }: { onImageUpload: (image: any) => void })
         if (event.target.files && event.target.files[0]) {
             const file = event.target.files[0];
             setImage(file);
-            const reader = new FileReader();
-            reader.onloadend = () => setPreview(reader.result as string);
-            reader.readAsDataURL(file);
+            // const reader = new FileReader();
+            // reader.onloadend = () => setPreview(reader.result as string);
+            // reader.readAsDataURL(file);
         }
     };
 
     // Validate Form before Upload
     const isValidForm = () => {
-        return selectedAddons.length > 0 && key.trim() !== '' && image !== null;
+        return selectedAddons.length > 0 && image !== null;//&& key.trim() !== ''
     };
 
     // Handle Image Upload
     const handleUploadImage = async () => {
         if (!isValidForm()) {
-            alert('Please complete all fields.');
+            // alert('Please complete all fields.');
             return;
         }
 
@@ -56,31 +58,33 @@ const ImageManage = ({ onImageUpload }: { onImageUpload: (image: any) => void })
         const newImage = {
             key,
             addons: selectedAddons,
-            preview: preview,
+            preview: image,
         };
-
-        // Simulate API call
-        setTimeout(() => {
-            setIsUploading(false);
-            onImageUpload(newImage); // Pass image to parent component
-            alert('Image uploaded successfully!');
+        try {
+            await onImageUpload(newImage);
             resetForm();
-        }, 1000);
+            setIsUploading(false);
+        } catch (error) {
+            console.error(error);
+            setIsUploading(false);
+        }
     };
 
     const resetForm = () => {
         setSelectedAddons([]);
         setKey('');
         setImage(null);
-        setPreview(null);
+        // setPreview(null);
     };
+
+
 
     return (
         <Box sx={{ width: '100%', padding: 4 }}>
             <Grid2 container spacing={2}>
                 {/* Addons select input */}
                 <Grid2 size={{ sm: 6 }}>
-                    <FormControl fullWidth>
+                    <FormControl fullWidth size='small'>
                         <InputLabel>Addons</InputLabel>
                         <Select
                             multiple
@@ -88,9 +92,10 @@ const ImageManage = ({ onImageUpload }: { onImageUpload: (image: any) => void })
                             onChange={handleAddonChange}
                             label="Addons"
                             required
+                            size='small'
                             renderValue={(selected) => selected.join(', ')}
                         >
-                            {addons.map((addon) => (
+                            {addons?.map((addon) => (
                                 <MenuItem key={addon.id} value={addon.name}>
                                     <Checkbox checked={selectedAddons.includes(addon.name)} />
                                     <ListItemText primary={addon.name} />
@@ -100,7 +105,7 @@ const ImageManage = ({ onImageUpload }: { onImageUpload: (image: any) => void })
                     </FormControl>
                 </Grid2>
 
-                <Grid2 size={{ sm: 6 }}>
+                <Grid2 size={{ sm: 6 }} display={'none'}>
                     <TextField
                         label="Key"
                         variant="outlined"
@@ -108,6 +113,7 @@ const ImageManage = ({ onImageUpload }: { onImageUpload: (image: any) => void })
                         value={key}
                         onChange={handleKeyChange}
                         required
+                        size='small'
                     />
                 </Grid2>
             </Grid2>
@@ -115,15 +121,15 @@ const ImageManage = ({ onImageUpload }: { onImageUpload: (image: any) => void })
                 type="file"
                 accept="image/*"
                 onChange={handleImageChange}
-                className="block  mt-2"
+                className="block  mt-5"
             />
-
-            {preview && <div className="mb-4">
-                <h3 className="text-xl mb-2">Image Preview</h3>
-                <Image src={preview} alt="Preview" className="w-60 h-auto" />
-            </div>}
-
-            <Box sx={{ marginTop: 2 }}>
+            <Box sx={{ marginTop: 2, display: 'flex', justifyContent: 'center' }}>
+                {imgUrl && <div className="mb-4">
+                    {/* <h3 className="text-xl mb-2">Image Preview</h3> */}
+                    <Image width={100} height={100} src={imgUrl} alt="Preview" className="w-60 h-auto" />
+                </div>}
+            </Box>
+            <Box sx={{ marginTop: 2, display: 'flex', justifyContent: 'end' }}>
                 <Button
                     onClick={handleUploadImage}
                     variant="outlined"

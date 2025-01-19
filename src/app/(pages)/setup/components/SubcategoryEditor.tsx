@@ -3,8 +3,6 @@ import {
     Box,
     Button,
     TextField,
-    List,
-    ListItem,
     IconButton,
     Typography,
     CircularProgress,
@@ -64,7 +62,7 @@ const SubcategoryEditor: React.FC<SubcategoryEditorProps> = ({
             <Box sx={{ display: "flex", gap: 2, mt: 2, alignItems: "center", maxWidth: 350 }}>
                 <TextField
                     label={editMode.id ? "Edit Subcategory" : "New Subcategory"}
-                    value={editMode.id ? editMode.name : newSubcategory}
+                    value={editMode.id ? editMode.name : newSubcategory || ''}
                     onChange={(e) =>
                         editMode.id
                             ? setEditMode({ ...editMode, name: e.target.value })

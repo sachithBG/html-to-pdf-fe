@@ -167,7 +167,7 @@ const DataUploadButton: React.FC<DataUploadButtonProps> = ({ onSave, id }) => {
                     <Button
                         onClick={handleSave}
                         color="primary"
-                        variant="contained"
+                        variant="outlined"
                         disabled={isSaving || !!error}
                         startIcon={isSaving ? <CircularProgress size={20} /> : <Save />}
                         size='small'

@@ -14,7 +14,7 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
     const router = useRouter();
 
     useEffect(() => {
-        console.log('AuthGuard', status, session?.user?.token);
+        // console.log('AuthGuard', status, session?.user?.token);
         //check token expiration
         if (status === 'unauthenticated') {
             // signOut();

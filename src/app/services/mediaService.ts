@@ -39,18 +39,32 @@ export const uploadOrgLogo = async (currentOrgId: number, image: File, token: st
     }
 };
 
-export const uploadMedea = async (currentOrgId: number, image: File, token: string) => {
+export const uploadMedia = async (currentOrgId: number, image: File, addon_ids:number[]=[], token: string) => {
     const formData = new FormData();
-    formData.append('medea', image);
+    formData.append('media', image);
 
-    try {
-        const response = await API.post('/media/upload', formData, {
+    return await API.post('/s3/media/upload', formData, {
             headers: {
                 Authorization: `Bearer ${token}`,
                 'Content-Type': 'multipart/form-data',
             },
             params: {
-                organizationId: currentOrgId
+                organization_id: currentOrgId,
+                addon_ids: addon_ids
+            }
+        });
+};
+
+export const findAllImages = async (currentOrgId: number, token: string, addon_ids: number[] = []) => {
+    try {
+        const response = await API.get('/media/organization/' + currentOrgId, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+            params: {
+                organizationId: currentOrgId,
+                addon_ids: addon_ids
             }
         });
         return response.data;
@@ -59,3 +73,14 @@ export const uploadMedea = async (currentOrgId: number, image: File, token: stri
         throw error;
     }
 };
+
+export const deleteImg = async (key: any, token: string) => {
+    return API.delete('/s3/delete/img', {
+        headers: {
+            Authorization: `Bearer ${token}`
+        },
+        params: {
+            fileKey: key
+        }
+    });
+}

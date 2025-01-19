@@ -136,6 +136,7 @@ const ManageAddonsPage: React.FC = () => {
                     label="Addon Name"
                     fullWidth
                     value={newAddon.name}
+                    size='small'
                     onChange={(e) => {
                         const value = e.target.value.toUpperCase().replace(/[^A-Z_]/g, '_');
                         setNewAddon((prev) => { return { ...prev, name: value } });

@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-@import 'ckeditor5/ckeditor5.css';
+@import '../../ckeditor5/ckeditor5.css';
 
 body {
   font-family: Inter var, ui-sans-serif, system-ui, -apple-system,

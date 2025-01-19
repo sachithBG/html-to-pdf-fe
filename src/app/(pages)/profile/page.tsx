@@ -1,10 +1,10 @@
 'use client';
-import React, { useEffect, useMemo, useState } from 'react';
-import { Button, TextField, Avatar, Switch, FormControlLabel, FormGroup, Paper, Typography, Box, Container, Divider, IconButton, Grid2, createTheme, useColorScheme } from '@mui/material';
+import React, { useEffect, useState } from 'react';
+import { Button, TextField, Avatar, Switch, FormControlLabel, FormGroup, Paper, Typography, Box, Container, Divider, IconButton, Grid2, useColorScheme } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ErrorIcon from '@mui/icons-material/Error';
-import { updateImageByUserId, updateNameByUserId, updateThemeByUserId } from '@/app/services/profileService';
+import { updateNameByUserId, updateThemeByUserId } from '@/app/services/profileService';
 import { signIn, useSession } from 'next-auth/react';
 import { uploadAvator } from '@/app/services/mediaService';
 import { useDispatch } from 'react-redux';

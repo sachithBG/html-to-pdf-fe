@@ -1,11 +1,7 @@
 'use client';
-import React, { useMemo } from 'react';
-import { useSelector } from 'react-redux';
+import React from 'react';
 import {
     IconButton,
-    PaletteMode,
-    ThemeProvider,
-    createTheme,
 } from '@mui/material';
 import { SnackbarProvider, closeSnackbar } from 'notistack';
 import CloseIcon from '@mui/icons-material/Close';
@@ -19,46 +15,46 @@ export default function ThemeProvidr({
 }: {
     children: React.ReactNode;
 }) {
-    const theme = useSelector((state: any) => state.toggleTheme.theme);
-    const getDesignTokens = (mode: PaletteMode) => ({
-        palette: {
-            mode,
-            ...(mode === 'light'
-                ? {
-                    // palette values for light mode
-                    secondary: {
-                        main: secondary_main,
-                        light: '#F3F4FB',
-                        dark: '#8185A1',
-                        contrastText: '#ff',
-                    },
-                }
-                : {
-                    // palette values for dark mode
-                    secondary: {
-                        main: 'rgb(34, 43, 69)',
-                        light: '#7982C3',
-                        dark: '#121D65',
-                        contrastText: '#rgba(0,0,0,0.87)',
-                    },
-                    background: {
-                        default: 'rgb(34, 43, 69)',
-                        paper: 'rgb(34, 43, 69)',
-                    },
-                    components: {
-                        MuiPaper: {
-                            styleOverrides: {
-                                root: {
-                                    backgroundColor: 'red',
-                                },
-                            },
-                        },
-                    },
-                }),
-        },
-    });
+    // const theme = useSelector((state: any) => state.toggleTheme.theme);
+    // const getDesignTokens = (mode: PaletteMode) => ({
+    //     palette: {
+    //         mode,
+    //         ...(mode === 'light'
+    //             ? {
+    //                 // palette values for light mode
+    //                 secondary: {
+    //                     main: secondary_main,
+    //                     light: '#F3F4FB',
+    //                     dark: '#8185A1',
+    //                     contrastText: '#ff',
+    //                 },
+    //             }
+    //             : {
+    //                 // palette values for dark mode
+    //                 secondary: {
+    //                     main: 'rgb(34, 43, 69)',
+    //                     light: '#7982C3',
+    //                     dark: '#121D65',
+    //                     contrastText: '#rgba(0,0,0,0.87)',
+    //                 },
+    //                 background: {
+    //                     default: 'rgb(34, 43, 69)',
+    //                     paper: 'rgb(34, 43, 69)',
+    //                 },
+    //                 components: {
+    //                     MuiPaper: {
+    //                         styleOverrides: {
+    //                             root: {
+    //                                 backgroundColor: 'red',
+    //                             },
+    //                         },
+    //                     },
+    //                 },
+    //             }),
+    //     },
+    // });
 
-    const themeAction = useMemo(() => createTheme(getDesignTokens(theme)), [theme]);
+    // const themeAction = useMemo(() => createTheme(getDesignTokens(theme)), [theme]);
 
     return (
         // <ThemeProvider theme={themeAction}>

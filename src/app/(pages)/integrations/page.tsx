@@ -7,6 +7,7 @@ import { generateTokens } from '@/app/services/tokenService';
 import { addOrganizationAll, clearOrganizationState, getDefaultOrganization, Organization, OrganizationState } from '@/redux/slice/organizationSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import { useSession } from 'next-auth/react';
+import ConfirmButton from '../setup/components/ConfirmButton';
 
 export default function Page() {
     const [token, setToken] = useState('');
@@ -121,9 +122,17 @@ export default function Page() {
     return (
         <Box sx={{ p: 3 }}>
             {/* <Typography variant="h6">Integration Page</Typography> */}
-            <Button variant="outlined" size='small' color="primary" onClick={generateToken} sx={{ mt: 2 }} disabled={!currentOrg?.id}>
+            {!token ? <Button variant="outlined" size='small' color="primary" onClick={generateToken} sx={{ mt: 2 }} disabled={!currentOrg?.id}>
                 Generate Refresh Token
-            </Button>
+            </Button> :
+            <ConfirmButton
+                title="Confirm Item"
+                description="Are you sure you want to proceed ? This action cannot be undone."
+                onConfirm={generateToken}
+                buttonText="Renew Refresh Token"
+                confirmData={{}}
+                // buttonProps={{ variant: 'contained', color: 'error' }}
+            />}
             {token && (
                 <Box sx={{ mt: 2 }}>
                     <Box sx={{ width: '100%', mt: 2, borderRadius: '8px', border: `1px solid ${borderColor}` }}>
