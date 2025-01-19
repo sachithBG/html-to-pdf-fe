@@ -9,7 +9,7 @@ import { getDefaultOrganization, Organization, OrganizationState } from '@/redux
 import { useSelector } from 'react-redux';
 import { useSnackbar } from 'notistack';
 import ImageList from '../components/ImageList';
-const ImageManage = dynamic(() => import('@/app/(pages)/setup/components/ImageManage'), { ssr: false });
+const ImageManage = dynamic(() => import('../components/ImageManage'), { ssr: false });
 
 interface Addon {
     id: number;
