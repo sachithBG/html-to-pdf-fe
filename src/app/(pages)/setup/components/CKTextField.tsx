@@ -63,9 +63,9 @@ const CKTextField: React.FC<CKTextFieldProps> = ({
             ) : null}
             <Box sx={{
                 ml: !isLoading ? 0 : -5000, position: !isLoading ? 'relative' : 'absolute',
-                '& .ck-content, .ck-source-editing-area textarea ': {
-                    color: theme.palette.mode === 'dark' ? '#ffffff !important' : 'inherit',
-                    backgroundColor: theme.palette.mode === 'dark' ? '#28292a !important' : 'inherit',
+                '& .ck-content, .ck-source-editing-area textarea': {
+                    color: 'black !important',// theme.palette.mode === 'dark' ? '#ffffff !important' : 'black !important',
+                    backgroundColor: 'white !important',// theme.palette.mode === 'dark' ? '#28292a !important' : 'inherit',
                     fontSize: '16px',
                     lineHeight: '1.5',
                     padding: '16px',
@@ -75,7 +75,7 @@ const CKTextField: React.FC<CKTextFieldProps> = ({
                     // color: theme.palette.mode === 'dark' ? '#ffffff !important' : 'inherit',
                     backgroundColor: theme.palette.mode === 'dark' ? '#dde1ea !important' : 'inherit',
                 }
-             }}>
+            }}>
                 <CKEditor
                     editor={ClassicEditor}
                     config={{
@@ -92,7 +92,7 @@ const CKTextField: React.FC<CKTextFieldProps> = ({
                         const data = editor.getData();
                         onChange(data);
                     }}
-                />
+                    />
             </Box>
         </Box>
     );

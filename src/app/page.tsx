@@ -15,7 +15,7 @@ export default function Home() {
 
   const handleNavigateToSetup = () => {
     if (router) {
-      router.push('/setup/editor');
+      router.push('/test');
     }
   };
 

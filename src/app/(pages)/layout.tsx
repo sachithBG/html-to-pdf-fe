@@ -169,7 +169,8 @@ function useDemoRouter(initialPath: string): Router {
         navigate: (path: string | URL) => {
             if (path == '/setup') {
                 path = '/setup/editor';
-            } else if (status === 'unauthenticated') {
+            } else if (status === 'unauthenticated' && path != '/' && path != '/test') {
+                // alert(path)
                 path = '/dashboard';
                 authEvents.emit('triggerSignIn');
             }

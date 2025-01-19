@@ -509,7 +509,7 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
                             Clone
                             {isUploading && <CircularProgress size={24} />}
                         </Button>
-                        <Grid sx={{mr: 27}}>
+                        <Grid sx={{mr: 30}}>
                             {!isLoding && pdfPrevButton && <PdfPreviewButton htmlContent={
                                 `<div className="ck ck-editor__main">
                                     <div class="ck ck-content">
