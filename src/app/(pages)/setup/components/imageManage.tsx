@@ -4,7 +4,12 @@ import { Checkbox, ListItemText } from '@mui/material';
 import Image from 'next/image';
 import { isValidS3Url } from '@/app/utils/constant';
 
-const ImageManage = ({ onImageUpload, addons }: { onImageUpload: (image: any) => void, addons: any[] }) => {
+interface ImageManageProps {
+    onImageUpload: (image: any) => void;
+    addons: any[];
+}
+
+const ImageManage: React.FC<ImageManageProps> = ({ onImageUpload, addons }) => {
     const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
     const [key, setKey] = useState('');
     const [image, setImage] = useState<File | null>(null);

@@ -29,7 +29,8 @@ import { createPdfTable, deletePdfTable, getPdfTable, readAllPdfTablePage, updat
 import { initialTableData } from '@/app/utils/constant';
 import { AddBox as AddBoxIcon } from '@mui/icons-material';
 import { useSnackbar } from 'notistack';
-import dynamic from 'next/dynamic';
+// @typescript-eslint / no - unused - vars
+// import dynamic from 'next/dynamic';
 import DeleteConfirmDialog from '../components/DeleteConfirmDialog';
 import TableManagePage from '../components/TableManagePage';
 // const TableManagePage = dynamic(() => import('../components/TableManagePage'), { ssr: false });
