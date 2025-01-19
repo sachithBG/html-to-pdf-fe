@@ -8,8 +8,9 @@ import { findAllAddons } from '@/app/services/addonService';
 import { getDefaultOrganization, Organization, OrganizationState } from '@/redux/slice/organizationSlice';
 import { useSelector } from 'react-redux';
 import { useSnackbar } from 'notistack';
-import ImageList from '../components/ImageList';
-const ImageManage = dynamic(() => import('../components/ImageManage'), { ssr: false });
+import ImageManage from '../components/ImageManage';
+// const ImageManage = dynamic(() => import('../components/ImageManage'), { ssr: false });
+const ImageList = dynamic(() => import('../components/ImageList'), { ssr: false });
 
 interface Addon {
     id: number;

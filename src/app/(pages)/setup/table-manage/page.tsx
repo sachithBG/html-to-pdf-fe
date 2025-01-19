@@ -31,7 +31,8 @@ import { AddBox as AddBoxIcon } from '@mui/icons-material';
 import { useSnackbar } from 'notistack';
 import dynamic from 'next/dynamic';
 import DeleteConfirmDialog from '../components/DeleteConfirmDialog';
-const TableManagePage = dynamic(() => import('../components/TableManagePage'), { ssr: false });
+import TableManagePage from '../components/TableManagePage';
+// const TableManagePage = dynamic(() => import('../components/TableManagePage'), { ssr: false });
 
 const PdfTableManager = () => {
     const [tabValue, setTabValue] = useState('1');
