@@ -32,7 +32,8 @@ import { useSnackbar } from 'notistack';
 // @typescript-eslint / no - unused - vars
 // import dynamic from 'next/dynamic';
 import DeleteConfirmDialog from '../components/DeleteConfirmDialog';
-import TableManagePage from '../components/TableManagePage';
+import TableManagePage from '../components/TableManage';
+// import TableManagePage from '@components/TableManagePage';
 // const TableManagePage = dynamic(() => import('../components/TableManagePage'), { ssr: false });
 
 const PdfTableManager = () => {
