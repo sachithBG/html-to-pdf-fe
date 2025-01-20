@@ -27,7 +27,15 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  output : 'standalone'
+  output: 'standalone',
+  async rewrites() {
+    return [
+      {
+        source: '/api/:path*',
+        destination: 'http://188.166.245.108/api/:path*', // Proxy to the backend
+      },
+    ];
+  },
 };
 
 export default nextConfig;
