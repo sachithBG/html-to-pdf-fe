@@ -1,3 +1,4 @@
+import path from 'path';
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
@@ -11,7 +12,7 @@ const nextConfig: NextConfig = {
       // For server-side builds, no source maps
       config.devtool = options.isServer ? false : 'cheap-module-source-map'; // Or use any other devtool setting that suits you
     }
-
+    config.resolve.alias['@'] = path.resolve(path.resolve());
     return config;
   },
   compiler: {
