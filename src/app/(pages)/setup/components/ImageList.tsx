@@ -5,6 +5,7 @@ import Image from 'next/image';
 import DeleteConfirmDialog from './DeleteConfirmDialog';
 
 interface ImageItem {
+    id: number;
     file_key: string;
     url: string;
     addon_ids: string[];
@@ -15,9 +16,9 @@ interface ImageListProps {
     imageList: ImageItem[];
     addons: any[];
     handleDelete: (fileKey: string) => void;
-    handleCopy: (url: string) => void;
-    tooltipImg: string;
-    copiedToken: boolean
+    handleCopy: (url: string, id: number) => void;
+    tooltipImg: Map<number, string>;
+    copiedToken: Map<number, boolean>;
 }
 
 const ImageList: React.FC<ImageListProps> = ({
@@ -91,14 +92,14 @@ const ImageList: React.FC<ImageListProps> = ({
                         />
                     </Stack>
                     {/* Copy URL */}
-                    <Tooltip title={tooltipImg}>
+                    <Tooltip title={tooltipImg.get(image.id)}>
                         <IconButton
                             size="small"
                             color="success"
-                            onClick={() => handleCopy(image.url)}
+                            onClick={() => handleCopy(image.url, image.id)}
                             title="Copy URL"
                             sx={{ float: 'right', mt: -2, mr: -2 }}
-                            disabled={!copiedToken}
+                            disabled={copiedToken.get(image.id)}
                         >
                             <ContentCopy />
                         </IconButton>

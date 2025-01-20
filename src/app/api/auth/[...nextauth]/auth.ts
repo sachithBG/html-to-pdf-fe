@@ -33,8 +33,7 @@ export const authOptions: NextAuthOptions = {
           dynamicMaxAge = rememberMe + '' == 'true' ? 60 * 60 * 24 * 30 : 60 * 60 * 24; // 30 days or 24 hours
 
           // Attach the user and token to the response object
-          const userWithToken = result.data;
-          return userWithToken;
+          return result.data;
         } catch (error: any) {
           if (error.status === 401) {
             throw new Error("Invalid credentials");

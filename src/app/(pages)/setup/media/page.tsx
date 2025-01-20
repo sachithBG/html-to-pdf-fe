@@ -23,8 +23,8 @@ function MediaManageParent() {
     const { data: session }: any = useSession();
     const [isLoading, setIsLoading] = useState(true);
     const [addons, setAddons] = useState<Addon[]>([]);
-    const [copiedToken, setCopiedToken] = useState(false); // Track if token was copied
-    const [tooltipToken, setTooltipToken] = useState('Copy URL'); // Track if cURL command was copied
+    const [copiedToken, setCopiedToken] = useState<Map<number, boolean>>(new Map()); // Track if token was copied for each image
+    const [tooltipToken, setTooltipToken] = useState<Map<number, string>>(new Map()); // Track tooltip text for each image
     const [selectedAddons, setSelectedAddons] = useState<number[]>([]);
 
     const { enqueueSnackbar } = useSnackbar();
@@ -118,21 +118,28 @@ function MediaManageParent() {
         }
     }, [selectedAddons]);
 
-    const handleCopyUrl = (url: string) => {
-        // console.log(tag)
+    const handleCopyUrl = (url: string, id: number) => {
         if (!url) return;
-        navigator.clipboard.writeText(url).then(() => {
-            // enqueueSnackbar(`Url key copied: {{${url}}}`, { variant: 'success' });
-            setCopiedToken(true);
-            setTooltipToken('Copied');
-            const t =setTimeout(() => {
-                setCopiedToken(false);
-                setTooltipToken('Copy');
-                clearTimeout(t);
-            }, 2000);
-        }).catch(err => {
-            console.error('Failed to copy: ', err);
-        });
+
+        // Copy URL to clipboard
+        navigator.clipboard.writeText(url)
+            .then(() => {
+                // Update copiedToken state to mark it as copied for the specific image ID
+                setCopiedToken((prev) => new Map(prev).set(id, true));
+
+                // Set tooltip text to 'Copied' for this specific image
+                setTooltipToken((prev) => new Map(prev).set(id, 'Copied'));
+
+                // Reset after a short delay
+                const t = setTimeout(() => {
+                    setCopiedToken((prev) => new Map(prev).set(id, false));
+                    setTooltipToken((prev) => new Map(prev).set(id, 'Copy URL'));
+                    clearTimeout(t);
+                }, 2000);
+            })
+            .catch(err => {
+                console.error('Failed to copy: ', err);
+            });
     };
 
     const handleDelete = async (fileKey: string) => {
@@ -190,7 +197,7 @@ function MediaManageParent() {
                         imageList={imageList}
                         addons={addons}
                         handleDelete={(fileKey: string) => handleDelete(fileKey)}
-                        handleCopy={(url: string) => handleCopyUrl(url)}
+                        handleCopy={(url: string, id: number) => handleCopyUrl(url, id)}
                         tooltipImg={tooltipToken}
                         copiedToken={copiedToken}
                     />
