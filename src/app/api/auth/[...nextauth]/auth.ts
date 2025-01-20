@@ -1,7 +1,9 @@
 import { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google"; // Example provider
 import CredentialsProvider from "next-auth/providers/credentials";
-import { signInUser } from "@/app/services/authService";
+// import { signInUser } from "@/app/services/authService";
+// export const baseURL = process.env.NEXT_PUBLIC_BASE_URL;
+// import axios from "axios";
 
 let dynamicMaxAge = 60 * 60 * 24; // Default to 24 hours
 
@@ -19,13 +21,23 @@ export const authOptions: NextAuthOptions = {
           throw new Error("Credentials are required");
         }
 
-        const { email, password, rememberMe }: any = credentials;
-        console.log(rememberMe, 'Remember me');
+        const { email, password, rememberMe, token, user }: any = credentials;
+        // console.log(rememberMe, 'Remember me1');
+        // console.log(rememberMe, 'Remember me1');
+        // console.log(email, 'email');
+        // console.log(baseURL, 'baseURL');
         try {
-          const result: any = await signInUser(email, password, rememberMe);
+          // const result: any = await axios.post(`${baseURL}v1/users/login`, { email, password, rememberMe });
+          // signInUser(email, password, rememberMe);
           // console.log(result.data.token, 'Token received from the backend');
-
-          if (!result.data.token) {
+          let user_ = { email, password, rememberMe, token };
+          if (user) {
+            user_ = {...user_, ...JSON.parse(user)};
+            // console.log(user_.id, 'result');
+          }
+          
+          // console.log(result.id, 'result');
+          if (!token) {//result.data.token
             throw new Error("Invalid token");
           }
 
@@ -33,8 +45,13 @@ export const authOptions: NextAuthOptions = {
           dynamicMaxAge = rememberMe + '' == 'true' ? 60 * 60 * 24 * 30 : 60 * 60 * 24; // 30 days or 24 hours
 
           // Attach the user and token to the response object
-          return result.data;
+
+          return {
+            token: token,
+            user: user_, // Returning the user data
+          } as any;
         } catch (error: any) {
+          console.error(error);
           if (error.status === 401) {
             throw new Error("Invalid credentials");
           } else {
@@ -74,4 +91,7 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
   },
+  // pages: {
+  //   error: '/auth/error' // Custom error page to handle sign-in errors
+  // },
 };

@@ -8,6 +8,7 @@ import { Button, Checkbox, Dialog, FormControl, FormControlLabel, IconButton, In
 import CloseIcon from '@mui/icons-material/Close';
 import { signIn } from 'next-auth/react';
 import { AccountCircle, Visibility, VisibilityOff } from '@mui/icons-material';
+import { signInUser } from "@/app/services/authService";
 
 const providers = [
     // { id: 'github', name: 'GitHub' },
@@ -102,13 +103,26 @@ const signIn_: (provider: AuthProvider, formData: any, onOpen: any) => void | Pr
 ) => {
     const promise = new Promise<AuthResponse>(async (resolve) => {
         if (provider.id === "credentials") {
-            // console.log('Remember me', formData.get('rememberMe'));
-            const result: any = await signIn('credentials', {
+            const data = {
                 redirect: false,
                 email: formData?.get('email'),
                 password: formData?.get('password'),
                 rememberMe: formData?.get('rememberMe'),
-            });
+            };
+            let result:any = await signInUser(data.email, data.password, data.rememberMe);
+            if (result.status == 200) {
+                console.log(result.data.user)
+                result = await signIn('credentials', { ...data, token: result.data.token, user: JSON.stringify(result.data.user) });
+            } else {
+                resolve({ error: 'An error occurred during signin.' });
+            }
+            // console.log('Remember me', formData.get('rememberMe'));
+            // const result: any = await signIn('credentials', {
+            //     redirect: false,
+            //     email: formData?.get('email'),
+            //     password: formData?.get('password'),
+            //     rememberMe: formData?.get('rememberMe'),
+            // });
             // console.log(result);
             if (result?.ok) {
                 // onOpen(false);
