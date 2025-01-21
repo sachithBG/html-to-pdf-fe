@@ -109,7 +109,13 @@ const signIn_: (provider: AuthProvider, formData: any, onOpen: any) => void | Pr
                 password: formData?.get('password'),
                 rememberMe: formData?.get('rememberMe'),
             };
-            let result:any = await signInUser(data.email, data.password, data.rememberMe);
+            let result: any = {};
+            try {
+                result = await signInUser(data.email, data.password, data.rememberMe);
+            }catch(e){
+                console.log(e);
+            }
+            
             if (result.status == 200) {
                 console.log(result.data.user)
                 result = await signIn('credentials', { ...data, token: result.data.token, user: JSON.stringify(result.data.user) });

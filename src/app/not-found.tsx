@@ -5,6 +5,7 @@ import { Button, Typography, Box, Container } from "@mui/material";
 import { DashboardLayout } from "@toolpad/core/DashboardLayout";
 import { PageContainer } from "@toolpad/core/PageContainer";
 import ThemeProvidr from "@/provider/ThemeProvidr";
+import LineStyleIcon from '@mui/icons-material/LineStyle';
 
 export default function PageNotFound() {
     const router = useRouter();
@@ -16,7 +17,10 @@ export default function PageNotFound() {
 
     return (
         <ThemeProvidr>
-            <DashboardLayout defaultSidebarCollapsed={true}>
+            <DashboardLayout defaultSidebarCollapsed={true} branding={{
+                title: 'PDF Crafter: HTML to PDF Tool',
+                logo: <LineStyleIcon color='info' />
+            }}>
                 <PageContainer>
                     <Container>
                         <Box sx={{ textAlign: "center", marginTop: 5 }}>
