@@ -2,12 +2,12 @@ import { API } from './api';
 
 
 export const signInUser = async (email: string, password: string, rememberMe: boolean) => {
-    return API.post('/users/login', { email, password, rememberMe });
+    return API.post('/users/login', { email, password, rememberMe }, { withCredentials: true });
 };
 
 export const signUpUser = async (name: string, email: string, password: string) => {
     try {
-        const response = await API.post('/users/register', { name, email, password });
+        const response = await API.post('/users/register', { name, email, password }, { withCredentials: true });
         return response.data; // Assuming the response has the data like { id, name, email }
     } catch (error: any) {
         if (error.response) {
