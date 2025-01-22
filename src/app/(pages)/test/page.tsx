@@ -105,7 +105,8 @@ const HtmlTestEditor = () => {
     const [isClient, setIsClient] = useState(false);
     const isMobile = useMediaQuery((theme) => theme.breakpoints.down('sm'));
     const [isEditorLoading, setIsEditorLoading] = useState<boolean>(true);
-    const [pdfPrevButton, setPdfPrevButton] = useState(true);
+    // @typescript-eslint / no - unused - vars
+    // const [pdfPrevButton, setPdfPrevButton] = useState(true);
 
 
     useEffect(() => {
@@ -123,13 +124,13 @@ const HtmlTestEditor = () => {
         return () => clearTimeout(timeout);
     }, []);
 
-    useEffect(() => {
-        setPdfPrevButton(false);
-        const tt = setTimeout(() => {
-            setPdfPrevButton(true);
-            clearTimeout(tt);
-        }, 2000);
-    }, [headerContent, bodyContent, footerContent]);
+    // useEffect(() => {
+    //     // setPdfPrevButton(false);
+    //     const tt = setTimeout(() => {
+    //         // setPdfPrevButton(true);
+    //         clearTimeout(tt);
+    //     }, 2000);
+    // }, [headerContent, bodyContent, footerContent]);
 
     if (!isClient) {
         return null; // Or render a loading state
