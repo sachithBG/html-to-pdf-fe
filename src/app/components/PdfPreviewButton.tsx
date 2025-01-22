@@ -199,13 +199,14 @@ const PdfPreviewButton = ({
       setDataLoaded(true);
     }
   }, [previewMode, subcategoriesFilter]);
-  // useEffect(() => {
+  useEffect(() => {
+    setHtmlCntnt(htmlContent);
   //     return () => {
   //         setDataLoaded(false);
   //         setPreviewMode('withoutData');
   //         setDataError('')
   //     }
-  // }, []);
+  }, [open]);
   return (
     <Box>
       {/* Button to open the modal */}

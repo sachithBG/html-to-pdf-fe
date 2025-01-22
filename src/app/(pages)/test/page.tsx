@@ -189,7 +189,7 @@ const HtmlTestEditor = () => {
                     justifyContent="end" // Center the items horizontally
                 >
                     <Grid >
-                        {pdfPrevButton && <PdfPreviewButton htmlContent={
+                        <PdfPreviewButton htmlContent={
                             `<div className="ck ck-editor__main">
                                     <div class="ck ck-content">
                                     <div>${headerContent}</div>
@@ -197,7 +197,7 @@ const HtmlTestEditor = () => {
                                     <footer>${footerContent}</footer>
                                     </div>
                                     </div>
-                            `} id={null} isIconButton={false} organization_id={0} subcategories={[]}/>}
+                            `} id={null} isIconButton={false} organization_id={0} subcategories={[]}/>
                     </Grid>
                     {/* <Grid >
                         <Button
