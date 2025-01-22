@@ -14,7 +14,8 @@ import {
 import { CloudUpload, Save, FormatAlignLeft } from '@mui/icons-material';
 import Ajv from 'ajv';
 import { readPdfTemplate, updateDummyDataPdfTemplate } from '@/app/services/pdfService';
-import { useSession } from 'next-auth/react';
+import { RootState } from '@/redux/store';
+import { useSelector } from 'react-redux';
 
 interface DataUploadButtonProps {
     onSave: (data: string) => void;
@@ -31,14 +32,14 @@ const DataUploadButton: React.FC<DataUploadButtonProps> = ({ onSave, id }) => {
     // const currentOrg: Organization | any = useSelector((state: { organization: OrganizationState }) =>
     //     getDefaultOrganization(state.organization)
     // );
-    const { data: session }: any = useSession();
+    const { token } = useSelector((state: RootState) => state.session);
 
     useEffect(() => {
         if (id && isDialogOpen) {
             setIsLoding(true);
             const fetchData = async () => {
                 try {
-                    const response = await readPdfTemplate(id, session?.user?.token);
+                    const response = await readPdfTemplate(id, token);
                     if (response.status == 200) {
                         const { data } = response.data;
                         // console.log(response.data.json)
@@ -101,7 +102,7 @@ const DataUploadButton: React.FC<DataUploadButtonProps> = ({ onSave, id }) => {
         if (error || !handleValidateJson()) return;
         try {
             setSaving(true);
-            await updateDummyDataPdfTemplate(id, jsonText, session?.user?.token);
+            await updateDummyDataPdfTemplate(id, jsonText, token);
             setTimeout(() => {
                 onSave(jsonText);
                 setSaving(false);

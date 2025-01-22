@@ -1,11 +1,11 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { ToggleTheme } from './slice/ToggleTheme';
 import organizationSlice from './slice/organizationSlice';
-import authReducer from './slice/authSlice';
+import sessionReducer from './slice/sessionSlice';
 
 export const store = configureStore({
   reducer: {
-    auth: authReducer,
+    session: sessionReducer,
     toggleTheme: ToggleTheme.reducer,
     organization: organizationSlice,
   },

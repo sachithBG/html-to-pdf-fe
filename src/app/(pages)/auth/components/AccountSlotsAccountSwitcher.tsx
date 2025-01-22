@@ -8,13 +8,15 @@ import { Account } from '@toolpad/core/Account';
 import CustomMenu from './CustomMenu';
 import { ThemeSwitcher } from '@toolpad/core/DashboardLayout';
 import SignIn from '../ThemeSignInPage';
-import { signOut, useSession } from 'next-auth/react';
 import SignUp from '../ThemeSignUpPage';
 import { findOrganizationsByUserId } from '@/app/services/organizationService';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { addOrganizationAll, clearOrganizationState } from '@/redux/slice/organizationSlice';
 import { authEvents } from '@/app/utils/authEvents';
 import { useColorScheme } from '@mui/material';
+import { clearSession } from '@/redux/slice/sessionSlice';
+import { RootState } from '@/redux/store';
+import jwt, { JwtPayload } from 'jsonwebtoken';
 
 // const demoSession = {
 //     user: {
@@ -42,11 +44,11 @@ class DemoSession {
 
 export default function AccountSlotsAccountSwitcher() {
     const [session, setSession] = React.useState<Session | any>(null);
-    const { data: session2 }: any = useSession();
     const [isSignInModalOpen, setSignInModalOpen] = React.useState(false);
     const [isSignUpModalOpen, setSignUpModalOpen] = React.useState(false);
     const dispatch = useDispatch();
     const { setMode } = useColorScheme();
+    const { token, user } = useSelector((state: RootState) => state.session);
 
     const handleSignIn = () => {
         setSignInModalOpen(true);
@@ -59,16 +61,22 @@ export default function AccountSlotsAccountSwitcher() {
             },
             signOut: () => {
                 setSession(null);
-                signOut();
+                console.log('Sign out');
+                dispatch(clearSession());
+                localStorage.removeItem('token');
             },
         };
     }, []);
 
     React.useEffect(() => {
-        if (session2?.user?.id) {
+        const storedToken: any = localStorage.getItem('token');
+        const decoded: { sub: string; name: string; email: string } | any = jwt.decode(storedToken) as JwtPayload | any;
+        const storedUser = decoded?.user ? JSON.parse(decoded?.user) : null;
+        if (storedUser) {
             // console.log(session2);
-            setSession(() => new DemoSession(session2?.user));
-            findOrganizationsByUserId(session2?.user.id, session2?.user?.token).then((res) => {
+            setSession(() => new DemoSession({...storedUser, avatar: storedUser?.profile?.avatar}));
+            console.log(storedUser)
+            findOrganizationsByUserId(storedUser.id, token).then((res) => {
                 console.log(res.data, 'Organizations fetched');
                 if (res.data && res.data.length > 0) {
                     console.log('Dispatching organizations');
@@ -79,7 +87,7 @@ export default function AccountSlotsAccountSwitcher() {
             }).catch((err) => {
                 console.log(err, 'Error fetching organizations');
             });
-             setMode(session2?.user?.theme || 'light');
+            setMode(storedUser?.profile?.theme || 'light');
         }
 
         //clear the organization state on signout
@@ -91,7 +99,7 @@ export default function AccountSlotsAccountSwitcher() {
             dispatch(clearOrganizationState());
             authEvents.off('triggerSignIn', handleSignIn);
         }
-    }, [session2?.user?.id]);
+    }, [user?.id]);
 
     return (
         <AuthenticationContext.Provider value={authentication}>

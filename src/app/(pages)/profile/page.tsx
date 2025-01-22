@@ -5,11 +5,12 @@ import { LoadingButton } from '@mui/lab';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ErrorIcon from '@mui/icons-material/Error';
 import { updateNameByUserId, updateThemeByUserId } from '@/app/services/profileService';
-import { signIn, useSession } from 'next-auth/react';
 import { uploadAvator } from '@/app/services/mediaService';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { toggleTheme } from '@/redux/slice/ToggleTheme';
 import { isValidS3Url } from '@/app/utils/constant';
+import { RootState } from '@/redux/store';
+import { authEvents } from '@/app/utils/authEvents';
 
 
 const ProfilePage: React.FC = () => {
@@ -21,7 +22,7 @@ const ProfilePage: React.FC = () => {
     const [loadingTheme, setLoadingTheme] = useState(false);
     const [loadingAvatar, setLoadingAvatar] = useState(false);
     const [success, setSuccess] = useState<{ name?: boolean; avatar?: boolean; theme?: boolean }>({});
-    const { data: session, status }: any = useSession();
+    const { token, user, status } = useSelector((state: RootState) => state.session);
     const dispatch = useDispatch();
     const { setMode } = useColorScheme();
     
@@ -38,7 +39,7 @@ const ProfilePage: React.FC = () => {
         dispatch(toggleTheme(t));
         setMode(t);
         try {
-            await updateThemeByUserId(session?.user?.id, t, session?.user?.token);
+            await updateThemeByUserId(user?.id, t, token);
             setSuccess((prev) => ({ ...prev, theme: true }));
         } catch (error) {
             setSuccess((prev) => ({ ...prev, theme: false }));
@@ -69,7 +70,7 @@ const ProfilePage: React.FC = () => {
                 return;
             }
             setLoadingName(true);
-            const res = await updateNameByUserId(session?.user?.id, name, session?.user?.token);
+            const res = await updateNameByUserId(user?.id, name, token);
             if (res?.status === 200) {
                 setSuccess((prev) => ({ ...prev, name: true }));
             }
@@ -94,13 +95,13 @@ const ProfilePage: React.FC = () => {
         if (!validate()) return;
         setLoadingAvatar(true);
         try {
-            const avatarUrl = await uploadAvator(session?.user?.id, avatar!, session?.user?.token);
+            const avatarUrl = await uploadAvator(user?.id, avatar!, token);
             if (!avatarUrl?.url) {
                 setErrors((prev) => ({ ...prev, avatar: 'Error uploading avatar' }));
                 setSuccess((prev) => ({ ...prev, avatar: false }));
                 return;
             }
-            // await updateImageByUserId(session?.user?.id, avatarUrl.url, session?.user?.token);
+            // await updateImageByUserId(session?.user?.id, avatarUrl.url, token);
             setSuccess((prev) => ({ ...prev, avatar: true }));
         } catch (error) {
             setSuccess((prev) => ({ ...prev, avatar: false }));
@@ -112,16 +113,16 @@ const ProfilePage: React.FC = () => {
     };
 
     useEffect(() => {
-        if (session?.user?.name) {
-            setName(session?.user?.name);
+        if (user?.name) {
+            setName(user?.name);
         }
-        if (session?.user?.theme) {
-            setTheme(session?.user?.theme);
+        if (user?.profile?.theme) {
+            setTheme(user?.profile?.theme);
         }
-        if (session?.user?.avatar) {
-            setAvatar(session?.user?.avatar);
+        if (user?.profile?.avatar) {
+            setAvatar(user?.profile?.avatar);
         }
-    }, [session?.user?.name, session?.user?.theme]);
+    }, [user?.name, user?.profile?.theme]);
 
     if (status === 'loading') {
         return <Typography>Loading...</Typography>;
@@ -131,7 +132,7 @@ const ProfilePage: React.FC = () => {
         return (
             <Container>
                 <Typography>Please sign in to view your profile.</Typography>
-                <Button variant='outlined' size='small' onClick={() => signIn()}>Sign In</Button>
+                <Button variant='outlined' size='small' onClick={() => authEvents.emit('triggerSignIn')}>Sign In</Button>
             </Container>
         );
     }

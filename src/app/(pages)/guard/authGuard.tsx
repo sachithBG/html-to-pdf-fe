@@ -1,33 +1,38 @@
 'use client';
 import React from 'react'
 import { ReactNode, useEffect } from 'react';
-import { signOut, useSession } from 'next-auth/react';
 import { usePathname, useRouter } from 'next/navigation';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/redux/store';
 
 interface AuthGuardProps {
     children: ReactNode;
 }
 
 const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
-    const { data: session, status }: any = useSession();
+    const { token, status } = useSelector((state: RootState) => state.session);
+    
+    
     const pathname = usePathname();
     const router = useRouter();
+    // const dispatch: AppDispatch = useDispatch();
 
     useEffect(() => {
-        // console.log('AuthGuard', status, session?.user?.token);
+        // console.log('AuthGuard', status, token);
         //check token expiration
-        if (status === 'unauthenticated' && pathname != '/' && pathname != '/test') {
+        const storedToken = localStorage.getItem('token');
+        if (!storedToken && pathname != '/' && pathname != '/test') {
             // signOut();
             router.push('/dashboard');
         }
-        if (status === 'unauthenticated') {
-            console.log('/Sign out')
-            signOut({ redirect: false });
+        if (!storedToken) {
+            console.log('/Sign out');
+            // dispatch(clearSession());
         }
 
-    }, [session?.user?.token, status, pathname]);
+    }, [token, status, pathname]);
 
-    // if (status === 'loading' || !session?.user?.token) return null; // Prevents flashing of protected content
+    // if (status === 'loading' || !token) return null; // Prevents flashing of protected content
     return <>{children}</>;
 };
 

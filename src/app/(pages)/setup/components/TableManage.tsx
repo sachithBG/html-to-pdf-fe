@@ -122,7 +122,7 @@ const TableManagePage = ({ id, fetchTable, handleSubmit, currentTable }: any) =>
             // Make API call to save table data
             setIsEdit(() => true);
             fetchTable(id);
-            // getExternalKey(id, session?.user?.token)
+            // getExternalKey(id, token)
             setRows(currentTable.table_rows);
             setColKeys(currentTable.col_keys);
             setNumColumns(currentTable.num_columns);

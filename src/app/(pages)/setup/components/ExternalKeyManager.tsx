@@ -4,9 +4,10 @@ import { CopyAll } from '@mui/icons-material';
 import { addExternalKey, deleteExternalKey, findAllByAddonId, updateExternalKey } from '@/app/services/externalKeyService';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import ClearIcon from '@mui/icons-material/Clear';
-import { useSession } from 'next-auth/react';
+import { RootState } from '@/redux/store';
 import { useSnackbar } from 'notistack';
 import dynamic from 'next/dynamic';
+import { useSelector } from 'react-redux';
 const DeleteConfirmDialog = dynamic(() => import('@/app/(pages)/setup/components/DeleteConfirmDialog'), { ssr: false });
 
 const ExternalKeyManager = ({ addonId }: any) => {
@@ -15,7 +16,7 @@ const ExternalKeyManager = ({ addonId }: any) => {
     const [isLoading, setIsLoading] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [errors, setErrors] = useState('');
-    const { data: session }: any = useSession();
+    const { token } = useSelector((state: RootState) => state.session);
     const { enqueueSnackbar } = useSnackbar();
 
     const handleExternalKeyChange = (e: any) => {
@@ -33,8 +34,8 @@ const ExternalKeyManager = ({ addonId }: any) => {
         setIsSaving(true);
 
         try {
-            const response = externalKey.id ? await updateExternalKey(externalKey.id, { addon_id: addonId, key_value: externalKey.key }, session?.user?.token) :
-                await addExternalKey(addonId, externalKey.key, session?.user?.token);
+            const response = externalKey.id ? await updateExternalKey(externalKey.id, { addon_id: addonId, key_value: externalKey.key }, token) :
+                await addExternalKey(addonId, externalKey.key, token);
             if (response.status == 201 || response.status == 200) {
                 enqueueSnackbar(`External Key copied: ${externalKey.key}`, { variant: 'success' });
                 setExternalKey({ id: undefined, key: '' });
@@ -60,7 +61,7 @@ const ExternalKeyManager = ({ addonId }: any) => {
         // if (!confirmDelete) return;
 
         try {
-            await deleteExternalKey(id, session?.user?.token);
+            await deleteExternalKey(id, token);
             enqueueSnackbar("Key deleted successfully.", { variant: 'success' });
             // Refresh the external keys list after deletion
             fetchExternalKeys();
@@ -74,7 +75,7 @@ const ExternalKeyManager = ({ addonId }: any) => {
         setIsLoading(true);
         setExternalKeys([]);
         try {
-            const response = await findAllByAddonId(addonId, session?.user?.token);
+            const response = await findAllByAddonId(addonId, token);
             if (response.status == 200) setExternalKeys(response.data);
         } catch (error) {
             console.error('Error fetching external keys:', error);

@@ -33,7 +33,6 @@ import FilterListIcon from '@mui/icons-material/FilterList';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 
 import dynamic from "next/dynamic";
-import { useSession } from "next-auth/react";
 import { findAllAddons } from "@/app/services/addonService";
 import { useSelector } from "react-redux";
 import { findAllTags } from "@/app/services/tagService";
@@ -42,6 +41,7 @@ import { getDefaultOrganization, Organization, OrganizationState } from "@/redux
 import { createPdfTemplate, generatePdfBuffer, generatePdfBufferById, readPdfTemplate, updatePdfTemplate } from "@/app/services/pdfService";
 import { findAllByAddonId } from "@/app/services/externalKeyService";
 import { useSnackbar } from "notistack";
+import { RootState } from "@/redux/store";
 // import DeleteConfirmDialog from "../components/DeleteConfirmDialog";
 // import CKTextField from "../components/CKTextField";
 const CKTextField = dynamic(() => import('@/app/(pages)/setup/components/CKTextField'), { ssr: false });
@@ -83,7 +83,7 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
     const [isGenerating, setIsGenerating] = useState(false);
     const [isEditMode, setIsEditMode] = useState(id ? true : false);
 
-    const { data: session }: any = useSession();
+    const { token } = useSelector((state: RootState) => state.session);
 
     const [pdfName, setPdfName] = useState<string>('');
     const [pdfKey, setPdfKey] = useState<string>('');
@@ -112,7 +112,7 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
 
     const fetchTags = async () => {
         try {
-            const response = await findAllTags(addons.filter(a => selectedAddons.includes(a.id)).map(a => a.id), session?.user?.token);
+            const response = await findAllTags(addons.filter(a => selectedAddons.includes(a.id)).map(a => a.id), token);
             if (response.status == 200) {
                 setTags(() => response.data);
             }
@@ -123,7 +123,7 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
 
     const fetchExternalKeys = async () => {
         try {
-            const response = await findAllByAddonId(addons.filter(a => selectedAddons.includes(a.id))[0]?.id, session?.user?.token);
+            const response = await findAllByAddonId(addons.filter(a => selectedAddons.includes(a.id))[0]?.id, token);
             if (response.status == 200) {
                 setExternalKeys(() => response.data);
             }
@@ -134,7 +134,7 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
 
     const fetchAddons = async () => {
         try {
-            const response = await findAllAddons(currentOrg?.id, session?.user?.token);
+            const response = await findAllAddons(currentOrg?.id, token);
             console.log(response.data)
             if (response.status == 200) {
                 setAddons(response.data);
@@ -147,7 +147,7 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
 
     // Fetch Addons
     useEffect(() => {
-        if (session?.user?.token) fetchAddons();
+        if (token) fetchAddons();
     }, [currentOrg?.id]);
 
     // Fetch Tags based on selected Addons
@@ -195,7 +195,7 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
             setIsLoding(true);
             const fetchData = async () => {
                 try {
-                    let response = await readPdfTemplate(id, session?.user?.token);
+                    let response = await readPdfTemplate(id, token);
                     if (response.status == 200) {
                         response = response.data;
                         setPdfName(() => response.data.name);
@@ -296,13 +296,13 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
                 subcategories: pdfSubcategories
             };
             if (isGenerate) {
-                const response = !isEditMode ? await generatePdfBuffer(payload, session?.user?.token) :
-                    await generatePdfBufferById(id, currentOrg?.id, session?.user?.token);
+                const response = !isEditMode ? await generatePdfBuffer(payload, token) :
+                    await generatePdfBufferById(id, currentOrg?.id, token);
                 const { pdf } = response.data;
                 setPdfData(() => pdf); // Base64 PDF data
             } else {
-                const response = !isEditMode ? await createPdfTemplate(payload, session?.user?.token) :
-                    await updatePdfTemplate(id, { ...payload, id: id }, session?.user?.token);
+                const response = !isEditMode ? await createPdfTemplate(payload, token) :
+                    await updatePdfTemplate(id, { ...payload, id: id }, token);
                 if (response.status == 201) {
                     handleBack(true);
                     setPdfPrevButton(false)
@@ -939,7 +939,7 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
                                 isLoading={isEditorLoading}
                                 placeholder="Start typing your content..."
                                 config={{}}
-                                token={session?.user?.token}
+                                token={token}
                                 orgId={currentOrg?.id}
                             />
                             {/* <TextField
@@ -991,7 +991,7 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
                                 isLoading={isEditorLoading}
                                 placeholder="Start typing your content..."
                                 config={{}}
-                                token={session?.user?.token}
+                                token={token}
                                 orgId={currentOrg?.id}
                             />
                             {/* <TextField
@@ -1092,7 +1092,7 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
                                 isLoading={isEditorLoading}
                                 placeholder="Start typing your content..."
                                 config={{}}
-                                token={session?.user?.token}
+                                token={token}
                                 orgId={currentOrg?.id}
                             />
                             {/* <TextField

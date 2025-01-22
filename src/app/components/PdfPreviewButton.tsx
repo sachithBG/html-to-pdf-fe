@@ -15,8 +15,9 @@ import {
   SelectChangeEvent,
 } from "@mui/material";
 import { generatePdfBufferById, readPdfTemplate } from "../services/pdfService";
-import { useSession } from "next-auth/react";
 import LaunchIcon from "@mui/icons-material/Launch";
+import { useSelector } from "react-redux";
+import { RootState } from "@/redux/store";
 
 const PdfPreviewButton = ({
   htmlContent,
@@ -42,7 +43,7 @@ const PdfPreviewButton = ({
   const [pdfSubcategories, setPdfSubcategories] = useState(subcategories || []);
   const [subcategoriesFilter, setSubcategoriesFilter] = useState([]);
 
-  const { data: session }: any = useSession();
+  const { token } = useSelector((state: RootState) => state.session);
   // Open and close modal handlers
   const handleOpen = () => setOpen(true);
   const handleClose = () => {
@@ -62,13 +63,13 @@ const PdfPreviewButton = ({
   };
 
   const handleOpenById = async () => {
-    if (id) {
+    if (id && token) {
       setLoading(true);
       try {
         const response = await generatePdfBufferById(
           id,
           organization_id,
-          session?.user?.token,
+          token,
           subcategoriesFilter
         );
         if (response.status == 200) {
@@ -107,11 +108,11 @@ const PdfPreviewButton = ({
   };
 
   const handleOpenWithData = () => {
-    if (id) {
+    if (id && token) {
       setLoading(true);
       const fetchData = async () => {
         try {
-          let response = await readPdfTemplate(id, session?.user?.token);
+          let response = await readPdfTemplate(id, token);
           if (response.status == 200) {
               response = response.data;
             //   console.log(response.data)

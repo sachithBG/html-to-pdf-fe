@@ -77,8 +77,8 @@ const ImageList: React.FC<ImageListProps> = ({
                         spacing={1}
                         sx={{
                             position: 'absolute',
-                            top: 8,
-                            right: 8,
+                            top: -2,
+                            right: -2,
                         }}
                     >
                         
@@ -93,6 +93,7 @@ const ImageList: React.FC<ImageListProps> = ({
                     </Stack>
                     {/* Copy URL */}
                     <Tooltip title={tooltipImg.get(image.id)}>
+                        <span>
                         <IconButton
                             size="small"
                             color="success"
@@ -102,7 +103,8 @@ const ImageList: React.FC<ImageListProps> = ({
                             disabled={copiedToken.get(image.id)}
                         >
                             <ContentCopy />
-                        </IconButton>
+                            </IconButton>
+                        </span>
                     </Tooltip>
                 </Box>
             </Grid2>

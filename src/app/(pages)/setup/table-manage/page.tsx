@@ -22,7 +22,6 @@ import { TabContext, TabPanel } from '@mui/lab';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import EditIcon from '@mui/icons-material/Edit';
 import { useSelector } from 'react-redux';
-import { useSession } from 'next-auth/react';
 import { findAllAddons } from '@/app/services/addonService';
 import { getDefaultOrganization, Organization, OrganizationState } from '@/redux/slice/organizationSlice';
 import { createPdfTable, deletePdfTable, getPdfTable, readAllPdfTablePage, updatePdfTable } from '@/app/services/dynamicHtmlTableService';
@@ -33,6 +32,7 @@ import { useSnackbar } from 'notistack';
 // import dynamic from 'next/dynamic';
 import DeleteConfirmDialog from '../components/DeleteConfirmDialog';
 import TableManagePage from '../components/TableManage';
+import { RootState } from '@/redux/store';
 // import TableManagePage from '@components/TableManagePage';
 // const TableManagePage = dynamic(() => import('../components/TableManagePage'), { ssr: false });
 
@@ -60,7 +60,7 @@ const PdfTableManager = () => {
     const currentOrg: Organization | any = useSelector((state: { organization: OrganizationState }) =>
         getDefaultOrganization(state.organization)
     );
-    const { data: session }: any = useSession();
+    const { token } = useSelector((state: RootState) => state.session);
 
     // Fetch tables with pagination
     const fetchTables = useCallback(async (orgId: number, page: number, token: string) => {
@@ -89,7 +89,7 @@ const PdfTableManager = () => {
         setIsLoading(true);
         try {
             // Replace with your API call to fetch tables for the page
-            const response = await getPdfTable(id, session?.user?.token);
+            const response = await getPdfTable(id, token);
             if (response.status == 200) {
                 setCurrentTable(() => response.data);
                 let tg = response.data?.tag;
@@ -103,7 +103,7 @@ const PdfTableManager = () => {
         } finally {
             setIsLoading(false);
         }
-    }, [session?.user?.token]);
+    }, [token]);
 
     const fetchAddons = useCallback(async (orgId: number, token: string) => {
         // alert(token)
@@ -125,8 +125,8 @@ const PdfTableManager = () => {
         setIsLoading(true);
         const tout = setTimeout(() => {
             if (currentOrg?.id) {
-                fetchAddons(currentOrg.id, session?.user?.token);
-                fetchTables(currentOrg.id, currentPage, session?.user?.token);
+                fetchAddons(currentOrg.id, token);
+                fetchTables(currentOrg.id, currentPage, token);
             } else {
                 setIsLoading(false);
             }
@@ -173,8 +173,8 @@ const PdfTableManager = () => {
     // Handle delete
     const handleDelete = async (id: string) => {
         try {
-            await deletePdfTable(id, session?.user?.token);
-            fetchTables(currentOrg.id, currentPage, session?.user?.token); // Refresh the table list after deletion
+            await deletePdfTable(id, token);
+            fetchTables(currentOrg.id, currentPage, token); // Refresh the table list after deletion
             enqueueSnackbar('Table deleted successfully.', { variant: 'success' });
             // setSnackbarOpen(true);
         } catch (error) {
@@ -198,14 +198,14 @@ const PdfTableManager = () => {
             };
             if (currentTable.id) {
                 // Update table
-                const res = await updatePdfTable(currentTable.id, payload, session?.user?.token);
+                const res = await updatePdfTable(currentTable.id, payload, token);
                 if (res.status == 200) {
                     setCurrentTable(res.data);
                     setTag(res.data?.tag || { id: null, name: '', field_path: '' })
                 }
             } else {
                 // Create table
-                const res = await createPdfTable(payload, session?.user?.token);
+                const res = await createPdfTable(payload, token);
                 if (res.status == 201) {
                     setCurrentTable(res.data);
                     setTag(res.data?.tag || { id: null, name: '', field_path: '' })
@@ -213,7 +213,7 @@ const PdfTableManager = () => {
             }
 
             // setIsEditDialogOpen(false);
-            fetchTables(currentOrg.id, currentPage, session?.user?.token);
+            fetchTables(currentOrg.id, currentPage, token);
             enqueueSnackbar(currentTable ? 'Table updated successfully.' : 'Table created successfully.', { variant: 'success' });
         } catch (error: any) {
             setError('Error saving table: ' + error?.response?.data?.error || error);

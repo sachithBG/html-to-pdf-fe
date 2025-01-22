@@ -26,8 +26,9 @@ const nextConfig: NextConfig = {
         pathname: '/**', // Allows all paths under this hostname
       },
     ],
+    unoptimized: true 
   },
-  output: 'standalone',
+  output: 'export',
   // async rewrites() {
   //   return [
   //     {

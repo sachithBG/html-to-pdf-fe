@@ -18,10 +18,10 @@ import { motion } from 'framer-motion';
 import { useDispatch, useSelector } from 'react-redux';
 import { addOrganizationAll, clearOrganizationState, getDefaultOrganization, Organization, OrganizationState } from '@/redux/slice/organizationSlice';
 import { setDefaultOrganization } from '@/app/services/organizationService';
-import { useSession } from 'next-auth/react';
 import { chartMonthlyData } from '@/app/services/logsService';
 import { readAllPdfTemplatePage } from '@/app/services/pdfService';
 import dynamic from 'next/dynamic';
+import { RootState } from '@/redux/store';
 const PdfTemplatesList = dynamic(() => import('@/app/(pages)/setup/pdf-template/PdfTemplatesList'), { ssr: false });
 
 
@@ -81,7 +81,7 @@ const Dashboard = () => {
     const [chartData, setChartData] = useState<any>({});
 
 
-    const { data: session }: any = useSession();
+    const { token } = useSelector((state: RootState) => state.session);
     const dispatch = useDispatch();
 
     const [page, setPage] = useState(1);
@@ -95,7 +95,7 @@ const Dashboard = () => {
         setIsLoading(true);
         setOrgs(organizations);
         const fetchChartData = async () => {
-            await chartMonthlyData(currentOrg.id, session?.user?.token).then((response) => {
+            await chartMonthlyData(currentOrg.id, token).then((response) => {
                 if (response.status == 200) {
                     const labels: string[] = response.data.map((item: any) => item.label);
                     const data = response.data.map((item: any) => item.value);
@@ -121,7 +121,7 @@ const Dashboard = () => {
             });
         };
         setTimeout(() => {
-            if (currentOrg?.id && session?.user?.token) {
+            if (currentOrg?.id && token) {
                 fetchChartData();
             }
         }, 1500);
@@ -137,7 +137,7 @@ const Dashboard = () => {
     const setDefault = (orgId: number) => {
         // Implement the setDefault API call here
         // This function should update the default organization
-        setDefaultOrganization(orgId, session?.user?.token).then((res: any) => {
+        setDefaultOrganization(orgId, token).then((res: any) => {
             if (res?.status == 200) {
                 const updatedOrgs = organizations.map((org: any) => ({ ...org, is_default: org.id === orgId }));
                 dispatch(clearOrganizationState());
@@ -209,7 +209,7 @@ const Dashboard = () => {
             {/* PDF Templates List Section */}
             {!isLoading && <PdfTemplatesList
                 currentOrg={currentOrg}
-                session={session}
+                token={token}
                 page={page}
                 pageSize={pageSize}
                 onPageChange={handlePageChange}

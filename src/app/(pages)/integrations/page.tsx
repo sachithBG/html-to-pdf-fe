@@ -6,11 +6,11 @@ import { ContentCopy as ContentCopyIcon, CheckCircle as CheckCircleIcon } from '
 import { generateTokens } from '@/app/services/tokenService';
 import { addOrganizationAll, clearOrganizationState, getDefaultOrganization, Organization, OrganizationState } from '@/redux/slice/organizationSlice';
 import { useDispatch, useSelector } from 'react-redux';
-import { useSession } from 'next-auth/react';
+import { RootState } from '@/redux/store';
 import ConfirmButton from '../setup/components/ConfirmButton';
 
 export default function Page() {
-    const [token, setToken] = useState('');
+    const [token_, setToken] = useState('');
     const [curlCommand, setCurlCommand] = useState('');
     const [curlCommand2, setCurlCommand2] = useState('');
     const [copiedToken, setCopiedToken] = useState(false); // Track if token was copied
@@ -26,7 +26,7 @@ export default function Page() {
         getDefaultOrganization(state.organization)
     );
     const dispatch = useDispatch();
-    const { data: session }: any = useSession();
+    const { token } = useSelector((state: RootState) => state.session);
 
     // Define styles that adjust for dark and light modes
     const backgroundColor = theme.palette.mode === 'dark' ? '#333' : '#fff';
@@ -45,7 +45,7 @@ export default function Page() {
 
     const generateToken = async () => {
         // Simulate token generation
-        generateTokens(currentOrg?.id, session?.user?.token).then((res: any) => {
+        generateTokens(currentOrg?.id, token).then((res: any) => {
             if (res?.status == 200) {
                 // console.log(res)
                 const newToken = res.data?.refreshToken;
@@ -122,7 +122,7 @@ export default function Page() {
     return (
         <Box sx={{ p: 3 }}>
             {/* <Typography variant="h6">Integration Page</Typography> */}
-            {!token ? <Button variant="outlined" size='small' color="primary" onClick={generateToken} sx={{ mt: 2 }} disabled={!currentOrg?.id}>
+            {!token_ ? <Button variant="outlined" size='small' color="primary" onClick={generateToken} sx={{ mt: 2 }} disabled={!currentOrg?.id}>
                 Generate Refresh Token
             </Button> :
             <ConfirmButton
@@ -133,7 +133,7 @@ export default function Page() {
                 confirmData={{}}
                 // buttonProps={{ variant: 'contained', color: 'error' }}
             />}
-            {token && (
+            {token_ && (
                 <Box sx={{ mt: 2 }}>
                     <Box sx={{ width: '100%', mt: 2, borderRadius: '8px', border: `1px solid ${borderColor}` }}>
                         <Typography
@@ -172,10 +172,10 @@ export default function Page() {
                                     color: textColor,
                                 }}
                             >
-                                <code>{token}</code>
+                                <code>{token_}</code>
                             </Box>
                             <Tooltip title={tooltipToken}>
-                                <IconButton onClick={() => handleCopy(token, 'token')}>
+                                <IconButton onClick={() => handleCopy(token_, 'token')}>
                                     {copiedToken ? <CheckCircleIcon color="success" /> : <ContentCopyIcon />}
                                 </IconButton>
                             </Tooltip>
