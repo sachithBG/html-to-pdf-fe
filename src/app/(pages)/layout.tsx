@@ -18,6 +18,7 @@ import BallotIcon from '@mui/icons-material/Ballot';
 import BackupTableIcon from '@mui/icons-material/BackupTable';
 import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
 import AccountSlotsAccountSwitcher from './auth/components/AccountSlotsAccountSwitcher';
+import InfoIcon from '@mui/icons-material/Info';
 
 import { RootState } from '@/redux/store';
 import { useSelector } from 'react-redux';
@@ -116,6 +117,11 @@ const NAVIGATION: Navigation | any = [
         title: 'Manage Profile',
         icon: <ManageAccountsIcon />,
     },
+    {
+        segment: 'pdf-guide',
+        title: 'PDF Design Guide',
+        icon: <InfoIcon />,
+    }
 ];
 
 const demoTheme = extendTheme({

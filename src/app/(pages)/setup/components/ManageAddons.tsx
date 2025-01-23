@@ -88,8 +88,9 @@ const ManageAddonsPage: React.FC = () => {
 
             // fetchAddons();
             setNewAddon({ id: null, name: '' });
-        } catch (createError) {
+        } catch (createError:any) {
             console.error(createError)
+            if (createError?.error) setErrors({ addonName: createError?.error });
             setError('Error creating addon.');
         } finally {
             setIsSubmitting(false);
@@ -118,7 +119,7 @@ const ManageAddonsPage: React.FC = () => {
     };
 
     const handleEditAddon = async (addon: any) => {
-        setNewAddon(addon);
+        setNewAddon(()=>addon);
         setErrors({ addonName: undefined });
         setSuccessMessage(null);
     };
@@ -250,6 +251,7 @@ const ManageAddonsPage: React.FC = () => {
                 >
                     {successMessage || error}
                 </Alert> : <Box />}
+                
             </Snackbar>
         </Grid2>
     );

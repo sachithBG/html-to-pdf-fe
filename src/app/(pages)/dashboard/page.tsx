@@ -79,6 +79,8 @@ const Dashboard = () => {
     const [orgs, setOrgs] = useState<Organization[]>(organizations);
     const [copiedToken, setCopiedToken] = useState(false);
     const [chartData, setChartData] = useState<any>({});
+    const [pdfCount, setPdfCount] = useState<number>(0);
+    const [price, setPrice] = useState<number>(0);
 
 
     const { token } = useSelector((state: RootState) => state.session);
@@ -127,6 +129,14 @@ const Dashboard = () => {
         }, 1500);
     }, [currentOrg]);
 
+    useEffect(() => {
+        if (chartData && chartData.datasets) {
+            const totalCount = chartData.datasets[0].data.reduce((acc: number, val: number) => acc + val, 0);
+            setPdfCount(totalCount);
+            setPrice(calculatePrice(totalCount));
+        }
+    }, [chartData]);
+
     const handleCopy = () => {
         navigator.clipboard.writeText('my_generated_token_12345').then(() => {
             setCopiedToken(true);
@@ -154,6 +164,12 @@ const Dashboard = () => {
             ? `${currentOrg?.refresh_token?.slice(0, 40)}...`
             : currentOrg?.refresh_token || 'No token available';
     }, [currentOrg?.refresh_token]);
+
+    const calculatePrice = (count: number): number => {
+        const basePrice = 10; // Base price per request
+        const discountRate = 0.05; // 5% discount for bulk requests
+        return count <= 10 ? count * basePrice : count * basePrice * (1 - discountRate);
+    };
 
     return (
         <Box
@@ -200,7 +216,19 @@ const Dashboard = () => {
                     {isLoading && chartData ? (
                         <Skeleton variant="rectangular" height={300} />
                     ) : (
-                        <Line data={chartData} options={chartOptions} />
+                            <>
+                                <Box sx={{ display: 'flex', justifyContent: 'end', mt: -6 }}>
+                                <Typography variant="subtitle1" >
+                                        Total Requests: {pdfCount}&nbsp; |
+                                    </Typography>
+                                     &nbsp;
+                            <Typography variant="subtitle1" >
+                                Total Price: ${price.toFixed(2)}
+                                    </Typography>
+                                </Box>
+                                <Line data={chartData} options={chartOptions} />
+                            </>
+                            
                     )}
                 </Card>
             </motion.div>

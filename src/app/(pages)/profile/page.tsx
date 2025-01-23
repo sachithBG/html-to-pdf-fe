@@ -11,6 +11,8 @@ import { toggleTheme } from '@/redux/slice/ToggleTheme';
 import { isValidS3Url } from '@/app/utils/constant';
 import { RootState } from '@/redux/store';
 import { authEvents } from '@/app/utils/authEvents';
+import { getDefaultOrganization, Organization, OrganizationState } from '@/redux/slice/organizationSlice';
+import { setSession } from '@/redux/slice/sessionSlice';
 
 
 const ProfilePage: React.FC = () => {
@@ -25,6 +27,9 @@ const ProfilePage: React.FC = () => {
     const { token, user, status } = useSelector((state: RootState) => state.session);
     const dispatch = useDispatch();
     const { setMode } = useColorScheme();
+    const currentOrg: Organization | any = useSelector((state: { organization: OrganizationState }) =>
+            getDefaultOrganization(state.organization)
+        );
     
     const avatarUrl =
         typeof avatar === 'string' && isValidS3Url(avatar)
@@ -95,14 +100,22 @@ const ProfilePage: React.FC = () => {
         if (!validate()) return;
         setLoadingAvatar(true);
         try {
-            const avatarUrl = await uploadAvator(user?.id, avatar!, token);
-            if (!avatarUrl?.url) {
+            const avatarUrl = await uploadAvator(user?.id, currentOrg?.id,avatar!, token);
+            if (!avatarUrl?.file) {
                 setErrors((prev) => ({ ...prev, avatar: 'Error uploading avatar' }));
                 setSuccess((prev) => ({ ...prev, avatar: false }));
+                setAvatar(avatarUrl.file);
+                const prf: any = user?.profile ? user.profile : {};
+                const usr: any = user ? user : {};
+                dispatch(setSession({ token, user: { ...usr, profile: { ...prf, avatar: avatarUrl?.file }}, status: 'authenticated' }));
                 return;
             }
             // await updateImageByUserId(session?.user?.id, avatarUrl.url, token);
             setSuccess((prev) => ({ ...prev, avatar: true }));
+            const t = setTimeout(() => {
+                setSuccess((prev) => ({ ...prev, avatar: false }));
+                clearTimeout(t);
+            }, 2000);
         } catch (error) {
             setSuccess((prev) => ({ ...prev, avatar: false }));
             setErrors((prev) => ({ ...prev, avatar: 'Error updating avatar' }));
@@ -138,7 +151,7 @@ const ProfilePage: React.FC = () => {
     }
 
     return (
-        <Container maxWidth="sm">
+        <Container maxWidth="xl">
             <Paper elevation={3} sx={{ padding: 3, marginTop: 5 }}>
                 <Typography variant="h4" gutterBottom>
                     Profile Management
@@ -155,6 +168,7 @@ const ProfilePage: React.FC = () => {
                                 required
                                 fullWidth
                                 margin="normal"
+                                size='small'
                             />
                         </Grid2>
                         <Grid2 size={4} sx={{ display: 'flex', alignItems: 'center' }}>
@@ -186,26 +200,30 @@ const ProfilePage: React.FC = () => {
                         {loadingTheme && <Typography sx={{ ml: 1 }}>Loading...</Typography>}
                     </Box>
                     <Divider sx={{ margin: '16px 0' }} />
-                    <input
-                        accept="image/*"
-                        type="file"
-                        onChange={handleAvatarChange}
-                        style={{ display: 'none' }}
-                        id="avatar-upload"
-                    />
-                    <label htmlFor="avatar-upload">
-                        <Box sx={{ display: 'flex', justifyContent: 'center', marginTop: 2 }}>
-                            <IconButton component="span">
-                                <Avatar
-                                    src={avatarUrl}
-                                    alt="Profile Avatar"
-                                    sx={{ width: 100, height: 100 }}
-                                >
-                                    {!avatar && name.charAt(0)}
-                                </Avatar>
-                            </IconButton>
-                        </Box>
-                    </label>
+                    <Grid2 container justifyContent={'center'}>
+                            <input
+                                width={20}
+                            accept="image/*"
+                            type="file"
+                            onChange={handleAvatarChange}
+                            style={{ display: 'none' }}
+                            id="avatar-upload"
+                            />
+                        <label htmlFor="avatar-upload">
+                            <Box sx={{ display: 'flex', justifyContent: 'center', marginTop: 2 }}>
+                                <IconButton component="span">
+                                    <Avatar
+                                        src={avatarUrl}
+                                        alt="Profile Avatar"
+                                        sx={{ width: 100, height: 100 }}
+                                    >
+                                        {!avatar && name.charAt(0)}
+                                    </Avatar>
+                                </IconButton>
+                            </Box>
+                        </label>
+                    </Grid2>
+                    
                     {errors.avatar && <Typography color="error" sx={{ marginTop: 1, textAlign: 'center' }}>{errors.avatar}</Typography>}
                     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: 2 }}>
                         <Typography variant="caption" color="textSecondary">
@@ -219,8 +237,8 @@ const ProfilePage: React.FC = () => {
                             onClick={handleSubmit}
                             loading={loadingAvatar}
                             sx={{ marginTop: 3 }}
-
-                            startIcon={success.avatar === true ? <CheckCircleIcon color="success" /> : success.avatar === false ? <ErrorIcon color="error" /> : null}
+                            disabled={typeof avatar === 'string' && isValidS3Url(avatar)}
+                            endIcon={success.avatar === true ? <CheckCircleIcon color="success" /> : errors.avatar ? <ErrorIcon color="error" /> : null}
                         >
                             Update Profile Image
                         </LoadingButton>

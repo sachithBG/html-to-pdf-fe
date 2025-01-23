@@ -1,7 +1,8 @@
 'use client';
 import React from 'react';
 import {
-    IconButton,
+    IconButton, Alert,
+    AlertTitle
 } from '@mui/material';
 import { SnackbarProvider, closeSnackbar } from 'notistack';
 import CloseIcon from '@mui/icons-material/Close';
@@ -57,39 +58,39 @@ export default function ThemeProvidr({
 
     return (
         // <ThemeProvider theme={themeAction}>
-                <AuthGuard>
-                    <SnackbarProvider
-                        maxSnack={3}
-                        autoHideDuration={3000}
-                        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-                        preventDuplicate
-                        dense
-                        hideIconVariant
-                        action={(key) => (
-                            <IconButton
-                                key="close"
-                                color="inherit"
-                                onClick={() => closeSnackbar(key)}
-                                size="small"
-                                aria-label="Alert"
-                            >
-                                <CloseIcon />
-                            </IconButton>
-                        )}
-
-                        classes={{
-                            root: 'custom-snackbar', // Use your custom class
-                        }}
-                    // iconVariant={{
-                    //     success: null,
-                    //     error: null,
-                    //     warning: null,
-                    //     info: null,
-                    // }}
-                    >
-                        {children}
-                    </SnackbarProvider>
-                </AuthGuard>
+        <AuthGuard>
+            <SnackbarProvider
+                maxSnack={3}
+                autoHideDuration={3000}
+                anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+                preventDuplicate
+                dense
+                hideIconVariant
+                action={(key) => (
+                        <IconButton
+                            key="close"
+                            color="inherit"
+                            onClick={() => closeSnackbar(key)}
+                            size="small"
+                            aria-label="Alert"
+                        >
+                            <CloseIcon />
+                        </IconButton>
+                )}
+                
+                classes={{
+                    root: 'custom-snackbar', // Use your custom class
+                }}
+            // iconVariant={{
+            //     success: null,
+            //     error: null,
+            //     warning: null,
+            //     info: null,
+            // }}
+            >
+                {children}
+            </SnackbarProvider>
+        </AuthGuard>
         // </ThemeProvider>
     );
 }

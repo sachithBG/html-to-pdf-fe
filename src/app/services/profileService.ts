@@ -20,6 +20,7 @@ export const updateThemeByUserId = async (userId: number, theme: string, token: 
         });
 };
 
+//Deprecated
 export const updateImageByUserId = async (userId: number, image: string, token: string) => {
     return API.put(`/profiles/${userId}/image`,
         { image: image },

@@ -1,15 +1,20 @@
 import { API } from "./api";
 
-export const uploadAvator = async (userId: number, image: File, token: string) => {
+export const uploadAvator = async (userId: number, organizationId: number,image: File, token: string) => {
     const formData = new FormData();
     formData.append('avatar', image);
 
     try {
-        const response = await API.put(`/profiles/${userId}/avatar`, formData, {
+        const response = await API.post(`/s3/upload/profile`, formData, {
             headers: {
                 Authorization: `Bearer ${token}`,
                 'Content-Type': 'multipart/form-data',
             },
+            params: {
+                userId: userId,
+                organizationId: organizationId
+            },
+            timeout: 90000,
         });
         return response.data;
     } catch (error) {
@@ -30,7 +35,8 @@ export const uploadOrgLogo = async (currentOrgId: number, image: File, token: st
             },
             params: {
                 organizationId: currentOrgId
-            }
+            },
+            timeout: 90000,
         });
         return response.data;
     } catch (error) {
@@ -51,7 +57,8 @@ export const uploadMedia = async (currentOrgId: number, image: File, addon_ids:n
             params: {
                 organization_id: currentOrgId,
                 addon_ids: addon_ids
-            }
+        },
+        timeout: 90000,
         });
 };
 

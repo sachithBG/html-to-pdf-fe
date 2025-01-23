@@ -512,7 +512,7 @@ const TagManagementPage = () => {
             </CustomTabPanel>
             <CustomTabPanel value={tabValue} index={2}>
                 {isLoading ? (
-                    <CircularProgress />
+                    <Skeleton variant="rectangular" width="100%" height={300} />
                 ) : (
                     <TemplateDataManager />
                 )}

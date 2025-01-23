@@ -84,3 +84,11 @@ input:-webkit-autofill, input:-webkit-autofill:hover, input:-webkit-autofill:foc
 .ck-powered-by-balloon{
   display: none !important;
 }
+
+/* .notistack-MuiContent-success{
+ background-color: var(--mui-palette-Alert-errorStandardBg) !important;
+}
+
+.notistack-MuiContent-error{
+  background-color: var(--mui-palette-Alert-successStandardBg) !important;
+} */
