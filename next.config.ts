@@ -16,7 +16,7 @@ const nextConfig: NextConfig = {
     return config;
   },
   compiler: {
-    // removeConsole: true,
+    removeConsole: true,
   },
   images: {
     remotePatterns: [
@@ -37,6 +37,8 @@ const nextConfig: NextConfig = {
   //     },
   //   ];
   // },
+  trailingSlash: true,
+  // assetPrefix: './',
 };
 
 export default nextConfig;
