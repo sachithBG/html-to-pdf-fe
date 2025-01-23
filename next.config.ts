@@ -29,14 +29,14 @@ const nextConfig: NextConfig = {
     unoptimized: true 
   },
   output: 'export',
-  // async rewrites() {
-  //   return [
-  //     {
-  //       source: '/api/:path*',
-  //       destination: 'http://188.166.245.108/api/:path*', // Proxy to the backend
-  //     },
-  //   ];
-  // },
+  async rewrites() {
+    return [
+      {
+        source: '/api/:path*',
+        destination: 'http://35.226.141.39/api/:path*', // Proxy to the backend
+      },
+    ];
+  },
   // trailingSlash: true,
   // assetPrefix: './',
 };
