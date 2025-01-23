@@ -26,7 +26,7 @@ const nextConfig: NextConfig = {
         pathname: '/**', // Allows all paths under this hostname
       },
     ],
-    // unoptimized: true 
+    unoptimized: true 
   },
   output: 'export',
   // async rewrites() {
@@ -37,7 +37,7 @@ const nextConfig: NextConfig = {
   //     },
   //   ];
   // },
-  trailingSlash: true,
+  // trailingSlash: true,
   // assetPrefix: './',
 };
 

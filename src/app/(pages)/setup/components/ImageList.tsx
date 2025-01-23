@@ -1,11 +1,14 @@
 import React from 'react';
-import { Grid2, Box, Typography, Stack, Button, IconButton, Tooltip } from '@mui/material';
+import { Grid2, Stack, Button, IconButton, Tooltip, ImageListItemBar, ImageListItem } from '@mui/material';
 import { ContentCopy } from '@mui/icons-material';
-import Image from 'next/image';
+// import Image from 'next/image';
 import DeleteConfirmDialog from './DeleteConfirmDialog';
+// import InfoIcon from '@mui/icons-material/Info';
+// @next/next/no - img - element
 
 interface ImageItem {
     id: number;
+    name: string;
     file_key: string;
     url: string;
     addon_ids: string[];
@@ -31,30 +34,34 @@ const ImageList: React.FC<ImageListProps> = ({
 }) => (
     <>
         {imageList.map((image, index) => (
-            <Grid2 size={{xs:6, md:4}}  key={index + image.file_key}>
-                <Box
-                    sx={{
-                        border: '1px solid #ccc',
-                        padding: 2,
-                        borderRadius: 2,
-                        position: 'relative',
-                        backgroundColor: '#f9f9f9',
-                    }}
-                >
-                    {/* Image */}
-                    <Image
-                        src={image.url}
-                        width={200}
-                        height={200}
-                        alt={`image-${index}`}
-                        className="w-full h-auto"
+            <Grid2 size={{ xs: 6, md: 4 }} key={index + image.file_key}>
+                
+                <ImageListItem key={image.url}>
+                    <Stack
+                        direction="row"
+                        spacing={1}
+                        sx={{
+                            // position: 'absolute',
+                            float: 'right',
+                            marginBottom: -5,
+                            right: 0,
+                        }}
+                    >
+                        {/* Delete */}
+                        <DeleteConfirmDialog
+                            id={image.file_key}
+                            onDelete={(id: any) => handleDelete(id)}
+                            variant="icon"
+                            
+                            buttonProps={{ size: "small", style: { color: 'rgba(255, 255, 255, 0.54)', background: 'rgba(0, 0, 0, 0.2)' } }} // IconButton props
+                        />
+                    </Stack>
+                    <img
+                        srcSet={`${image.url}?w=248&fit=crop&auto=format&dpr=2 2x`}
+                        src={`${image.url}?w=248&fit=crop&auto=format`}
+                        alt={image.name}
+                        loading="lazy"
                     />
-
-                    {/* Metadata */}
-                    <Typography variant="body2" mt={1}>
-                        Created At: {new Date(image.updated_at).toLocaleDateString()}
-                    </Typography>
-
                     {/* Addons */}
                     <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
                         {addons
@@ -70,43 +77,24 @@ const ImageList: React.FC<ImageListProps> = ({
                                 </Button>
                             ))}
                     </Stack>
-
-                    {/* Action Icons */}
-                    <Stack
-                        direction="row"
-                        spacing={1}
-                        sx={{
-                            position: 'absolute',
-                            top: -2,
-                            right: -2,
-                        }}
-                    >
-                        
-
-                        {/* Delete */}
-                        <DeleteConfirmDialog
-                            id={image.file_key}
-                            onDelete={(id: any) => handleDelete(id)}
-                            variant="icon"
-                            buttonProps={{ size: "small", color: "error" }} // IconButton props
-                        />
-                    </Stack>
-                    {/* Copy URL */}
-                    <Tooltip title={tooltipImg.get(image.id)}>
-                        <span>
-                        <IconButton
-                            size="small"
-                            color="success"
-                            onClick={() => handleCopy(image.url, image.id)}
-                            title="Copy URL"
-                            sx={{ float: 'right', mt: -2, mr: -2 }}
-                            disabled={copiedToken.get(image.id)}
-                        >
-                            <ContentCopy />
-                            </IconButton>
-                        </span>
-                    </Tooltip>
-                </Box>
+                    <ImageListItemBar
+                        title={image.name}
+                        subtitle={`Created At: ${new Date(image.updated_at).toLocaleDateString()}`}
+                        actionIcon={
+                            <Tooltip title={tooltipImg.get(image.id)}>
+                                <IconButton
+                                    sx={{ color: copiedToken.get(image.id)? 'rgba(102, 187, 106, 1)': 'rgba(255, 255, 255, 0.54)' }}
+                                    aria-label={`info about ${image.name}`}
+                                    onClick={() => handleCopy(image.url, image.id)}
+                                    // disabled={copiedToken.get(image.id)}
+                                    // color={copiedToken.get(image.id) ? "success" : 'success'}
+                                >
+                                    <ContentCopy />
+                                </IconButton>
+                            </Tooltip>
+                        }
+                    />
+                </ImageListItem>
             </Grid2>
         ))}
     </>

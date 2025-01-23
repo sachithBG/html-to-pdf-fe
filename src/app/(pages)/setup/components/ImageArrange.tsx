@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Box, Button, TextField, FormControl, InputLabel, Select, MenuItem, CircularProgress, Grid2 } from '@mui/material';
 import { Checkbox, ListItemText } from '@mui/material';
-import Image from 'next/image';
 import { isValidS3Url } from '@/app/utils/constant';
+// @next/next/no - img - element
 
 interface ImageManageProps {
     onImageUpload: (image: any) => void;
@@ -131,7 +131,7 @@ const ImageManage: React.FC<ImageManageProps> = ({ onImageUpload, addons }) => {
             <Box sx={{ marginTop: 2, display: 'flex', justifyContent: 'center' }}>
                 {imgUrl && <div className="mb-4">
                     {/* <h3 className="text-xl mb-2">Image Preview</h3> */}
-                    <Image width={100} height={100} src={imgUrl} alt="Preview" className="w-60 h-auto" />
+                    <img width={100} height={100} src={imgUrl} alt="Preview" className="w-60 h-auto" />
                 </div>}
             </Box>
             <Box sx={{ marginTop: 2, display: 'flex', justifyContent: 'end' }}>
