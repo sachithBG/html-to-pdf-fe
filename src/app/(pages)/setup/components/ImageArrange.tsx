@@ -131,6 +131,7 @@ const ImageManage: React.FC<ImageManageProps> = ({ onImageUpload, addons }) => {
             <Box sx={{ marginTop: 2, display: 'flex', justifyContent: 'center' }}>
                 {imgUrl && <div className="mb-4">
                     {/* <h3 className="text-xl mb-2">Image Preview</h3> */}
+                    {/*  @next/next/no-img-element */}
                     <img width={100} height={100} src={imgUrl} alt="Preview" className="w-60 h-auto" />
                 </div>}
             </Box>

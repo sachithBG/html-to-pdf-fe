@@ -56,6 +56,7 @@ const ImageList: React.FC<ImageListProps> = ({
                             buttonProps={{ size: "small", style: { color: 'rgba(255, 255, 255, 0.54)', background: 'rgba(0, 0, 0, 0.2)' } }} // IconButton props
                         />
                     </Stack>
+                    { /* @next/next/no-img-element */}
                     <img
                         srcSet={`${image.url}?w=248&fit=crop&auto=format&dpr=2 2x`}
                         src={`${image.url}?w=248&fit=crop&auto=format`}
