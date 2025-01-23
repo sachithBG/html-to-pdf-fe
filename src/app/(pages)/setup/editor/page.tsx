@@ -600,7 +600,7 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
                         {/* Type Selector */}
                         <Grid2 size={4} display="flex" alignItems="center">
                             {/* Type/Status Dropdown */}
-                            <FormControl fullWidth sx={{ mt: 1 }} error={Boolean(errors.externalKey)}>
+                            <FormControl size="small" fullWidth sx={{ mt: 1 }} error={Boolean(errors.externalKey)}>
                                 <InputLabel>Type/Status</InputLabel>
                                 <Select
                                     // multiple
