@@ -3,13 +3,13 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Container, Typography, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, IconButton, Paper, Pagination, Box, FormControl, InputLabel, Select, MenuItem, Skeleton, Grid2 } from '@mui/material';
 import { AddBox as AddBoxIcon, Edit as EditIcon, FastRewind as FastRewindIcon } from '@mui/icons-material';
 import { useSelector } from 'react-redux';
-import { useSession } from 'next-auth/react';
 import { getDefaultOrganization, Organization, OrganizationState } from '@/redux/slice/organizationSlice';
 // import HtmlToPdfEditor from '../editor/page';
 import { deletePdfTemplate, readAllPdfTemplatePage } from '@/app/services/pdfService';
 import { findAllAddons } from '@/app/services/addonService';
 import dynamic from 'next/dynamic';
 import DeleteConfirmDialog from '../components/DeleteConfirmDialog';
+import { RootState } from '@/redux/store';
 const PdfPreviewButton = dynamic(() => import('@/app/components/PdfPreviewButton'), { ssr: false });
 const HtmlToPdfEditor = dynamic(() => import('../editor/page'), { ssr: false });
 
@@ -28,14 +28,14 @@ const PdfTemplatePage: React.FC = () => {
     const currentOrg: Organization | any = useSelector((state: { organization: OrganizationState }) =>
         getDefaultOrganization(state.organization)
     );
-    const { data: session }: any = useSession();
+    const { token } = useSelector((state: RootState) => state.session);
 
     const fetchTemplates = async (page: number) => {
         try {
             setLoading(true);
             setTemplates(() => []);
 
-            const response = await readAllPdfTemplatePage(currentOrg?.id, session?.user?.token, {
+            const response = await readAllPdfTemplatePage(currentOrg?.id, token, {
                 sortOrder: 'desc',
                 startFrom: (page - 1) * pageSize,
                 to: pageSize,
@@ -65,7 +65,7 @@ const PdfTemplatePage: React.FC = () => {
 
     const handleDelete = async (id: number) => {
         try {
-            const res = await deletePdfTemplate(id, session?.user?.token);
+            const res = await deletePdfTemplate(id, token);
             if (res.status == 200) {
                 setTemplates(templates.filter((template) => template.id !== id));
             }
@@ -81,7 +81,7 @@ const PdfTemplatePage: React.FC = () => {
         setSelectedTemplate(null);
         // }
 
-        if (currentPage !== undefined && isTrigger && session?.user?.token) {
+        if (currentPage !== undefined && isTrigger && token) {
             fetchTemplates(currentPage);
         } else {
             console.warn('currentPage is undefined');
@@ -117,7 +117,7 @@ const PdfTemplatePage: React.FC = () => {
 
     const fetchAddons = async () => {
         try {
-            const response = await findAllAddons(currentOrg?.id, session?.user?.token);
+            const response = await findAllAddons(currentOrg?.id, token);
             // console.log(response.data)
             if (response.status == 200) {
                 setAddons_(response.data);
@@ -128,17 +128,17 @@ const PdfTemplatePage: React.FC = () => {
     };
 
     useEffect(() => {
-        if (session?.user?.token && currentOrg?.id) {
+        if (token && currentOrg?.id) {
             fetchTemplates(currentPage);
             fetchAddons()
         }
     }, [pageToggle]);
 
     useEffect(() => {
-        if (session?.user?.token && currentOrg?.id) {
+        if (token && currentOrg?.id) {
             fetchTemplates(currentPage);
         }
-    }, [session?.user?.token, currentOrg?.id]);
+    }, [token, currentOrg?.id]);
 
     return (
         <Container>

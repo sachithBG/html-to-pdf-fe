@@ -19,9 +19,10 @@ import BackupTableIcon from '@mui/icons-material/BackupTable';
 import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
 import AccountSlotsAccountSwitcher from './auth/components/AccountSlotsAccountSwitcher';
 
-import { useSession } from 'next-auth/react';
+import { RootState } from '@/redux/store';
 import { useSelector } from 'react-redux';
 import { authEvents } from '../utils/authEvents';
+import useInitializeSession from './auth/useInitializeSession';
 
 type NavigationItem = {
     topNav?: {
@@ -161,7 +162,7 @@ const demoTheme = extendTheme({
 function useDemoRouter(initialPath: string): Router {
     const [pathname, setPathname] = React.useState(initialPath);
     const nextRouter = useRouter();
-    const { status }: any = useSession();
+    const { status } = useSelector((state: RootState) => state.session);
 
     return {
         pathname,
@@ -206,6 +207,7 @@ function SidebarFooter({ mini }: SidebarFooterProps) {
 }
 
 export default function DashboardLayoutBasic(props: any) {
+    useInitializeSession();
     const { window } = props;
     const [mounted, setMounted] = React.useState(false);
     // const theme = useSelector((state: any) => state.toggleTheme.theme);

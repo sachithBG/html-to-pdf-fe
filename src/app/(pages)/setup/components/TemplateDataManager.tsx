@@ -10,7 +10,7 @@ import {
 import { readAllPdfTemplatePage } from '@/app/services/pdfService';
 import { getDefaultOrganization, Organization, OrganizationState } from '@/redux/slice/organizationSlice';
 import { useSelector } from 'react-redux';
-import { useSession } from 'next-auth/react';
+import { RootState } from '@/redux/store';
 import dynamic from 'next/dynamic';
 const DataUploadButton = dynamic(() => import('@/app/(pages)/setup/components/DataUploadButton'), { ssr: false });
 
@@ -29,7 +29,7 @@ const TemplateDataManager: React.FC = (id) => {
     const currentOrg: Organization | any = useSelector((state: { organization: OrganizationState }) =>
         getDefaultOrganization(state.organization)
     );
-    const { data: session }: any = useSession();
+    const { token } = useSelector((state: RootState) => state.session);
 
     const pageSize = 10;
 
@@ -38,7 +38,7 @@ const TemplateDataManager: React.FC = (id) => {
             setLoading(true);
             setTemplates([]);
 
-            const response = await readAllPdfTemplatePage(currentOrg?.id, session?.user?.token, {
+            const response = await readAllPdfTemplatePage(currentOrg?.id, token, {
                 sortOrder: 'desc',
                 startFrom: (page - 1) * pageSize,
                 to: pageSize,

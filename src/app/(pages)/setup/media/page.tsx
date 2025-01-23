@@ -3,12 +3,12 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { Box, Tab, Tabs, Typography, Container, Grid2 as Grid, Grid2, FormControl, InputLabel, Select, MenuItem, Checkbox, ListItemText } from '@mui/material';
 import dynamic from 'next/dynamic';
 import { deleteImg, findAllImages, uploadMedia } from '@/app/services/mediaService';
-import { useSession } from 'next-auth/react';
 import { findAllAddons } from '@/app/services/addonService';
 import { getDefaultOrganization, Organization, OrganizationState } from '@/redux/slice/organizationSlice';
 import { useSelector } from 'react-redux';
 import { useSnackbar } from 'notistack';
 import ImageManage from '../components/ImageArrange';
+import { RootState } from '@/redux/store';
 // const ImageManage = dynamic(() => import('../components/ImageManage'), { ssr: false });
 const ImageList = dynamic(() => import('../components/ImageList'), { ssr: false });
 
@@ -20,7 +20,7 @@ interface Addon {
 function MediaManageParent() {
     const [tabValue, setTabValue] = useState('1');
     const [imageList, setImageList] = useState<any[]>([]); // For storing list of images
-    const { data: session }: any = useSession();
+    const { token } = useSelector((state: RootState) => state.session);
     const [isLoading, setIsLoading] = useState(true);
     const [addons, setAddons] = useState<Addon[]>([]);
     const [copiedToken, setCopiedToken] = useState<Map<number, boolean>>(new Map()); // Track if token was copied for each image
@@ -44,7 +44,7 @@ function MediaManageParent() {
                 // console.log(newImage);
                 const add = addons.filter(a => newImage.addons.includes(a.name)).map(a => a.id);
                 // console.log(add);
-                const res = await uploadMedia(currentOrg.id, newImage.preview!, add, session?.user?.token);
+                const res = await uploadMedia(currentOrg.id, newImage.preview!, add, token);
                 if (res.status == 201) {
                     enqueueSnackbar(`Uploaded`, { variant: 'success' });
                     const img = res.data?.data;
@@ -62,7 +62,7 @@ function MediaManageParent() {
                 console.error(e);
             }
         },
-        [currentOrg?.id, session, addons]
+        [currentOrg?.id, token, addons]
     );
 
     useEffect(() => {
@@ -71,7 +71,7 @@ function MediaManageParent() {
         const fetchAddons = async () => {
             try {
                 setIsLoading(true);
-                const res = await findAllAddons(currentOrg?.id, session?.user?.token);
+                const res = await findAllAddons(currentOrg?.id, token);
                 if (res.status == 200) {
                     setAddons(() => res.data);
                 }
@@ -84,7 +84,7 @@ function MediaManageParent() {
 
         const fetchImgs = async () => {
             try {
-                const res = await findAllImages(currentOrg?.id, session?.user?.token);
+                const res = await findAllImages(currentOrg?.id, token);
                 setImageList(() => res);
             } catch (error) {
                 console.error("Error fetching addons:", error);
@@ -92,7 +92,7 @@ function MediaManageParent() {
                 setIsLoading(false);
             }
         }
-        if (session?.user?.token) {
+        if (token) {
             fetchAddons();
             fetchImgs();
         }
@@ -105,7 +105,7 @@ function MediaManageParent() {
         if (currentOrg?.id) {
             const fetchImgs = async () => {
                 try {
-                    const res = await findAllImages(currentOrg?.id, session?.user?.token, selectedAddons);
+                    const res = await findAllImages(currentOrg?.id, token, selectedAddons);
                     setImageList(() => res);
                 } catch (error) {
                     console.error("Error fetching addons:", error);
@@ -144,7 +144,7 @@ function MediaManageParent() {
 
     const handleDelete = async (fileKey: string) => {
         try {
-            const response = await deleteImg(fileKey, session?.user?.token);
+            const response = await deleteImg(fileKey, token);
             if (response.status == 204) {
                 setImageList((prev) => [...prev.filter(i => i.file_key != fileKey)]);
             }

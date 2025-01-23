@@ -19,18 +19,18 @@ import AddIcon from '@mui/icons-material/Add';
 import { useDispatch, useSelector } from 'react-redux';
 import { addOrganizationAll, clearOrganizationState, Organization } from '@/redux/slice/organizationSlice';
 import { setDefaultOrganization } from '@/app/services/organizationService';
-import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import { RootState } from '@/redux/store';
 
 export default function CustomMenu() {
     const { organizations } = useSelector((state: any) => state.organization);
     const dispatch = useDispatch();
     const router = useRouter();
-    const { data: session }: any = useSession();
+    const { token } = useSelector((state: RootState) => state.session);
     const setDefault = (orgId: number) => {
         // Implement the setDefault API call here
         // This function should update the default organization
-        setDefaultOrganization(orgId, session?.user?.token).then((res: any) => {
+        setDefaultOrganization(orgId, token).then((res: any) => {
             if (res?.status == 200) {
                 dispatch(clearOrganizationState());
                 dispatch(addOrganizationAll(organizations.map((org: any) => ({ ...org, is_default: org.id === orgId }))));

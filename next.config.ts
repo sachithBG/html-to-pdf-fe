@@ -16,7 +16,7 @@ const nextConfig: NextConfig = {
     return config;
   },
   compiler: {
-    // removeConsole: true,
+    removeConsole: true,
   },
   images: {
     remotePatterns: [
@@ -26,8 +26,9 @@ const nextConfig: NextConfig = {
         pathname: '/**', // Allows all paths under this hostname
       },
     ],
+    unoptimized: true 
   },
-  output: 'standalone',
+  output: 'export',
   // async rewrites() {
   //   return [
   //     {
@@ -36,6 +37,8 @@ const nextConfig: NextConfig = {
   //     },
   //   ];
   // },
+  // trailingSlash: true,
+  // assetPrefix: './',
 };
 
 export default nextConfig;

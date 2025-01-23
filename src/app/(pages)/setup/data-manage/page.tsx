@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from 'react';
 import { Button, TextField, Chip, IconButton, Popover, MenuItem, Select, InputLabel, FormControl, Paper, Box, Typography, Checkbox, ListItemText, Grid2, useTheme, Tooltip, Snackbar, Alert, Tabs, Tab, CircularProgress, Skeleton } from '@mui/material';
-import { useSession } from 'next-auth/react';
+import { RootState } from '@/redux/store';
 import { useSelector } from 'react-redux';
 import { getDefaultOrganization, Organization, OrganizationState } from '@/redux/slice/organizationSlice';
 import { findAllAddons } from '@/app/services/addonService';
@@ -78,7 +78,7 @@ const TagManagementPage = () => {
     const currentOrg: Organization | any = useSelector((state: { organization: OrganizationState }) =>
         getDefaultOrganization(state.organization)
     );
-    const { data: session }: any = useSession();
+    const { token } = useSelector((state: RootState) => state.session);
     const theme = useTheme();
 
     const openPopover = Boolean(anchorEl);
@@ -97,11 +97,11 @@ const TagManagementPage = () => {
         const fetchAddons = async () => {
             try {
                 setIsLoading(true);
-                const res = await findAllAddons(currentOrg?.id, session?.user?.token);
+                const res = await findAllAddons(currentOrg?.id, token);
                 if (res.status == 200) {
                     setAddons(() => res.data);
                     try {
-                        const response = await findAllTags(res.data?.filter((a: any) => selectedAddons.includes(a.name)), session?.user?.token);
+                        const response = await findAllTags(res.data?.filter((a: any) => selectedAddons.includes(a.name)), token);
                         // axios.get(process.env.NEXT_PUBLIC_BASE_URL + "v1/tags", {
                         //     params: { addons: addons.filter(a => selectedAddons.includes(a.name)).map(a => a.id).join(',') },
                         // });
@@ -118,7 +118,7 @@ const TagManagementPage = () => {
                 setIsLoading(false);
             }
         }
-        if (session?.user?.token) fetchAddons();
+        if (token) fetchAddons();
         return () => {
             setAddons([]);
             setTags([]);
@@ -129,7 +129,7 @@ const TagManagementPage = () => {
         setSelectedAddons(event.target.value);
         // console.log(event.target.value)
         try {
-            const response = await findAllTags(event.target.value, session?.user?.token);
+            const response = await findAllTags(event.target.value, token);
             if (response.status == 200) {
                 setTags(response.data);
             }
@@ -160,7 +160,7 @@ const TagManagementPage = () => {
             field_path: tagKey
         };
         try {
-            const response = await createTag(newTag, session?.user?.token);
+            const response = await createTag(newTag, token);
             if (response.status == 201) {
                 setTags((prevTags) => [...prevTags, response.data]);
                 setTagKey('');
@@ -173,7 +173,7 @@ const TagManagementPage = () => {
 
     const handleDeleteTag = async (tagId: number) => {
         try {
-            const response = await deleteTag(tagId, session?.user?.token);
+            const response = await deleteTag(tagId, token);
             if (response.status == 204) {
                 setTags(tags.filter((tag) => tag.id !== tagId));
             }
@@ -212,7 +212,7 @@ const TagManagementPage = () => {
     const handleUpdateTag = async () => {
         if (editTag) {
             try {
-                const response = await updateTag(editTag, session?.user?.token);
+                const response = await updateTag(editTag, token);
                 if (response.status == 200) {
                     setTags((prevTags) =>
                         prevTags.map((tag) => (tag.id + '' === response.data.id ? response.data : tag))

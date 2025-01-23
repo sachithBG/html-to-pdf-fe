@@ -18,7 +18,7 @@ import {
 } from '@mui/material';
 import { Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import { createAddon, deleteAddon, findAllAddons, updateAddon } from '@/app/services/addonService';
-import { useSession } from 'next-auth/react';
+import { RootState } from '@/redux/store';
 import { useSelector } from 'react-redux';
 import { getDefaultOrganization, Organization, OrganizationState } from '@/redux/slice/organizationSlice';
 // import CustomTabPanel from './CustomTabPanel'; // Assume this is a reusable tab panel component
@@ -34,7 +34,7 @@ const ManageAddonsPage: React.FC = () => {
     const [addonToDelete, setAddonToDelete] = useState<any | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const { data: session }: any = useSession();
+    const { token } = useSelector((state: RootState) => state.session);
     const currentOrg: Organization | any = useSelector((state: { organization: OrganizationState }) =>
         getDefaultOrganization(state.organization)
     );
@@ -43,7 +43,7 @@ const ManageAddonsPage: React.FC = () => {
         setLoading(true);
         try {
             // Replace with your API call
-            const response = await findAllAddons(currentOrg.id, session?.user?.token);
+            const response = await findAllAddons(currentOrg.id, token);
             if (response.status == 200) {
                 setAddons(() => response.data)
             }
@@ -72,13 +72,13 @@ const ManageAddonsPage: React.FC = () => {
         setIsSubmitting(true);
         try {
             if (newAddon.id) {
-                const res = await updateAddon(newAddon, session?.user?.token);
+                const res = await updateAddon(newAddon, token);
                 if (res.status == 200) {
                     setAddons((prev) => prev.map((addon) => (addon.id === newAddon.id ? { ...addon, name: newAddon.name } : addon)));
                     setSuccessMessage('Addon updated successfully.');
                 }
             } else {
-                const res = await createAddon(newAddon.name, currentOrg?.id || 0, session?.user?.token);
+                const res = await createAddon(newAddon.name, currentOrg?.id || 0, token);
                 // console.log(res.data)
                 if (res.status == 200 || res.status == 201) {
                     setAddons((prev) => [...prev, { id: newAddon.id, name: newAddon.name, organization_id: currentOrg.id }]);
@@ -102,7 +102,7 @@ const ManageAddonsPage: React.FC = () => {
         setIsSubmitting(true);
         try {
             // Replace with your API call
-            const res = await deleteAddon(addonToDelete.id, session?.user?.token);
+            const res = await deleteAddon(addonToDelete.id, token);
             if (res.status == 204) {
                 setAddons(addons.filter((addon) => addon.id !== addonToDelete.id));
             }

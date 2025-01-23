@@ -6,7 +6,6 @@ import {
 import { SnackbarProvider, closeSnackbar } from 'notistack';
 import CloseIcon from '@mui/icons-material/Close';
 import AuthGuard from '@/app/(pages)/guard/authGuard';
-import { SessionProvider } from 'next-auth/react';
 
 export const secondary_main = '#E4E8F8';
 
@@ -58,7 +57,6 @@ export default function ThemeProvidr({
 
     return (
         // <ThemeProvider theme={themeAction}>
-            <SessionProvider >
                 <AuthGuard>
                     <SnackbarProvider
                         maxSnack={3}
@@ -92,7 +90,6 @@ export default function ThemeProvidr({
                         {children}
                     </SnackbarProvider>
                 </AuthGuard>
-            </SessionProvider>
         // </ThemeProvider>
     );
 }

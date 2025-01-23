@@ -6,7 +6,7 @@ import { fadeIn } from '@/app/utils/constant';
 import dynamic from 'next/dynamic';
 const PdfPreviewButton = dynamic(() => import('@/app/components/PdfPreviewButton'), { ssr: false });
 
-const PdfTemplatesList = ({ currentOrg, session, readAllPdfTemplatePage }: any) => {
+const PdfTemplatesList = ({ currentOrg, token, readAllPdfTemplatePage }: any) => {
     const [page, setPage] = useState(1);
     const [searchTerm, setSearchTerm] = useState('');
     const [pdfTemplates, setPdfTemplates] = useState([]);
@@ -20,7 +20,7 @@ const PdfTemplatesList = ({ currentOrg, session, readAllPdfTemplatePage }: any) 
             debounce(async (search: any) => {
                 setIsLoading(true);
                 try {
-                    const response = await readAllPdfTemplatePage(currentOrg?.id, session?.user?.token, {
+                    const response = await readAllPdfTemplatePage(currentOrg?.id, token, {
                         sortOrder: 'desc',
                         startFrom: 0,  // Reset to first page for new search
                         to: pageSize,
@@ -39,7 +39,7 @@ const PdfTemplatesList = ({ currentOrg, session, readAllPdfTemplatePage }: any) 
                     setIsLoading(false);
                 }
             }, 500), // debounce delay of 500ms
-        [currentOrg?.id, session?.user?.token] // Recreate debounce function when org or session changes
+        [currentOrg?.id, token] // Recreate debounce function when org or session changes
     );
 
     // Handle page change
@@ -59,7 +59,7 @@ const PdfTemplatesList = ({ currentOrg, session, readAllPdfTemplatePage }: any) 
             if (searchTerm) return;  // Don't fetch data if search term is applied
             setIsLoading(true);
             try {
-                const response = await readAllPdfTemplatePage(currentOrg?.id, session?.user?.token, {
+                const response = await readAllPdfTemplatePage(currentOrg?.id, token, {
                     sortOrder: 'desc',
                     startFrom: (page - 1) * pageSize,
                     to: pageSize,
@@ -80,7 +80,7 @@ const PdfTemplatesList = ({ currentOrg, session, readAllPdfTemplatePage }: any) 
         };
 
         fetchPdfTemplates();
-    }, [page, searchTerm, currentOrg?.id, session?.user?.token]);
+    }, [page, searchTerm, currentOrg?.id, token]);
 
     return (
         <Grid2 container spacing={3}>

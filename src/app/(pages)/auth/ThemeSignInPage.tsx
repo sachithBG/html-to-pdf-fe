@@ -6,9 +6,11 @@ import {
 } from '@toolpad/core/SignInPage';
 import { Button, Checkbox, Dialog, FormControl, FormControlLabel, IconButton, InputAdornment, InputLabel, OutlinedInput, TextField, Typography } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
-import { signIn } from 'next-auth/react';
 import { AccountCircle, Visibility, VisibilityOff } from '@mui/icons-material';
 import { signInUser } from "@/app/services/authService";
+import { useDispatch } from 'react-redux';
+import { clearSession, setSession } from '@/redux/slice/sessionSlice';
+import { setLoading } from '@/redux/slice/sessionSlice';
 
 const providers = [
     // { id: 'github', name: 'GitHub' },
@@ -98,55 +100,41 @@ function CustomButton() {
     );
 }
 
-const signIn_: (provider: AuthProvider, formData: any, onOpen: any) => void | Promise<AuthResponse> = async (
-    provider, formData: any, onOpen: any
+const signIn_: (provider: AuthProvider, formData: any, onOpen: any, dispatch: any) => void | Promise<AuthResponse> = async (
+    provider, formData: any, onOpen: any, dispatch: any
 ) => {
+
     const promise = new Promise<AuthResponse>(async (resolve) => {
         if (provider.id === "credentials") {
+            dispatch(setLoading());
             const data = {
                 redirect: false,
                 email: formData?.get('email'),
                 password: formData?.get('password'),
                 rememberMe: formData?.get('rememberMe'),
             };
-            let result: any = {};
             try {
-                result = await signInUser(data.email, data.password, data.rememberMe);
-            }catch(e){
-                console.log(e);
-            }
-            
-            if (result.status == 200) {
-                console.log(result.data.user)
-                result = await signIn('credentials', { ...data, token: result.data.token, user: JSON.stringify(result.data.user) });
-            } else {
-                resolve({ error: 'An error occurred during signin.' });
-            }
-            // console.log('Remember me', formData.get('rememberMe'));
-            // const result: any = await signIn('credentials', {
-            //     redirect: false,
-            //     email: formData?.get('email'),
-            //     password: formData?.get('password'),
-            //     rememberMe: formData?.get('rememberMe'),
-            // });
-            // console.log(result);
-            if (result?.ok) {
-                // onOpen(false);
-                // Close modal only on successful login
-                // resolve({ success: 'Login Success' });
-                resolve({
-                    success: 'Check your email for a verification link.',
-                });
-                // setTimeout(() => {
-                onOpen(false);
-                // }, 1000);
-                // return { error: result.error };
-            } else if (result?.status === 401) {
-                resolve({ error: result.error });
-            } else {
-                resolve({ error: 'An error occurred during signin.' });
-            }
+                const result = await signInUser(data.email, data.password, data.rememberMe);
+                if (result.status == 200) {
+                    const { token, user } = result.data;
+                    dispatch(setSession({ token, user, status: 'authenticated' }));
+                    localStorage.setItem('token', token);
+                    resolve({
+                        success: 'Check your email for a verification link.',
+                    });
+                    onOpen(false);
+                } else {
+                    // console.log('hghgfhghgfh');
 
+                    dispatch(clearSession());
+                    resolve({ error: 'An error occurred during signin.' });
+                }
+                
+            }catch(e:any){
+                console.log(e);
+                dispatch(clearSession());
+                resolve({ error: e?.error });
+            }
         } else {
             // Handle other providers if needed
             onOpen(false);
@@ -185,7 +173,7 @@ function RememberMe() {
 }
 
 export default function SignIn({ open, onClose, setSignUpModalOpen }: any) {
-
+    const dispatch = useDispatch();
     const handleClose = () => {
         onClose(false);
     };
@@ -219,7 +207,7 @@ export default function SignIn({ open, onClose, setSignUpModalOpen }: any) {
                 <CloseIcon />
             </IconButton>
             <SignInPage
-                signIn={(provider, formData): any => signIn_(provider, formData, onClose)}
+                signIn={(provider, formData): any => signIn_(provider, formData, onClose, dispatch)}
                 providers={providers}
                 sx={{
                     '& form > .MuiStack-root': {

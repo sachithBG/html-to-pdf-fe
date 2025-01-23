@@ -34,9 +34,9 @@ import SaveIcon from '@mui/icons-material/Save';
 import CloseIcon from '@mui/icons-material/Close';
 import { LoadingButton } from '@mui/lab';
 import { createOrganization, findOrganizationsByUserId, setDefaultOrganization, updateOrg } from '@/app/services/organizationService';
-import { useSession } from 'next-auth/react';
+import { RootState } from '@/redux/store';
 import { addOrganization, addOrganizationAll, clearOrganizationState, Organization, updateOrganization } from '@/redux/slice/organizationSlice';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { createAddon, deleteAddon, findAllAddons, updateAddon } from '@/app/services/addonService';
 import { uploadOrgLogo } from '@/app/services/mediaService';
 import { isValidS3Url } from '@/app/utils/constant';
@@ -58,7 +58,7 @@ export default function OrganizationPage() {
     const [deleteAnchorEl, setDeleteAnchorEl] = useState<null | HTMLElement>(null);
     const [addonToDelete, setAddonToDelete] = useState<number | null>(null);
 
-    const { data: session }: any = useSession();
+    const { token, user } = useSelector((state: RootState) => state.session);
     const dispatch = useDispatch();
 
     const avatarUrl =
@@ -70,10 +70,10 @@ export default function OrganizationPage() {
 
     useEffect(() => {
         // Fetch organizations from API
-        console.log(session, 'Session');
-        if (session?.user?.id) {
+        console.log(user, 'Session');
+        if (user?.id) {
             // API call to get organizations
-            findOrganizationsByUserId(session?.user?.id, session?.user?.token)
+            findOrganizationsByUserId(user?.id, token)
                 .then((res: any) => {
                     // console.log(res.data, 'Organizations fetched2');
                     if (res.data) {
@@ -85,7 +85,7 @@ export default function OrganizationPage() {
                     console.error(err);
                 });
         }
-    }, [session?.user?.id]);
+    }, [user?.id]);
 
     const handleOpen = (org?: Organization) => {
         setCurrentOrg(org || {});
@@ -114,7 +114,7 @@ export default function OrganizationPage() {
             // Implement the image upload logic here
             // This function should return a promise that resolves with the uploaded image URL
             if (file) console.log('file exsit');
-            return await uploadOrgLogo(currentOrg?.id, file!, session?.user?.token);
+            return await uploadOrgLogo(currentOrg?.id, file!, token);
         };
         
 
@@ -122,7 +122,7 @@ export default function OrganizationPage() {
             if (org.id) {
                 // Update organization API call
                 // org = { ...org, userId: session?.user?.id };
-                updateOrg(org, session?.user?.token)
+                updateOrg(org, token)
                     .then((res: any) => {
                         console.log(res);
                         if (res.status == 200) {
@@ -134,8 +134,8 @@ export default function OrganizationPage() {
                     });
             } else {
                 // Create organization API call
-                org = { ...org, user_id: session?.user?.id };
-                createOrganization(org, session?.user?.token)
+                org = { ...org, user_id: user?.id };
+                createOrganization(org, token)
                     .then((res: any) => {
                         if (res.data) {
                             dispatch(addOrganization(res.data));
@@ -171,7 +171,7 @@ export default function OrganizationPage() {
     const setDefault = (orgId: number) => {
         // Implement the setDefault API call here
         // This function should update the default organization
-        setDefaultOrganization(orgId, session?.user?.token).then((res: any) => {
+        setDefaultOrganization(orgId, token).then((res: any) => {
             if (res?.status == 200) {
                 const updatedOrgs = organizations.map((org) => ({ ...org, is_default: org.id === orgId }));
                 setOrganizations(() => updatedOrgs);
@@ -199,14 +199,14 @@ export default function OrganizationPage() {
             setErrors({ addonName: 'Addon name must be in capital letters and underscores only' });
             return;
         }
-        const res = await createAddon(newAddon, currentOrg?.id || 0, session?.user?.token);
+        const res = await createAddon(newAddon, currentOrg?.id || 0, token);
         console.log(res.data)
         setAddons([...addons, { id: res.data.id, name: newAddon, organization_id: currentOrg.id }]);
         setNewAddon('');
     };
 
     const handleDeleteAddon = async (addonId: number) => {
-        const res = await deleteAddon(addonId, session?.user?.token);
+        const res = await deleteAddon(addonId, token);
         if (res.status == 204) {
             setAddons(addons.filter((addon) => addon.id !== addonId));
         }
@@ -224,7 +224,7 @@ export default function OrganizationPage() {
 
     const handleEditSave = async () => {
         if (editAddon) {
-            const res = await updateAddon(editAddon, session?.user?.token);
+            const res = await updateAddon(editAddon, token);
             if (res.status == 200) {
                 setAddons(addons.map((addon) => (addon.id === editAddon.id ? { ...addon, name: editAddon.name } : addon)));
                 handleEditClose();
@@ -257,12 +257,12 @@ export default function OrganizationPage() {
 
     useEffect(() => {
         const fetchAddons = async () => {
-            const res = await findAllAddons(currentOrg.id, session?.user?.token);
+            const res = await findAllAddons(currentOrg.id, token);
             if (res.status == 200) {
                 setAddons(() => res.data)
             }
         }
-        if (currentOrg.id && session?.user?.token) fetchAddons();
+        if (currentOrg.id && token) fetchAddons();
     }, [currentOrg.id])
 
     return (
