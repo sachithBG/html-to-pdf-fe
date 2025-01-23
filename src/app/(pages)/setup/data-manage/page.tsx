@@ -243,7 +243,7 @@ const TagManagementPage = () => {
     const handleCopyTag = (tagKey: string) => {
         const textToCopy = `{{${tagKey}}}`;
 
-        if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+        if (navigator.clipboard && typeof navigator.clipboard?.writeText === 'function') {
             // Modern approach using Clipboard API
             navigator.clipboard.writeText(textToCopy)
                 .then(() => {

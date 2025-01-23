@@ -49,10 +49,56 @@ const ExternalKeyManager = ({ addonId }: any) => {
         }
     };
 
+    // const handleCopyKey = (key: string) => {
+    //     navigator.clipboard.writeText(key);
+    //     enqueueSnackbar(`External Key copied: ${key}`, { variant: 'success' });
+    // };
+
     const handleCopyKey = (key: string) => {
-        navigator.clipboard.writeText(key);
-        enqueueSnackbar(`External Key copied: ${key}`, { variant: 'success' });
+        if (!key) return; // Prevent copying empty keys
+
+        if (navigator.clipboard && typeof navigator.clipboard?.writeText === 'function') {
+            // Use Clipboard API if available
+            navigator.clipboard.writeText(key)
+                .then(() => {
+                    enqueueSnackbar(`External Key copied: ${key}`, { variant: 'success' });
+                })
+                .catch((err) => {
+                    console.error('Clipboard API failed, using fallback:', err);
+                    fallbackCopyToClipboard(key);
+                });
+        } else {
+            // Use fallback if Clipboard API is unavailable
+            fallbackCopyToClipboard(key);
+        }
     };
+
+    // Fallback for copying text using a hidden textarea
+    const fallbackCopyToClipboard = (text: string) => {
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        textArea.style.position = 'fixed'; // Prevents scrolling to the end of the page
+        textArea.style.opacity = '0'; // Keeps it invisible
+        textArea.style.left = '-9999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+
+        try {
+            const successful = document.execCommand('copy');
+            if (successful) {
+                enqueueSnackbar(`External Key copied (fallback): ${text}`, { variant: 'success' });
+            } else {
+                enqueueSnackbar('Failed to copy the key (fallback).', { variant: 'error' });
+            }
+        } catch (err) {
+            console.error('Fallback copy failed:', err);
+            enqueueSnackbar('Failed to copy the key (fallback).', { variant: 'error' });
+        }
+
+        document.body.removeChild(textArea);
+    };
+
 
     const handleDeleteKey = async (id: number) => {
         if (!id) return;

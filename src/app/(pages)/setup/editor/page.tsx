@@ -250,7 +250,7 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
 
         const textToCopy = `{{${tag}}}`;
 
-        if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+        if (navigator.clipboard && typeof navigator.clipboard?.writeText === 'function') {
             // Use Clipboard API if available
             navigator.clipboard.writeText(textToCopy)
                 .then(() => {
