@@ -227,15 +227,64 @@ const TagManagementPage = () => {
     };
 
     // Handle Copy Tag
+    //
+    // const handleCopyTag1 = (tagKey: string) => {
+    //     // console.log(tag)
+    //     alert(tagKey)
+    //     navigator.clipboard.writeText(`{{${tagKey}}}`).then(() => {
+    //         setCopiedText(`{{${tagKey}}}`);
+    //         setSnackbarOpen(true); // Show snackbar when copied
+    //         setTimeout(() => setSnackbarOpen(false), 3000); // Hide snackbar after 3 seconds
+    //     }).catch(err => {
+    //         console.error('Failed to copy: ', err);
+    //     });
+    // };
+
     const handleCopyTag = (tagKey: string) => {
-        // console.log(tag)
-        navigator.clipboard.writeText(`{{${tagKey}}}`).then(() => {
-            setCopiedText(`{{${tagKey}}}`);
-            setSnackbarOpen(true); // Show snackbar when copied
-            setTimeout(() => setSnackbarOpen(false), 3000); // Hide snackbar after 3 seconds
-        }).catch(err => {
-            console.error('Failed to copy: ', err);
-        });
+        const textToCopy = `{{${tagKey}}}`;
+
+        if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+            // Modern approach using Clipboard API
+            navigator.clipboard.writeText(textToCopy)
+                .then(() => {
+                    handleSuccessCopy(textToCopy);
+                })
+                .catch((err) => {
+                    console.error('Clipboard API failed, using fallback:', err);
+                    fallbackCopyToClipboard(textToCopy); // Fallback if Clipboard API fails
+                });
+        } else {
+            // Fallback for older browsers or restricted environments
+            fallbackCopyToClipboard(textToCopy);
+        }
+    };
+
+    const fallbackCopyToClipboard = (text: string) => {
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        textArea.style.position = 'fixed'; // Avoid scrolling to the bottom
+        textArea.style.opacity = '0';
+        textArea.style.left = '-9999px'; // Keep it hidden
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        try {
+            const successful = document.execCommand('copy');
+            if (successful) {
+                handleSuccessCopy(text);
+            } else {
+                console.error('Fallback copy failed');
+            }
+        } catch (err) {
+            console.error('Fallback copy error:', err);
+        }
+        document.body.removeChild(textArea);
+    };
+
+    const handleSuccessCopy = (copiedText: string) => {
+        setCopiedText(copiedText);
+        setSnackbarOpen(true); // Show snackbar when copied
+        setTimeout(() => setSnackbarOpen(false), 3000); // Hide snackbar after 3 seconds
     };
 
     const handleChangeTab = (event: React.SyntheticEvent, newValue: number) => {

@@ -120,7 +120,7 @@ const ExternalKeyManager = ({ addonId }: any) => {
                 />
                 <div className="flex justify-end mt-3">
                     <Button
-                        variant="contained"
+                        variant="outlined"
                         color="primary"
                         onClick={handleCreateExternalKey}
                         disabled={isSaving}

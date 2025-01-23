@@ -112,7 +112,7 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
 
     const fetchTags = async () => {
         try {
-            const response = await findAllTags(addons.filter(a => selectedAddons.includes(a.id)).map(a => a.id), token);
+            const response = await findAllTags(selectedAddons, token);
             if (response.status == 200) {
                 setTags(() => response.data);
             }
@@ -123,7 +123,7 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
 
     const fetchExternalKeys = async () => {
         try {
-            const response = await findAllByAddonId(addons.filter(a => selectedAddons.includes(a.id))[0]?.id, token);
+            const response = await findAllByAddonId(selectedAddons[0], token);
             if (response.status == 200) {
                 setExternalKeys(() => response.data);
             }
@@ -135,7 +135,7 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
     const fetchAddons = async () => {
         try {
             const response = await findAllAddons(currentOrg?.id, token);
-            console.log(response.data)
+            // console.log(response.data)
             if (response.status == 200) {
                 setAddons(response.data);
                 setSelectedAddons([]);
@@ -230,19 +230,68 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
     // Handle Addon Change
     const handleAddonChange = (event: any) => {
         setErrors((prev) => ({ ...prev, addons: undefined }));
+        // alert(event.target.value)
         setSelectedAddons([event.target.value]);
     };
 
     // Handle Copy Tag
+    // const handleCopyTag = (tag: string) => {
+    //     // console.log(tag)
+    //     if (!tag) return;
+    //     navigator.clipboard.writeText(`{{${tag}}}`).then(() => {
+    //         enqueueSnackbar(`Tag key copied: {{${tag}}}`, { variant: 'success' });
+    //     }).catch(err => {
+    //         console.error('Failed to copy: ', err);
+    //     });
+    // };
+
     const handleCopyTag = (tag: string) => {
-        // console.log(tag)
         if (!tag) return;
-        navigator.clipboard.writeText(`{{${tag}}}`).then(() => {
-            enqueueSnackbar(`Tag key copied: {{${tag}}}`, { variant: 'success' });
-        }).catch(err => {
-            console.error('Failed to copy: ', err);
-        });
+
+        const textToCopy = `{{${tag}}}`;
+
+        if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+            // Use Clipboard API if available
+            navigator.clipboard.writeText(textToCopy)
+                .then(() => {
+                    enqueueSnackbar(`Tag key copied: ${textToCopy}`, { variant: 'success' });
+                })
+                .catch((err) => {
+                    console.error('Clipboard API failed, using fallback:', err);
+                    fallbackCopyToClipboard(textToCopy);
+                });
+        } else {
+            // Use fallback if Clipboard API is unavailable
+            fallbackCopyToClipboard(textToCopy);
+        }
     };
+
+    // Fallback for copying to clipboard
+    const fallbackCopyToClipboard = (text: string) => {
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        textArea.style.position = 'fixed'; // Prevent scrolling
+        textArea.style.opacity = '0'; // Keep it hidden
+        textArea.style.left = '-9999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+
+        try {
+            const successful = document.execCommand('copy');
+            if (successful) {
+                enqueueSnackbar(`Tag key copied (fallback): ${text}`, { variant: 'success' });
+            } else {
+                enqueueSnackbar('Failed to copy tag key (fallback).', { variant: 'error' });
+            }
+        } catch (err) {
+            console.error('Fallback copy error:', err);
+            enqueueSnackbar('Failed to copy tag key (fallback).', { variant: 'error' });
+        }
+
+        document.body.removeChild(textArea);
+    };
+
 
 
     const handleCollapse = (section: "setting" | "header" | "body" | "footer") => {
@@ -589,7 +638,7 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
                                 >
                                     {addons?.map((addon) => (
                                         <MenuItem key={addon.id} value={addon.id + ''}>
-                                            <Checkbox checked={selectedAddons.indexOf(addon.id) > -1} />
+                                            {/* <Checkbox checked={selectedAddons.indexOf(addon.id) > -1} /> */}
                                             <ListItemText primary={addon.name} />
                                         </MenuItem>
                                     ))}
