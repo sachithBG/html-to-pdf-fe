@@ -28,7 +28,8 @@ const nextConfig: NextConfig = {
     ],
     unoptimized: true 
   },
-  // output: 'export',
+  // output: 'standalone',
+  output: 'export',
   // async rewrites() {
   //   return [
   //     {
