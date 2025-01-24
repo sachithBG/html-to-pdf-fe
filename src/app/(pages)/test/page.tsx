@@ -200,17 +200,18 @@ const HtmlTestEditor = () => {
                                     </div>
                             `} id={null} isIconButton={false} organization_id={0} subcategories={[]}/>
                     </Grid>
-                    {/* <Grid >
+                    <Grid >
                         <Button
                             variant="outlined"
                             color="primary"
                             startIcon={<SaveIcon />}
                             onClick={handleGeneratePdf}
                             size="small"
+                            disabled
                         >
                             Generate PDF
                         </Button>
-                    </Grid> */}
+                    </Grid>
 
                     {pdfData && <> <Grid >
                         <Button

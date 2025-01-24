@@ -86,7 +86,7 @@ const PdfTemplatePage: React.FC = () => {
         } else {
             console.warn('currentPage is undefined');
         }
-    }, [currentPage]);
+    }, [currentPage, currentOrg?.id]);
 
     // const handleBack2 = useCallback(() => {
     //     setEditMode(false);
