@@ -53,9 +53,9 @@ const SignUp = ({ setSignInModalOpen, openSignUp, setSignUpModalOpen }: any) => 
         if (handleValidation()) {
             try {
                 const res = await signUpUser(name, email, password); // API call function for signup
-                console.log(res);
-
-                if (res?.name && res?.email) {
+                // console.log(res);
+                
+                if (res?.data?.name && res?.data?.email) {
                     // Show success message
                     setSuccessMessage('Signup successful! Redirecting to sign-in...');
                     setErrorMessage(null); // Clear any previous error
@@ -64,9 +64,10 @@ const SignUp = ({ setSignInModalOpen, openSignUp, setSignUpModalOpen }: any) => 
                         setSuccessMessage(null); // Clear success message
                         handleSignIn(); // Navigate to sign-in modal
                     }, 2000);
-                } else if (res?.error) {
+                } else if (res?.data?.error) {
+                    
                     // Show error message
-                    setErrorMessage(res.error);
+                    setErrorMessage(res?.data.error);
                     setSuccessMessage(null); // Clear any previous success
                 } else {
                     // Generic error handling
@@ -74,17 +75,21 @@ const SignUp = ({ setSignInModalOpen, openSignUp, setSignUpModalOpen }: any) => 
                     setSuccessMessage(null); // Clear any previous success
                 }
             } catch (error: any) {
-
                 console.error('Signup error:', error);
-                // if (error?.error) {
-                // Show error message
-                setErrorMessage(error.message);
-                setSuccessMessage(null); // Clear any previous success
-                // } else {
-                //     // Generic error handling
-                //     setErrorMessage('An error occurred during signup. Please try again later.');
-                //     setSuccessMessage(null); // Clear any previous success
-                // }
+                
+                // Check if the error is from the API response
+                if (error?.response?.data?.error) {
+                    setErrorMessage(error.response.data.error); // Server-side error message
+                }
+                // Handle network or unexpected errors
+                else if (error.message) {
+                    setErrorMessage(`Network error: ${error.message}`);
+                }
+                // Generic fallback
+                else {
+                    setErrorMessage('An unexpected error occurred. Please try again later.');
+                }
+                setSuccessMessage(null);
             }
         }
     };

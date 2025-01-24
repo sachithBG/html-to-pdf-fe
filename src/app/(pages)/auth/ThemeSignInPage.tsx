@@ -130,10 +130,14 @@ const signIn_: (provider: AuthProvider, formData: any, onOpen: any, dispatch: an
                     resolve({ error: 'An error occurred during signin.' });
                 }
                 
-            }catch(e:any){
-                console.log(e);
+            } catch (error:any){
+                console.log(error);
                 dispatch(clearSession());
-                resolve({ error: e?.error });
+                resolve({
+                    error: error?.response?.data?.message ||
+                        error.message ||
+                        'An unexpected error occurred. Please try again.',
+                });
             }
         } else {
             // Handle other providers if needed
