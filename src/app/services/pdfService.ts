@@ -86,3 +86,12 @@ export const deletePdfTemplate = async (id: number, token: string) => {
         }
     });
 }
+
+export const generatePdfBufferTest = async (data: any) => {
+    return API.post('/pdf-templates/test', data, {
+        headers: {
+            "Content-Type" : 'application/json'
+        },
+        timeout: 40000
+    });
+}

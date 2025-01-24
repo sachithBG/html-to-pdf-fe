@@ -76,6 +76,7 @@ const NAVIGATION: Navigation | any = [
                 segment: 'pdf-template',
                 title: 'Template',
                 icon: <AddCardIcon />,
+                // action: <Chip label={7} color="primary" size="small" />,
                 // children: [{
                 //     segment: 'edit',
                 //     title: 'Edit',
@@ -200,7 +201,7 @@ function SidebarFooter({ mini }: SidebarFooterProps) {
     return (
         <Box
             // variant="caption"
-            sx={{ m: 1, whiteSpace: 'nowrap', overflow: 'hidden' }}
+            sx={{fontSize: '0.8rem', m: 1, whiteSpace: 'wrap', overflow: 'hidden' }}
         >
             {
                 organizations.find((organization: any) =>
@@ -263,6 +264,11 @@ export default function DashboardLayoutBasic(props: any) {
         console.log(pathname, 'Pathname');
         setMounted(true);
     }, []);
+    // React.useEffect(() => {
+    //     const storedToken: any = localStorage.getItem('token');
+    //     const decoded: { sub: string; name: string; email: string } | any = jwt.decode(storedToken) as JwtPayload | any;
+    //     const storedUser = decoded?.user ? JSON.parse(decoded?.user) : null;
+    // }, [pathname]);
 
     // Only render the component after the client has mounted (to avoid hydration errors)
     if (!mounted) {
@@ -284,13 +290,12 @@ export default function DashboardLayoutBasic(props: any) {
             router={router}
             theme={demoTheme}
             window={demoWindow}
-
         // authentication={authentication}
         // session={session}
 
         >
             {/* <SignIn></SignIn> */}
-            <DashboardLayout slots={{ sidebarFooter: SidebarFooter, toolbarActions: AccountSlotsAccountSwitcher }}>
+            <DashboardLayout slots={{ sidebarFooter: SidebarFooter, toolbarActions: AccountSlotsAccountSwitcher }} sx={{ '& .MuiDrawer-anchorLeft .MuiDrawer-paper, .MuiDrawer-anchorLeft': { maxWidth: 250, fontSize: '0.9rem !important' }, marginLeft: 0 }}>
                 <PageContainer>
                     <Grid container spacing={1}>
                         {/* {JSON.stringify(session)} */}

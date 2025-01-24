@@ -212,6 +212,7 @@ const PdfPreviewButton = ({
   //         setDataError('')
   //     }
   }, [open]);
+
   return (
     <Box>
       {/* Button to open the modal */}
@@ -388,25 +389,29 @@ const PdfPreviewButton = ({
                 title="HTML Preview"
                 style={{ border: "none" }}
                 srcDoc={`
-                                    <!DOCTYPE html>
-                                    <html lang="en">
-                                    <head>
-                                    <link rel="stylesheet" href="https://cdn.ckeditor.com/ckeditor5/44.1.0/ckeditor5.css">
-                                        <style>
-                                            body {
-                                                margin: 0;
-                                                padding: 0;
-                                            },
-                                            .ck-content {
-                                                 margin: 0 auto;
-                                            }
-                                        </style>
-                                    </head>
-                                    <body>
-                                    ${htmlCntnt}
-                                    </body>
-                                    </html>
-                                `}
+                        <!DOCTYPE html>
+                        <html lang="en">
+                        <head>
+                        <link rel="stylesheet" href="https://cdn.ckeditor.com/ckeditor5/44.1.0/ckeditor5.css">
+                            <style>
+                                body {
+                                    font-family: Arial, sans-serif;
+                                    margin: 0;
+                                    padding: 0;
+                                    color: #333;
+                                    font-size: 14px; /* Default font size */
+                                    line-height: 0.1;
+                                },
+                                .ck-content {
+                                      margin: 0 auto;
+                                }
+                            </style>
+                        </head>
+                        <body>
+                        ${htmlCntnt}
+                        </body>
+                        </html>
+                    `}
                 // src=''
               />
             </Box>

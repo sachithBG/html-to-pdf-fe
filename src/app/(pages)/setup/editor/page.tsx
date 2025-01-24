@@ -36,7 +36,7 @@ import dynamic from "next/dynamic";
 import { findAllAddons } from "@/app/services/addonService";
 import { useSelector } from "react-redux";
 import { findAllTags } from "@/app/services/tagService";
-import { bdy, ftr, hdr, TAG_TYPES } from "@/app/utils/constant";
+import { TAG_TYPES } from "@/app/utils/constant";
 import { getDefaultOrganization, Organization, OrganizationState } from "@/redux/slice/organizationSlice";
 import { createPdfTemplate, generatePdfBuffer, generatePdfBufferById, readPdfTemplate, updatePdfTemplate } from "@/app/services/pdfService";
 import { findAllByAddonId } from "@/app/services/externalKeyService";
@@ -94,6 +94,7 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
     const [defVal, setDefVal] = useState('-');
     const [selectedType, setSelectedType] = useState<number | null>(null);
     const [externalKeys, setExternalKeys] = useState<any[]>([]);
+    // eslint-disable-next-line
     const [pdfPrevButton, setPdfPrevButton] = useState(true);
     const [sections, setSections] = useState<any[]>([]);
     const [pdfSubcategories, setPdfSubcategories] = useState<any[]>([]);
@@ -174,9 +175,9 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
         if (!id) {
             setPdfPrevButton(false);
             const tt = setTimeout(() => {
-                setHeaderContent(hdr);
-                setBodyContent(bdy);
-                setFooterContent(ftr);
+                // setHeaderContent(hdr);
+                // setBodyContent(bdy);
+                // setFooterContent(ftr);
                 setPdfPrevButton(true);
                 clearTimeout(tt);
             }, 100);
@@ -572,7 +573,7 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
                             {isCloneLoading && <CircularProgress size={24} />}
                         </Button>
                         <Grid sx={{mr: 30}}>
-                            {!isLoding && pdfPrevButton && <PdfPreviewButton htmlContent={
+                            {!isLoding && <PdfPreviewButton htmlContent={
                                 `<div className="ck ck-editor__main">
                                     <div class="ck ck-content">
                                     <div>${headerContent}</div>

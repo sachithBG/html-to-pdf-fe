@@ -61,21 +61,24 @@ const CKTextField: React.FC<CKTextFieldProps> = ({
                     sx={{ borderRadius: 2, marginBottom: 2 }}
                 />
             ) : null}
-            <Box sx={{
+            <Box
+                sx={{
                 ml: !isLoading ? 0 : -5000, position: !isLoading ? 'relative' : 'absolute',
                 '& .ck-content, .ck-source-editing-area textarea': {
                     color: 'black !important',// theme.palette.mode === 'dark' ? '#ffffff !important' : 'black !important',
                     backgroundColor: 'white !important',// theme.palette.mode === 'dark' ? '#28292a !important' : 'inherit',
-                    fontSize: '16px',
+                    fontSize: '14px',
                     lineHeight: '1.5',
                     padding: '16px',
-                    minHeight: '150px'
+                    minHeight: '150px',
+                    fontFamily: 'Roboto, sans-serif',
                 },
                 '& .ck-toolbar':{
                     // color: theme.palette.mode === 'dark' ? '#ffffff !important' : 'inherit',
                     backgroundColor: theme.palette.mode === 'dark' ? '#dde1ea !important' : 'inherit',
                 }
-            }}>
+                }}
+            >
                 <CKEditor
                     editor={ClassicEditor}
                     config={{

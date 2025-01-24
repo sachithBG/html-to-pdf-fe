@@ -24,7 +24,7 @@ const useInitializeSession = () => {
                         // console.log('storedUser', storedUser);
                         dispatch(setSession({
                             token: storedToken, user: {
-                                id: decoded.sub, name: decoded.name, email: decoded.email,
+                                id: storedUser.id, name: decoded.name, email: decoded.email,
                                 profile: storedUser?.profile || { id: null, theme: 'light', avatar: null }
                             },
                             status: 'authenticated'

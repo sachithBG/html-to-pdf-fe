@@ -194,7 +194,7 @@ const Dashboard = () => {
                                     sx={{
                                         p: 2,
                                         cursor: 'pointer',
-                                        backgroundColor: currentOrg?.name === org?.name ? 'var(--mui-palette-primary-main)' : theme.palette.background.paper,
+                                        backgroundColor: currentOrg?.name === org?.name ? '#33578abf' : '#3b4f6c38',
                                         color: currentOrg?.name === org?.name ? '#fff' : theme.palette.text.primary,
                                     }}
                                     onClick={() => setDefault(org.id)}

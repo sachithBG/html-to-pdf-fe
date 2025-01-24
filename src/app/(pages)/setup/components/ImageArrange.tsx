@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Box, Button, TextField, FormControl, InputLabel, Select, MenuItem, CircularProgress, Grid2 } from '@mui/material';
 import { Checkbox, ListItemText } from '@mui/material';
 import { isValidS3Url } from '@/app/utils/constant';
+import Image from 'next/image';
 // @next/next/no - img - element
 
 interface ImageManageProps {
@@ -132,7 +133,7 @@ const ImageManage: React.FC<ImageManageProps> = ({ onImageUpload, addons }) => {
                 {imgUrl && <div className="mb-4">
                     {/* <h3 className="text-xl mb-2">Image Preview</h3> */}
                     {/*  @next/next/no-img-element */}
-                    <img width={100} height={100} src={imgUrl} alt="Preview" className="w-60 h-auto" />
+                    <Image unoptimized width={100} height={100} src={imgUrl} alt="Preview" className="w-60 h-auto" />
                 </div>}
             </Box>
             <Box sx={{ marginTop: 2, display: 'flex', justifyContent: 'end' }}>

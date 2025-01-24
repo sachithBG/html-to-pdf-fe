@@ -1,4 +1,5 @@
 import { Alignment, Autoformat, AutoImage, Autosave, BalloonToolbar, BlockQuote, BlockToolbar, Bold, Code, CodeBlock, Essentials, FindAndReplace, FontBackgroundColor, FontColor, FontFamily, FontSize, FullPage, GeneralHtmlSupport, Heading, HorizontalLine, HtmlComment, ImageBlock, ImageCaption, ImageInline, ImageInsert, ImageInsertViaUrl, ImageResize, ImageStyle, ImageTextAlternative, ImageToolbar, ImageUpload, Indent, IndentBlock, Italic, Link, LinkImage, List, ListProperties, Markdown, MediaEmbed, Mention, PageBreak, Paragraph, PasteFromMarkdownExperimental, PasteFromOffice, PictureEditing, RemoveFormat, ShowBlocks, SourceEditing, SpecialCharacters, SpecialCharactersArrows, SpecialCharactersCurrency, SpecialCharactersEssentials, SpecialCharactersLatin, SpecialCharactersMathematical, SpecialCharactersText, Strikethrough, Style, Subscript, Superscript, Table, TableCaption, TableCellProperties, TableColumnResize, TableProperties, TableToolbar, TextPartLanguage, TextTransformation, Title, TodoList, Underline, WordCount } from "ckeditor5";
+
 import { config } from "process";
 import { uploadMedia } from "../services/mediaService";
 // const CLOUD_SERVICES_TOKEN_URL = 'https://';
@@ -19,6 +20,7 @@ export const defaultConfig: any = {
             'fontFamily',
             'fontColor',
             'fontBackgroundColor',
+            'lineHeight',
             '|',
             'bold',
             'italic',
@@ -37,11 +39,11 @@ export const defaultConfig: any = {
             'insertImage',
             'imageUpload',
             // 'ckbox',
-            'mediaEmbed',
+            // 'mediaEmbed',
             'insertTable',
             // 'highlight',
             'blockQuote',
-            'codeBlock',
+            // 'codeBlock',
             '|',
             'alignment',
             '|',
@@ -52,6 +54,11 @@ export const defaultConfig: any = {
             'indent'
         ],
         shouldNotGroupWhenFull: true,
+    },
+    lineHeight: {
+        options: [
+            '1', '1.2', '1.5', '1.6', '1.8', '2', '2.5', '3'
+        ]
     },
     plugins: [
         Alignment,
@@ -129,7 +136,7 @@ export const defaultConfig: any = {
         Title,
         TodoList,
         Underline,
-        WordCount
+        WordCount,
     ],
     balloonToolbar: ['bold', 'italic', '|', 'link', 'insertImage', '|', 'bulletedList', 'numberedList'],
     blockToolbar: [

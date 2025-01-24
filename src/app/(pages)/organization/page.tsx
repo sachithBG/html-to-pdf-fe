@@ -71,6 +71,7 @@ export default function OrganizationPage() {
     useEffect(() => {
         // Fetch organizations from API
         console.log(user, 'Session');
+        // alert(user.id)
         if (user?.id) {
             // API call to get organizations
             findOrganizationsByUserId(user?.id, token)
