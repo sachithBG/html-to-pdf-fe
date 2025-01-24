@@ -202,6 +202,7 @@ const PdfPreviewButton = ({
   }, [previewMode, subcategoriesFilter]);
   useEffect(() => {
     setHtmlCntnt(htmlContent);
+    setPdfSubcategories(subcategories);
   //     return () => {
   //         setDataLoaded(false);
   //         setPreviewMode('withoutData');
