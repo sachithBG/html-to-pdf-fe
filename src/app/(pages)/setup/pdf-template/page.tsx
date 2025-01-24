@@ -34,7 +34,7 @@ const PdfTemplatePage: React.FC = () => {
         try {
             setLoading(true);
             setTemplates(() => []);
-
+            // alert(currentOrg?.id)
             const response = await readAllPdfTemplatePage(currentOrg?.id, token, {
                 sortOrder: 'desc',
                 startFrom: (page - 1) * pageSize,

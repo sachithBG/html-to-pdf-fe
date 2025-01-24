@@ -100,6 +100,7 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
     const { enqueueSnackbar } = useSnackbar();
     // const [editorValue, setEditorValue] = useState<string>('<p>Start typing here...</p>');
     const [isEditorLoading, setIsEditorLoading] = useState<boolean>(true);
+    const [isCloneLoading, setIsCloneLoading] = useState<boolean>(false);
 
     const handleMarginChange = (side: 'l' | 't' | 'r' | 'b', value: string) => {
         setMargin((prev) => ({ ...prev, [side]: value }));
@@ -163,6 +164,7 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
     }, [selectedAddons]);
 
     useEffect(() => {
+        setIsCloneLoading(false);
         const timeout = setTimeout(() => setIsEditorLoading(false), 2000); // Simulate loading
         return () => clearTimeout(timeout);
     }, []);
@@ -333,7 +335,7 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
                 headerContent,
                 bodyContent,
                 footerContent,
-                addon_ids: addons.filter(a => selectedAddons.includes(a.id)).map(a => a.id),
+                addon_ids: selectedAddons,
                 name: pdfName,
                 key: pdfKey,
                 margin: margin,
@@ -359,9 +361,20 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
                 enqueueSnackbar(`Template Saved successfully.`, { variant: 'success' });
             }
 
-        } catch (error) {
-            console.error("Error generating PDF:", error);
-            enqueueSnackbar(`Fail generating PDF.`, { variant: 'error' });
+        } catch (error: any) {
+            if (error.response) {
+                const errorMessage = error.response.data?.error || 'Something went wrong.';
+                console.error('Error:', errorMessage);
+                enqueueSnackbar(errorMessage, { variant: 'error' });
+            } else if (error.request) {
+                // The request was made, but no response was received
+                console.error('No response received:', error.request);
+                enqueueSnackbar('No response from server. Please try again later.', { variant: 'error' });
+            } else {
+                // Something happened in setting up the request
+                console.error('Error setting up request:', error.message);
+                enqueueSnackbar('Failed to make the request.', { variant: 'error' });
+            }
         } finally {
             if (isGenerate) setIsGenerating(false);
             else setIsUploading(false)
@@ -556,7 +569,7 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
                             size="small"
                         >
                             Clone
-                            {isUploading && <CircularProgress size={24} />}
+                            {isCloneLoading && <CircularProgress size={24} />}
                         </Button>
                         <Grid sx={{mr: 30}}>
                             {!isLoding && pdfPrevButton && <PdfPreviewButton htmlContent={

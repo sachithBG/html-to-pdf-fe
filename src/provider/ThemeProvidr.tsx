@@ -60,7 +60,7 @@ export default function ThemeProvidr({
         <AuthGuard>
             <SnackbarProvider
                 maxSnack={3}
-                autoHideDuration={3000}
+                autoHideDuration={8000}
                 anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
                 preventDuplicate
                 dense

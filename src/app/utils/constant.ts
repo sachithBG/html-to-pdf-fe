@@ -53,7 +53,7 @@ export const bdy = `<div style="padding: 20px;">
         <img
           src="${imageUrl}"
           alt="Sample Chart"
-          style="max-width: 100%; height: auto;"
+          style="max-width: 20%; height: auto;"
         />
       </div>
 
