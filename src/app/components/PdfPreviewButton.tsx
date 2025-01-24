@@ -54,6 +54,7 @@ const PdfPreviewButton = ({
     setDataError("");
     setLoading(false);
     setSubcategoriesFilter([]);
+    setHtmlCntnt("");
   };
 
   const handleToggle = (event: any, newMode: any) => {
@@ -112,11 +113,13 @@ const PdfPreviewButton = ({
       setLoading(true);
       const fetchData = async () => {
         try {
+          
           let response = await readPdfTemplate(id, token);
           if (response.status == 200) {
-              response = response.data;
-            //   console.log(response.data)
-            setHtmlCntnt(`<div className="ck ck-editor__main">
+            response = response.data;
+            alert(response.data.headerContent)
+              console.log(response.data)
+            setHtmlCntnt(()=>`<div className="ck ck-editor__main">
                                     <div class="ck ck-content">
                                     <div>${response.data.headerContent}</div>
                                     ${response.data.bodyContent}
@@ -201,8 +204,8 @@ const PdfPreviewButton = ({
     }
   }, [previewMode, subcategoriesFilter]);
   useEffect(() => {
-    setHtmlCntnt(htmlContent);
-    setPdfSubcategories(subcategories);
+    if(!id) setHtmlCntnt(htmlContent||'');
+    if (!id) setPdfSubcategories(subcategories);
   //     return () => {
   //         setDataLoaded(false);
   //         setPreviewMode('withoutData');
@@ -365,7 +368,7 @@ const PdfPreviewButton = ({
               {dataError}
             </Typography>
           )}
-          {/* {htmlContent} */}
+          
           {/* PDF iframe */}
           {htmlCntnt ? (
             <Box
