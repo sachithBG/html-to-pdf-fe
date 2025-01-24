@@ -117,8 +117,8 @@ const PdfPreviewButton = ({
           let response = await readPdfTemplate(id, token);
           if (response.status == 200) {
             response = response.data;
-            alert(response.data.headerContent)
-              console.log(response.data)
+            // alert(response.data.headerContent)
+              // console.log(response.data)
             setHtmlCntnt(()=>`<div className="ck ck-editor__main">
                                     <div class="ck ck-content">
                                     <div>${response.data.headerContent}</div>
