@@ -583,7 +583,7 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
                                     <footer>${footerContent}</footer>
                                     </div>
                                     </div>
-                            `} isIconButton={false} id={isEditMode ? id : null}
+                            `} isIconButton={false} id={isEditMode ? id : null} isNew={!isEditMode}
                                 organization_id={currentOrg?.id} subcategories={pdfSubcategories?.map(sc => sc.name) || []} />}
                         </Grid>
                     </Grid>

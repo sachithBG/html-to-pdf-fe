@@ -193,7 +193,7 @@ const PdfTemplatePage: React.FC = () => {
                                                         <footer>${template.footerContent}</footer>
                                                         </div>
                                                         </div>
-                                                `} isIconButton={true} id={template.id}
+                                                `} isIconButton={true} id={template.id} 
                                                     organization_id={currentOrg?.id} subcategories={template?.subcategories || []}/>
                                             </Grid2>
                                         </TableCell>

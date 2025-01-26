@@ -30,12 +30,14 @@ const PdfPreviewButton = ({
   id,
   organization_id,
   subcategories,
+  isNew = false
 }: {
   htmlContent: string | null;
   isIconButton: boolean;
   id: number | null;
   organization_id: number;
   subcategories: string[];
+  isNew?: boolean;
 }) => {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false); // Loading state
@@ -116,17 +118,16 @@ const PdfPreviewButton = ({
 
   const handleOpenWithData = () => {
     if (id && token) {
-      alert('here')
       setLoading(true);
       const fetchData = async () => {
         try {
-          
+
           let response = await readPdfTemplate(id, token);
           if (response.status == 200) {
             response = response.data;
             // alert(response.data.headerContent)
-              // console.log(response.data)
-            setHtmlCntnt(()=>`<div className="ck ck-editor__main">
+            // console.log(response.data)
+            setHtmlCntnt(() => `<div className="ck ck-editor__main">
                                     <div class="ck ck-content" style="margin: 20px;color: 'black'; font-size: 14px; line-height: 1.4;">
                                     <div>${response.data.headerContent}</div>
                                     ${response.data.bodyContent}
@@ -135,7 +136,7 @@ const PdfPreviewButton = ({
                                     </div>
                                     </div>
                             `);
-              setPdfSubcategories(response.data.subcategories?.map((sc:any)=> sc.name) || []);
+            setPdfSubcategories(response.data.subcategories?.map((sc: any) => sc.name) || []);
             setOpen(true);
           }
         } catch (error) {
@@ -148,79 +149,86 @@ const PdfPreviewButton = ({
     }
   };
 
-//   useEffect(() => {
-//     if (iframeRef.current && htmlCntnt) {
-//       // const sanitizedHtmlContent = DOMPurify.sanitize(htmlCntnt, {
-//       //     ALLOWED_TAGS: ['img', 'div', 'p', 'span', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'br'],
-//       //     ALLOWED_ATTR: ['src', 'alt', 'title', 'class', 'style'],
-//       // });
-//       const doc = iframeRef.current.contentDocument;
-//       if (doc) {
-//         doc.open();
-//         doc.write(`
-//             <!DOCTYPE html>
-//             <html lang="en">
-//             <head>
-//                 <style>
-//                     /* Include CKEditor styles here or link to the external stylesheet */
-//                     @import url('https://cdn.ckeditor.com/ckeditor5/35.0.1/classic/theme.css');
-//                     body {
-//                         margin: 0;
-//                         padding: 0;
-//                     }
-//                     .image {
-//                                 text-align: center;
-//                             }
-//                             .image img {
-//                                 max-width: 100%;
-//                                 height: auto;
-//                                 display: block;
-//                                 margin: 0 auto;
-//                             }
-//                             .image_resized {
-//                                 display: block;
-//                                 margin: 0 auto;
-//                             }
-//                 </style>
-//             </head>
-//             <body>
-//             <div  className="ck ck-editor__main">
-//                 <div class="ck ck-content">${htmlCntnt}</div>
-//                 </div>
-//             </body>
-//             </html>
-//         `); // Write HTML content to iframe
-//         doc.close();
-//       }
-//     }
-//   }, [htmlCntnt]); // Re-render iframe when htmlContent changes
+  //   useEffect(() => {
+  //     if (iframeRef.current && htmlCntnt) {
+  //       // const sanitizedHtmlContent = DOMPurify.sanitize(htmlCntnt, {
+  //       //     ALLOWED_TAGS: ['img', 'div', 'p', 'span', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'br'],
+  //       //     ALLOWED_ATTR: ['src', 'alt', 'title', 'class', 'style'],
+  //       // });
+  //       const doc = iframeRef.current.contentDocument;
+  //       if (doc) {
+  //         doc.open();
+  //         doc.write(`
+  //             <!DOCTYPE html>
+  //             <html lang="en">
+  //             <head>
+  //                 <style>
+  //                     /* Include CKEditor styles here or link to the external stylesheet */
+  //                     @import url('https://cdn.ckeditor.com/ckeditor5/35.0.1/classic/theme.css');
+  //                     body {
+  //                         margin: 0;
+  //                         padding: 0;
+  //                     }
+  //                     .image {
+  //                                 text-align: center;
+  //                             }
+  //                             .image img {
+  //                                 max-width: 100%;
+  //                                 height: auto;
+  //                                 display: block;
+  //                                 margin: 0 auto;
+  //                             }
+  //                             .image_resized {
+  //                                 display: block;
+  //                                 margin: 0 auto;
+  //                             }
+  //                 </style>
+  //             </head>
+  //             <body>
+  //             <div  className="ck ck-editor__main">
+  //                 <div class="ck ck-content">${htmlCntnt}</div>
+  //                 </div>
+  //             </body>
+  //             </html>
+  //         `); // Write HTML content to iframe
+  //         doc.close();
+  //       }
+  //     }
+  //   }, [htmlCntnt]); // Re-render iframe when htmlContent changes
 
   // Handle loading state based on iframe content
-//   useEffect(() => {
-//     if (iframeRef.current && htmlCntnt) {
-//       // setLoading(true);
-//       const iframe = iframeRef.current;
-//       iframe.onload = () => setLoading(false); // Set loading to false once iframe content is loaded
-//     }
-//   }, [htmlCntnt, previewMode]);
+  //   useEffect(() => {
+  //     if (iframeRef.current && htmlCntnt) {
+  //       // setLoading(true);
+  //       const iframe = iframeRef.current;
+  //       iframe.onload = () => setLoading(false); // Set loading to false once iframe content is loaded
+  //     }
+  //   }, [htmlCntnt, previewMode]);
 
   useEffect(() => {
-    if (previewMode != "withoutData" && !dataLoaded) {
+    if (previewMode != "withoutData" && !dataLoaded && open) {
       handleOpenById();
       setDataLoaded(true);
     }
-  }, [previewMode, subcategoriesFilter]);
+  }, [previewMode, subcategoriesFilter, open]);
   useEffect(() => {
-    // if (!id)
+    if (isNew)
       setHtmlCntnt(htmlContent || '');
-    // if (!id)
+    if (isNew)
       setPdfSubcategories(subcategories);
-  //     return () => {
-  //         setDataLoaded(false);
-  //         setPreviewMode('withoutData');
-  //         setDataError('')
-  //     }
+    //     return () => {
+    //         setDataLoaded(false);
+    //         setPreviewMode('withoutData');
+    //         setDataError('')
+    //     }
   }, [open]);
+
+  useEffect(() => {
+    if (!isNew) {
+      setHtmlCntnt(htmlContent || '');
+      setPdfSubcategories(subcategories);
+    }
+  }, [htmlContent]);
 
   const handleSaveData = (data: string) => {
     console.log('Uploaded JSON Data:', data);
@@ -348,9 +356,9 @@ const PdfPreviewButton = ({
                 </Select>
               </FormControl>
             )}
-            
+
           </Box>
-          {id && <Box sx={{float: 'right', marginTop: '-65px'}}>
+          {id && <Box sx={{ float: 'right', marginTop: '-65px' }}>
             <DataUploadButton onSave={handleSaveData} id={Number(id)} />
           </Box>}
           {/* Show loading state while iframe is loading */}
@@ -365,52 +373,52 @@ const PdfPreviewButton = ({
               left={0}
               width="100%"
               zIndex={1}
-              // bgcolor="white"
+            // bgcolor="white"
             >
               <Skeleton variant="rectangular" width="90%" height="90%" />
             </Box>
           )}
-          <Paper elevation={3} sx={{ height: "100%", width: "100%", display: loading? 'none': 'block' }}>
-          {previewMode != "withoutData" && !loading && pdfUrl && (
-            <iframe
-              src={pdfUrl}
-              title="PDF Preview"
-              width="100%"
-              height="100%"
-              style={{ border: "none" }}
-              // frameBorder="0"
-            />
-          )}
-          {previewMode != "withoutData" && dataError && !loading && (
-            <Typography
-              id="pdf-preview-description"
-              color="error"
-              align="center"
-              variant="h6"
-            >
-              {dataError}
-            </Typography>
-          )}
-          
-          {/* PDF iframe */}
-          {htmlCntnt ? (
-            <Box
-              sx={{
-                opacity: previewMode == "withoutData" ? 1 : 0,
-                height: "100%",
-                width: "100%",
-                position:
-                  previewMode == "withoutData" ? "relative" : "absolute",
-                mt: previewMode == "withoutData" ? 0 : 1500,
-              }}
-            >
+          <Paper elevation={3} sx={{ height: "100%", width: "100%", display: loading ? 'none' : 'block' }}>
+            {previewMode != "withoutData" && !loading && pdfUrl && (
               <iframe
-                ref={iframeRef}
+                src={pdfUrl}
+                title="PDF Preview"
                 width="100%"
                 height="100%"
-                title="HTML Preview"
                 style={{ border: "none" }}
-                srcDoc={`
+              // frameBorder="0"
+              />
+            )}
+            {previewMode != "withoutData" && dataError && !loading && (
+              <Typography
+                id="pdf-preview-description"
+                color="error"
+                align="center"
+                variant="h6"
+              >
+                {dataError}
+              </Typography>
+            )}
+
+            {/* PDF iframe */}
+            {htmlCntnt ? (
+              <Box
+                sx={{
+                  opacity: previewMode == "withoutData" ? 1 : 0,
+                  height: "100%",
+                  width: "100%",
+                  position:
+                    previewMode == "withoutData" ? "relative" : "absolute",
+                  mt: previewMode == "withoutData" ? 0 : 1500,
+                }}
+              >
+                <iframe
+                  ref={iframeRef}
+                  width="100%"
+                  height="100%"
+                  title="HTML Preview"
+                  style={{ border: "none" }}
+                  srcDoc={`
                         <!DOCTYPE html>
                         <html lang="en">
                         <head>
@@ -435,20 +443,20 @@ const PdfPreviewButton = ({
                         </html>
                     `}
                 // src=''
-              />
-            </Box>
-          ) : (
-            <Typography
-              id="pdf-preview-description"
-              color="error"
-              align="center"
-              variant="h6"
-            >
-              {previewMode == "withoutData" && !loading
-                ? "No HTML content available."
-                : ""}
-            </Typography>
-          )}
+                />
+              </Box>
+            ) : (
+              <Typography
+                id="pdf-preview-description"
+                color="error"
+                align="center"
+                variant="h6"
+              >
+                {previewMode == "withoutData" && !loading
+                  ? "No HTML content available."
+                  : ""}
+              </Typography>
+            )}
           </Paper>
           {/* Close button */}
           <Button
