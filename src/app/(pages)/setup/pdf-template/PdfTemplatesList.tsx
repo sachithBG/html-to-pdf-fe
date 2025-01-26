@@ -99,6 +99,7 @@ const PdfTemplatesList = ({ currentOrg, token, readAllPdfTemplatePage }: any) =>
                             value={searchTerm}
                             onChange={handleSearch}
                             sx={{ mb: 2, mt: 2 }}
+                            size='small'
                         />
 
                         {/* Loading Skeleton */}
@@ -114,16 +115,18 @@ const PdfTemplatesList = ({ currentOrg, token, readAllPdfTemplatePage }: any) =>
                                         <Box key={i} className="flex justify-between items-center py-2">
                                             <Box className="flex-1" sx={{ display: 'flex' }}>{template.name}
                                                 <Grid2 ml={2}>
-                                                    <PdfPreviewButton htmlContent={ 
+                                                    <PdfPreviewButton htmlContent={
                                                         `<div className="ck ck-editor__main">
-                                                            <div class="ck ck-content">
+                                                            <div class="ck ck-content" style="margin: 20px;
+                                                             color: 'black'; font-size: 14px; line-height: 1.4;">
                                                                 <div>${template.headerContent}</div>
-                                                                    ${template.bodyContent}
-                                                                <footer>${template.footerContent}</footer>
+                                                            ${template.bodyContent}
+                                                            ${template.sections ? template.sections.map((se: any) => se.htmlContent) : ''}
+                                                            <footer>${template.footerContent}</footer>
                                                             </div>
                                                         </div>
                                                         `} isIconButton={true}
-                                                        id={template.id} organization_id={currentOrg?.id} subcategories={[template.subcategories]}/>
+                                                        id={template.id} organization_id={currentOrg?.id} subcategories={[template.subcategories]} />
                                                 </Grid2>
                                             </Box>
                                             <Typography className="text-gray-500">{new Date(template.modified_at).toLocaleDateString()}</Typography>

@@ -114,7 +114,7 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
 
     const fetchTags = async () => {
         try {
-            const response = await findAllTags(selectedAddons, token);
+            const response = await findAllTags(selectedAddons, currentOrg.id, token);
             if (response.status == 200) {
                 setTags(() => response.data);
             }
@@ -248,10 +248,10 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
     //     });
     // };
 
-    const handleCopyTag = (tag: string) => {
-        if (!tag) return;
-
-        const textToCopy = `{{${tag}}}`;
+    const handleCopyTag = (tag: any) => {
+        if (!tag?.id) return;
+        
+        const textToCopy = tag?.tag_type == 'IMAGE' ? tag?.field_path : `{{${tag?.field_path}}}`;;// `{{${tag}}}`;
 
         if (navigator.clipboard && typeof navigator.clipboard?.writeText === 'function') {
             // Use Clipboard API if available
@@ -572,17 +572,19 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
                             Clone
                             {isCloneLoading && <CircularProgress size={24} />}
                         </Button>
+                        
                         <Grid sx={{mr: 30}}>
                             {!isLoding && <PdfPreviewButton htmlContent={
                                 `<div className="ck ck-editor__main">
-                                    <div class="ck ck-content">
+                                    <div class="ck ck-content" style="margin: ${margin.t}px ${margin.r}px ${margin.b}px ${margin.l}px;">
                                     <div>${headerContent}</div>
                                     ${bodyContent}
                                     ${sections ? sections.map((se: any) => se.htmlContent) : ''}
                                     <footer>${footerContent}</footer>
                                     </div>
                                     </div>
-                            `} isIconButton={false} id={isEditMode ? id : null} organization_id={currentOrg?.id} subcategories={pdfSubcategories?.map(sc => sc.name) || []} />}
+                            `} isIconButton={false} id={isEditMode ? id : null}
+                                organization_id={currentOrg?.id} subcategories={pdfSubcategories?.map(sc => sc.name) || []} />}
                         </Grid>
                     </Grid>
                 </Grid>
@@ -865,7 +867,7 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
                                                             <IconButton
                                                                 onClick={() => {
                                                                     const tag_ = tags.find((t) => t.name === option.name);
-                                                                    handleCopyTag(tag_?.field_path); // Copy the tag key on click
+                                                                    handleCopyTag(tag_); // Copy the tag key on click
                                                                 }}
                                                                 size="small"
                                                                 sx={{
@@ -893,7 +895,7 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
                                                     onClick: (e: any) => {
                                                         const tagName = e.target.innerText;
                                                         const tag_ = tags.find((t) => t.name === tagName);
-                                                        handleCopyTag(tag_?.field_path); // Handle copy action when clicking the tag
+                                                        handleCopyTag(tag_); // Handle copy action when clicking the tag
                                                     },
                                                     endAdornment: (
                                                         <>
@@ -940,7 +942,7 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
                                                 {/* Copy Icon and Tooltip */}
                                                 <Tooltip title={`Copy ${option.field_path}`} key={option.id + 't'}>
                                                     <IconButton
-                                                        onClick={() => handleCopyTag(option.field_path)} // Copy the tag field_path
+                                                        onClick={() => handleCopyTag(option)} // Copy the tag field_path
                                                         size="small"
                                                         sx={{
                                                             marginLeft: 1,
@@ -971,7 +973,7 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
                                     setPdfSubcategories((prev) => prev.filter((s) => s.id !== id)
                                         .sort((a, b) => a.name.localeCompare(b.name)));
                                 }}
-                                onEditSubcategory={(id, name) => {
+                                onEditSubcategory={async (id, name) => {
                                     setPdfSubcategories((prev) => prev.map((s) => s.id === id ? { ...s, name } : s)
                                         .sort((a, b) => a.name.localeCompare(b.name)));
                                 }}

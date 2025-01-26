@@ -13,11 +13,16 @@ import {
   ListItemText,
   MenuItem,
   SelectChangeEvent,
+  InputLabel,
+  Paper,
 } from "@mui/material";
 import { generatePdfBufferById, readPdfTemplate } from "../services/pdfService";
 import LaunchIcon from "@mui/icons-material/Launch";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
+// import DataUploadButton from "../(pages)/setup/components/DataUploadButton";
+import dynamic from "next/dynamic";
+const DataUploadButton = dynamic(() => import('../(pages)/setup/components/DataUploadButton'), { ssr: false });
 
 const PdfPreviewButton = ({
   htmlContent,
@@ -54,7 +59,7 @@ const PdfPreviewButton = ({
     setDataError("");
     setLoading(false);
     setSubcategoriesFilter([]);
-    setHtmlCntnt("");
+    // setHtmlCntnt("");
   };
 
   const handleToggle = (event: any, newMode: any) => {
@@ -66,6 +71,7 @@ const PdfPreviewButton = ({
   const handleOpenById = async () => {
     if (id && token) {
       setLoading(true);
+      setDataError("");
       try {
         const response = await generatePdfBufferById(
           id,
@@ -110,6 +116,7 @@ const PdfPreviewButton = ({
 
   const handleOpenWithData = () => {
     if (id && token) {
+      alert('here')
       setLoading(true);
       const fetchData = async () => {
         try {
@@ -120,7 +127,7 @@ const PdfPreviewButton = ({
             // alert(response.data.headerContent)
               // console.log(response.data)
             setHtmlCntnt(()=>`<div className="ck ck-editor__main">
-                                    <div class="ck ck-content">
+                                    <div class="ck ck-content" style="margin: 20px;color: 'black'; font-size: 14px; line-height: 1.4;">
                                     <div>${response.data.headerContent}</div>
                                     ${response.data.bodyContent}
                                     ${response.data.sections ? response.data.sections.map((se: any) => se.htmlContent) : ''}
@@ -204,14 +211,23 @@ const PdfPreviewButton = ({
     }
   }, [previewMode, subcategoriesFilter]);
   useEffect(() => {
-    if(!id) setHtmlCntnt(htmlContent||'');
-    if (!id) setPdfSubcategories(subcategories);
+    // if (!id)
+      setHtmlCntnt(htmlContent || '');
+    // if (!id)
+      setPdfSubcategories(subcategories);
   //     return () => {
   //         setDataLoaded(false);
   //         setPreviewMode('withoutData');
   //         setDataError('')
   //     }
   }, [open]);
+
+  const handleSaveData = (data: string) => {
+    console.log('Uploaded JSON Data:', data);
+    console.log('Uploaded JSON Data:', id);
+    // Add logic to handle saved data
+    // updateDummyDataPdfTemplate
+  };
 
   return (
     <Box>
@@ -226,7 +242,7 @@ const PdfPreviewButton = ({
           disabled={!htmlCntnt} // Disable button if no HTML content
           size="small"
         >
-          Preview HTML
+          Preview
         </Button>
       )}
 
@@ -246,8 +262,8 @@ const PdfPreviewButton = ({
             width: "80%",
             height: "80%",
             bgcolor: "background.paper",
-            // border: '2px solid #000',
-            // boxShadow: 24,
+            border: '2px solid #000',
+            boxShadow: 24,
             p: 4,
             pb: 15,
             overflow: "hidden",
@@ -260,7 +276,7 @@ const PdfPreviewButton = ({
               component="h2"
               gutterBottom
             >
-              HTML Preview
+              Preview
             </Typography>
             {id && (
               <ToggleButtonGroup
@@ -284,7 +300,7 @@ const PdfPreviewButton = ({
                   value="withoutData"
                   aria-label="Preview without Data"
                 >
-                  Without Data
+                  DRAFT
                 </ToggleButton>
                 <ToggleButton
                   size="small"
@@ -294,15 +310,16 @@ const PdfPreviewButton = ({
                 >
                   With Data
                 </ToggleButton>
+
               </ToggleButtonGroup>
             )}
             {previewMode != "withoutData" && (
               <FormControl
                 variant="standard"
-                sx={{ ml: 1, width: 200 }}
+                sx={{ ml: 1, width: 200, mt: -2 }}
                 size="small"
               >
-                {/* <InputLabel id="demo-multiple-checkbox-label">Section Filter</InputLabel> */}
+                <InputLabel id="demo-multiple-checkbox-label">Section Filter</InputLabel>
                 <Select
                   labelId="demo-multiple-checkbox-label"
                   id="demo-multiple-checkbox"
@@ -331,7 +348,11 @@ const PdfPreviewButton = ({
                 </Select>
               </FormControl>
             )}
+            
           </Box>
+          {id && <Box sx={{float: 'right', marginTop: '-65px'}}>
+            <DataUploadButton onSave={handleSaveData} id={Number(id)} />
+          </Box>}
           {/* Show loading state while iframe is loading */}
           {loading && (
             <Box
@@ -349,6 +370,7 @@ const PdfPreviewButton = ({
               <Skeleton variant="rectangular" width="90%" height="90%" />
             </Box>
           )}
+          <Paper elevation={3} sx={{ height: "100%", width: "100%", display: loading? 'none': 'block' }}>
           {previewMode != "withoutData" && !loading && pdfUrl && (
             <iframe
               src={pdfUrl}
@@ -427,7 +449,7 @@ const PdfPreviewButton = ({
                 : ""}
             </Typography>
           )}
-
+          </Paper>
           {/* Close button */}
           <Button
             variant="outlined"

@@ -223,6 +223,7 @@ export default function DashboardLayoutBasic(props: any) {
     // const { data: session, status }: any = useSession();
     // const router_ = useRouter();
     const router = useDemoRouter(pathname ?? '/');
+
     // const r = useDemoRouter('/dashboard');
     // const [router_app, setRouter_app] = React.useState(router);
 
@@ -261,7 +262,7 @@ export default function DashboardLayoutBasic(props: any) {
     //         setRouter_app(router);
     // }, []);
     React.useEffect(() => {
-        console.log(pathname, 'Pathname');
+        // console.log(pathname, 'Pathname');
         setMounted(true);
     }, []);
     // React.useEffect(() => {
@@ -296,7 +297,7 @@ export default function DashboardLayoutBasic(props: any) {
         >
             {/* <SignIn></SignIn> */}
             <DashboardLayout slots={{ sidebarFooter: SidebarFooter, toolbarActions: AccountSlotsAccountSwitcher }} sx={{ '& .MuiDrawer-anchorLeft .MuiDrawer-paper, .MuiDrawer-anchorLeft': { maxWidth: 250, fontSize: '0.9rem !important' }, marginLeft: 0 }}>
-                <PageContainer>
+                <PageContainer >
                     <Grid container spacing={1}>
                         {/* {JSON.stringify(session)} */}
                     </Grid>

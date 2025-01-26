@@ -17,6 +17,7 @@ import { useColorScheme } from '@mui/material';
 import { clearSession } from '@/redux/slice/sessionSlice';
 import { RootState } from '@/redux/store';
 import jwt, { JwtPayload } from 'jsonwebtoken';
+import ResetPassword from '../ResetPassword';
 
 // const demoSession = {
 //     user: {
@@ -46,9 +47,10 @@ export default function AccountSlotsAccountSwitcher() {
     const [session, setSession] = React.useState<Session | any>(null);
     const [isSignInModalOpen, setSignInModalOpen] = React.useState(false);
     const [isSignUpModalOpen, setSignUpModalOpen] = React.useState(false);
+    const [openResetPwd, setRestPwdOpen] = React.useState(false);
     const dispatch = useDispatch();
     const { setMode } = useColorScheme();
-    const { token, user } = useSelector((state: RootState) => state.session);
+    const { token, user, status } = useSelector((state: RootState) => state.session);
 
     const handleSignIn = () => {
         setSignInModalOpen(true);
@@ -69,13 +71,14 @@ export default function AccountSlotsAccountSwitcher() {
     }, []);
 
     React.useEffect(() => {
+
         const storedToken: any = localStorage.getItem('token');
         const decoded: { sub: string; name: string; email: string } | any = jwt.decode(storedToken) as JwtPayload | any;
         const storedUser = decoded?.user ? JSON.parse(decoded?.user) : null;
-        if (storedUser) {
+        if (storedUser && status === 'authenticated') {
             // console.log(session2);
             setSession(() => new DemoSession({...storedUser, avatar: storedUser?.profile?.avatar}));
-            console.log(storedUser)
+            // console.log(storedUser)
             findOrganizationsByUserId(storedUser.id, token).then((res) => {
                 console.log(res.data, 'Organizations fetched');
                 if (res.data && res.data.length > 0) {
@@ -90,6 +93,10 @@ export default function AccountSlotsAccountSwitcher() {
             setMode(storedUser?.profile?.theme || 'light');
         }
 
+        if (status === 'unauthenticated') {
+            setSession(null)
+        }
+
         //clear the organization state on signout
         // if (!session2) {
         //     dispatch(clearOrganizationState());
@@ -99,7 +106,7 @@ export default function AccountSlotsAccountSwitcher() {
             dispatch(clearOrganizationState());
             authEvents.off('triggerSignIn', handleSignIn);
         }
-    }, [user?.id]);
+    }, [user?.id, status]);
 
     return (
         <AuthenticationContext.Provider value={authentication}>
@@ -107,8 +114,9 @@ export default function AccountSlotsAccountSwitcher() {
                 {/* preview-start */}
 
                 <ThemeSwitcher />
-                <SignIn open={isSignInModalOpen} onClose={setSignInModalOpen} setSignUpModalOpen={setSignUpModalOpen}></SignIn>
-                <SignUp setSignInModalOpen={setSignInModalOpen} openSignUp={isSignUpModalOpen} setSignUpModalOpen={setSignUpModalOpen}></SignUp>
+                <SignIn open={isSignInModalOpen} onClose={setSignInModalOpen} setSignUpModalOpen={setSignUpModalOpen} setRestPwdOpen={setRestPwdOpen}></SignIn>
+                <SignUp setSignInModalOpen={setSignInModalOpen} openSignUp={isSignUpModalOpen} setSignUpModalOpen={setSignUpModalOpen} ></SignUp>
+                <ResetPassword setRestPwdOpen={setRestPwdOpen} openResetPwd={openResetPwd} setSignInModalOpen={setSignInModalOpen}></ResetPassword>
                 <Account
                     slots={{
                         popoverContent: CustomMenu,

@@ -8,10 +8,11 @@ import { getDefaultOrganization, Organization, OrganizationState } from '@/redux
 import { deletePdfTemplate, readAllPdfTemplatePage } from '@/app/services/pdfService';
 import { findAllAddons } from '@/app/services/addonService';
 import dynamic from 'next/dynamic';
-import DeleteConfirmDialog from '../components/DeleteConfirmDialog';
+// import DeleteConfirmDialog from '../components/DeleteConfirmDialog';
 import { RootState } from '@/redux/store';
 const PdfPreviewButton = dynamic(() => import('@/app/components/PdfPreviewButton'), { ssr: false });
 const HtmlToPdfEditor = dynamic(() => import('../editor/page'), { ssr: false });
+const DeleteConfirmDialog = dynamic(() => import('../components/DeleteConfirmDialog'), { ssr: false });
 
 const PdfTemplatePage: React.FC = () => {
     const [templates, setTemplates] = useState<any[]>([]);
@@ -185,7 +186,7 @@ const PdfTemplatePage: React.FC = () => {
 
                                                 <PdfPreviewButton htmlContent={
                                                     `<div className="ck ck-editor__main">
-                                                        <div class="ck ck-content">
+                                                        <div class="ck ck-content" style="margin: ${template?.margin?.t}px ${template?.margin?.r}px ${template?.margin?.b}px ${template?.margin?.l}px;">
                                                         <div>${template.headerContent}</div>
                                                         ${template.bodyContent}
                                                         ${template.sections ? template.sections.map((se: any) => se.htmlContent) : ''}
@@ -193,7 +194,7 @@ const PdfTemplatePage: React.FC = () => {
                                                         </div>
                                                         </div>
                                                 `} isIconButton={true} id={template.id}
-                                                    organization_id={currentOrg?.id} subcategories={[]}/>
+                                                    organization_id={currentOrg?.id} subcategories={template?.subcategories || []}/>
                                             </Grid2>
                                         </TableCell>
                                         <TableCell>{template?.addons?.join(', ')}</TableCell>

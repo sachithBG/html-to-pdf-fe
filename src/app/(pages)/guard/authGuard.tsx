@@ -25,13 +25,15 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
         const storedToken: any = localStorage.getItem('token');
         const decoded: { sub: string; name: string; email: string } | any = jwt.decode(storedToken) as JwtPayload | any;
         const storedUser = decoded?.user ? JSON.parse(decoded?.user) : null;
-        dispatch(setSession({
-            token: storedToken, user: {
-                id: storedUser.id, name: decoded.name, email: decoded.email,
-                profile: storedUser?.profile || { id: null, theme: 'light', avatar: null }
-            },
-            status: 'authenticated'
-        }));
+        if (storedUser && status === 'authenticated') {
+            dispatch(setSession({
+                token: storedToken, user: {
+                    id: storedUser.id, name: decoded.name, email: decoded.email,
+                    profile: storedUser?.profile || { id: null, theme: 'light', avatar: null }
+                },
+                status: 'authenticated'
+            }));
+        }
         if (!storedToken && pathname != '/' && pathname != '/test') {
             // signOut();
             router.push('/dashboard');

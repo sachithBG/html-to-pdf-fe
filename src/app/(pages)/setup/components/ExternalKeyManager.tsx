@@ -1,14 +1,18 @@
 import { useState, useEffect } from 'react';
-import { TextField, Button, Card, Typography, IconButton, Tooltip, CircularProgress, Box, Skeleton, InputAdornment } from '@mui/material';
-import { CopyAll } from '@mui/icons-material';
+import { TextField, Button, Card, Typography, Tooltip, CircularProgress, Box, Skeleton, InputAdornment } from '@mui/material';
 import { addExternalKey, deleteExternalKey, findAllByAddonId, updateExternalKey } from '@/app/services/externalKeyService';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import ClearIcon from '@mui/icons-material/Clear';
 import { RootState } from '@/redux/store';
 import { useSnackbar } from 'notistack';
-import dynamic from 'next/dynamic';
 import { useSelector } from 'react-redux';
-const DeleteConfirmDialog = dynamic(() => import('@/app/(pages)/setup/components/DeleteConfirmDialog'), { ssr: false });
+// import LoadingIconButton from '@/app/components/LoadingIconButton';
+import DeleteIcon from '@mui/icons-material/Delete';
+// import CopyIconButton from '@/app/components/CopyIconButton';
+import dynamic from 'next/dynamic';
+const CopyIconButton = dynamic(() => import('@/app/components/CopyIconButton'), { ssr: false });
+const LoadingIconButton = dynamic(() => import('@/app/components/LoadingIconButton'), { ssr: false });
+// const DeleteConfirmDialog = dynamic(() => import('@/app/(pages)/setup/components/DeleteConfirmDialog'), { ssr: false });
 
 const ExternalKeyManager = ({ addonId }: any) => {
     const [externalKey, setExternalKey] = useState<{ id: number | undefined, key: string }>({ id: undefined, key: '' });
@@ -37,7 +41,7 @@ const ExternalKeyManager = ({ addonId }: any) => {
             const response = externalKey.id ? await updateExternalKey(externalKey.id, { addon_id: addonId, key_value: externalKey.key }, token) :
                 await addExternalKey(addonId, externalKey.key, token);
             if (response.status == 201 || response.status == 200) {
-                enqueueSnackbar(`External Key copied: ${externalKey.key}`, { variant: 'success' });
+                enqueueSnackbar(`External Key created: ${externalKey.key}`, { variant: 'success' });
                 setExternalKey({ id: undefined, key: '' });
                 setExternalKeys((prev: any) => [...prev, response.data]);
             }
@@ -54,53 +58,53 @@ const ExternalKeyManager = ({ addonId }: any) => {
     //     enqueueSnackbar(`External Key copied: ${key}`, { variant: 'success' });
     // };
 
-    const handleCopyKey = (key: string) => {
-        if (!key) return; // Prevent copying empty keys
+    // const handleCopyKey = (key: string) => {
+    //     if (!key) return; // Prevent copying empty keys
 
-        if (navigator.clipboard && typeof navigator.clipboard?.writeText === 'function') {
-            // Use Clipboard API if available
-            navigator.clipboard.writeText(key)
-                .then(() => {
-                    enqueueSnackbar(`External Key copied: ${key}`, { variant: 'success' });
-                })
-                .catch((err) => {
-                    console.error('Clipboard API failed, using fallback:', err);
-                    fallbackCopyToClipboard(key);
-                });
-        } else {
-            // Use fallback if Clipboard API is unavailable
-            fallbackCopyToClipboard(key);
-        }
-    };
+    //     if (navigator.clipboard && typeof navigator.clipboard?.writeText === 'function') {
+    //         // Use Clipboard API if available
+    //         navigator.clipboard.writeText(key)
+    //             .then(() => {
+    //                 enqueueSnackbar(`External Key copied: ${key}`, { variant: 'success' });
+    //             })
+    //             .catch((err) => {
+    //                 console.error('Clipboard API failed, using fallback:', err);
+    //                 fallbackCopyToClipboard(key);
+    //             });
+    //     } else {
+    //         // Use fallback if Clipboard API is unavailable
+    //         fallbackCopyToClipboard(key);
+    //     }
+    // };
 
-    // Fallback for copying text using a hidden textarea
-    const fallbackCopyToClipboard = (text: string) => {
-        const textArea = document.createElement('textarea');
-        textArea.value = text;
-        textArea.style.position = 'fixed'; // Prevents scrolling to the end of the page
-        textArea.style.opacity = '0'; // Keeps it invisible
-        textArea.style.left = '-9999px';
-        document.body.appendChild(textArea);
-        textArea.focus();
-        textArea.select();
+    // // Fallback for copying text using a hidden textarea
+    // const fallbackCopyToClipboard = (text: string) => {
+    //     const textArea = document.createElement('textarea');
+    //     textArea.value = text;
+    //     textArea.style.position = 'fixed'; // Prevents scrolling to the end of the page
+    //     textArea.style.opacity = '0'; // Keeps it invisible
+    //     textArea.style.left = '-9999px';
+    //     document.body.appendChild(textArea);
+    //     textArea.focus();
+    //     textArea.select();
 
-        try {
-            const successful = document.execCommand('copy');
-            if (successful) {
-                enqueueSnackbar(`External Key copied (fallback): ${text}`, { variant: 'success' });
-            } else {
-                enqueueSnackbar('Failed to copy the key (fallback).', { variant: 'error' });
-            }
-        } catch (err) {
-            console.error('Fallback copy failed:', err);
-            enqueueSnackbar('Failed to copy the key (fallback).', { variant: 'error' });
-        }
+    //     try {
+    //         const successful = document.execCommand('copy');
+    //         if (successful) {
+    //             enqueueSnackbar(`External Key copied (fallback): ${text}`, { variant: 'success' });
+    //         } else {
+    //             enqueueSnackbar('Failed to copy the key (fallback).', { variant: 'error' });
+    //         }
+    //     } catch (err) {
+    //         console.error('Fallback copy failed:', err);
+    //         enqueueSnackbar('Failed to copy the key (fallback).', { variant: 'error' });
+    //     }
 
-        document.body.removeChild(textArea);
-    };
+    //     document.body.removeChild(textArea);
+    // };
 
 
-    const handleDeleteKey = async (id: number) => {
+    const handleDeleteKey = async (e: any, id: number) => {
         if (!id) return;
 
         // const confirmDelete = window.confirm("Are you sure you want to delete this key?");
@@ -188,18 +192,34 @@ const ExternalKeyManager = ({ addonId }: any) => {
                                 <div key={index} className="flex justify-between items-center py-2">
                                     <Typography sx={{ cursor: 'pointer' }} onClick={() => setExternalKey({ id: key.id, key: key.key_value })}>{key.key_value}</Typography>
                                     <Box>
-                                        <Tooltip title="Copy Key">
+                                        {/* <Tooltip title="Copy Key">
                                             <IconButton onClick={() => handleCopyKey(key.key_value)}>
                                                 <CopyAll />
                                             </IconButton>
-                                        </Tooltip>
+                                        </Tooltip> */}
+                                        <CopyIconButton
+                                            textToCopy={key?.key_value || ''}
+                                            tooltipCopy="Copy"
+                                            tooltipCopied="Text copied!"
+                                            size="small"
+                                            color="info"
+                                        />
                                         <Tooltip title="Delete Key">
-                                            <DeleteConfirmDialog
+                                            <LoadingIconButton
+                                                onClick={handleDeleteKey}
+                                                params={key.id} // Passing ID as a parameter
+                                                icon={<DeleteIcon sx={{ fontSize: 16 }} />}
+                                                size="small"
+                                                variant="error"
+                                                isNeedToConfirm={true}
+                                                key={key.id}
+                                            />
+                                            {/* <DeleteConfirmDialog
                                                 id={key.id}
                                                 onDelete={(id: any) => handleDeleteKey(id)}
                                                 variant="icon"
                                                 buttonProps={{ size: "small", color: "error" }} // IconButton props
-                                            />
+                                            /> */}
                                         </Tooltip>
                                     </Box>
                                 </div>

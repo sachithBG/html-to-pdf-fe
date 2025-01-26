@@ -1,9 +1,11 @@
 import React, { useState, useRef } from 'react';
-import { Box, TextField, Typography, Button, Alert, IconButton, Dialog } from '@mui/material';
+import { Box, TextField, Typography, Button, Alert, IconButton, Dialog, InputAdornment } from '@mui/material';
 import Grid2 from '@mui/material/Grid2'; // Grid2 component
 import LineStyleIcon from '@mui/icons-material/LineStyle';
 import { signUpUser } from '@/app/services/authService';
 import CloseIcon from '@mui/icons-material/Close';
+import { Visibility, VisibilityOff } from '@mui/icons-material';
+
 
 const SignUp = ({ setSignInModalOpen, openSignUp, setSignUpModalOpen }: any) => {
     const [name, setName] = useState('');
@@ -23,6 +25,8 @@ const SignUp = ({ setSignInModalOpen, openSignUp, setSignUpModalOpen }: any) => 
 
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
+    const [showPassword, setShowPassword] = useState(false);
+
 
     const handleValidation = () => {
         let isValid = true;
@@ -99,6 +103,10 @@ const SignUp = ({ setSignInModalOpen, openSignUp, setSignUpModalOpen }: any) => 
         setSignUpModalOpen(false);
     };
 
+    const togglePasswordVisibility = () => {
+        setShowPassword((prev) => !prev);
+    };
+
     return (
         <Dialog open={openSignUp} onClose={handleClose}>
             <IconButton
@@ -171,7 +179,7 @@ const SignUp = ({ setSignInModalOpen, openSignUp, setSignUpModalOpen }: any) => 
                 <TextField
                     inputRef={passwordRef}
                     label="Password"
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     value={password}
                     onChange={(e) => {
                         setPassword(e.target.value);
@@ -183,8 +191,22 @@ const SignUp = ({ setSignInModalOpen, openSignUp, setSignUpModalOpen }: any) => 
                     fullWidth
                     margin="normal"
                     slotProps={{
+                        input: {
+                            endAdornment: (
+                                <InputAdornment position="end">
+                                    <IconButton
+                                        onClick={togglePasswordVisibility}
+                                        onMouseDown={(event) => event.preventDefault()} // Prevent focus loss
+                                        edge="end"
+                                    >
+                                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                                    </IconButton>
+                                </InputAdornment>
+                            ),
+                        },
+                        // eslint-disable-next-line
                         htmlInput(ownerState) {
-                            console.log(ownerState);
+                            // console.log(ownerState);
                             return { maxLength: 8, minLength: 3 };
                         },
                     }}

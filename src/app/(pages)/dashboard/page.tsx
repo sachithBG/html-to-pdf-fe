@@ -166,7 +166,7 @@ const Dashboard = () => {
     }, [currentOrg?.refresh_token]);
 
     const calculatePrice = (count: number): number => {
-        const basePrice = 10; // Base price per request
+        const basePrice = .1; // Base price per request
         const discountRate = 0.05; // 5% discount for bulk requests
         return count <= 10 ? count * basePrice : count * basePrice * (1 - discountRate);
     };

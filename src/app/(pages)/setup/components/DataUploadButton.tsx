@@ -6,16 +6,16 @@ import {
     DialogTitle,
     TextField,
     Button,
-    CircularProgress,
     IconButton,
     Box,
     Skeleton,
 } from '@mui/material';
-import { CloudUpload, Save, FormatAlignLeft } from '@mui/icons-material';
+import { CloudUpload, FormatAlignLeft } from '@mui/icons-material';
 import Ajv from 'ajv';
 import { readPdfTemplate, updateDummyDataPdfTemplate } from '@/app/services/pdfService';
 import { RootState } from '@/redux/store';
 import { useSelector } from 'react-redux';
+import SaveUpdateButton from '@/app/components/SaveUpdateButton';
 
 interface DataUploadButtonProps {
     onSave: (data: string) => void;
@@ -26,6 +26,7 @@ const DataUploadButton: React.FC<DataUploadButtonProps> = ({ onSave, id }) => {
     const [isDialogOpen, setDialogOpen] = useState(false);
     const [jsonText, setJsonText] = useState('');
     const [error, setError] = useState<string | null>(null);
+    // eslint-disable-next-line
     const [isSaving, setSaving] = useState(false);
     const [isLoding, setIsLoding] = useState(false);
 
@@ -103,14 +104,14 @@ const DataUploadButton: React.FC<DataUploadButtonProps> = ({ onSave, id }) => {
         try {
             setSaving(true);
             await updateDummyDataPdfTemplate(id, jsonText, token);
-            setTimeout(() => {
+            const tt = setTimeout(() => {
                 onSave(jsonText);
                 setSaving(false);
                 handleCloseDialog();
+                clearTimeout(tt);
             }, 1000); // Simulate async save
         } catch (e: any) {
             setError(e?.message);
-        } finally {
             setSaving(false);
         }
     };
@@ -165,7 +166,15 @@ const DataUploadButton: React.FC<DataUploadButtonProps> = ({ onSave, id }) => {
                     <Button onClick={handleCloseDialog} color="inherit" size='small'>
                         Cancel
                     </Button>
-                    <Button
+                    <SaveUpdateButton
+                        label="Save"
+                        size="small"
+                        variant="outlined"
+                        color="primary"
+                        onClick={handleSave}
+                        disabled={false} // Disable based on condition
+                    />
+                    {/* <Button
                         onClick={handleSave}
                         color="primary"
                         variant="outlined"
@@ -174,7 +183,7 @@ const DataUploadButton: React.FC<DataUploadButtonProps> = ({ onSave, id }) => {
                         size='small'
                     >
                         Save
-                    </Button>
+                    </Button> */}
                 </DialogActions>
 
             </Dialog>

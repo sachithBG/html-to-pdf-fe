@@ -1,17 +1,17 @@
 import React from 'react';
 import {
     Container,
-    Typography,
     Card,
     CardContent,
-    Grid,
+    Typography,
+    Box,
+    Button,
+    Grid2 as Grid,
     List,
     ListItem,
     ListItemText,
-    Box,
-    Divider,
-    Button,
     Paper,
+    Divider,
 } from '@mui/material';
 import { ArrowForward } from '@mui/icons-material';
 
@@ -30,7 +30,7 @@ const PDFDesignGuide: React.FC = () => {
                         Overview
                     </Typography>
                     <Typography variant="body1">
-                        This guide explains the steps to create and manage PDF templates, addons, tags, and dynamic tables, and
+                        This guide explains the steps to create and manage PDF templates, addons, tags, dynamic tables, and
                         finally integrate the system using tokens and APIs.
                     </Typography>
                 </CardContent>
@@ -44,7 +44,7 @@ const PDFDesignGuide: React.FC = () => {
                     </Typography>
                     <List>
                         <ListItem>
-                            <ListItemText primary="Setup" secondary="Pdf Design, Table Manage, Media, Config" />
+                            <ListItemText primary="Setup" secondary="PDF Design, Table Management, Media, Config" />
                         </ListItem>
                         <ListItem>
                             <ListItemText primary="Integrations" secondary="Manage tokens and APIs" />
@@ -62,17 +62,17 @@ const PDFDesignGuide: React.FC = () => {
             {/* Steps Section */}
             <Grid container spacing={4}>
                 {/* Create Addon */}
-                <Grid item xs={12} md={6}>
+                <Grid size={{xs: 12, md: 6}}>
                     <Card>
                         <CardContent>
                             <Typography variant="h6" gutterBottom>
                                 1. Create Addon
                             </Typography>
                             <Typography variant="body1">
-                                Addons allow you to add reusable components that can be injected into templates.
+                                Addons allow you to add reusable components that can be injected into templates. For example, external keys for generating PDFs can be added here.
                             </Typography>
                             <Box mt={2}>
-                                <Button size='small' variant="outlined" color="primary">
+                                <Button size="small" variant="outlined" color="primary">
                                     Create New Addon
                                 </Button>
                             </Box>
@@ -81,7 +81,7 @@ const PDFDesignGuide: React.FC = () => {
                 </Grid>
 
                 {/* Create Tags */}
-                <Grid item xs={12} md={6}>
+                <Grid size={{ xs: 12, md: 6 }}>
                     <Card>
                         <CardContent>
                             <Typography variant="h6" gutterBottom>
@@ -89,10 +89,10 @@ const PDFDesignGuide: React.FC = () => {
                             </Typography>
                             <Typography variant="body1">
                                 Tags dynamically reference data fields in the template, such as{' '}
-                                <code>{`{{jobOrder.name}}`}</code>.
+                                <code>{`{{jobOrder.name}}`}</code>. This helps generate personalized PDFs.
                             </Typography>
                             <Box mt={2}>
-                                <Button size='small' variant="outlined" color="primary">
+                                <Button size="small" variant="outlined" color="primary">
                                     Add New Tag
                                 </Button>
                             </Box>
@@ -101,17 +101,17 @@ const PDFDesignGuide: React.FC = () => {
                 </Grid>
 
                 {/* Create Dynamic Table */}
-                <Grid item xs={12}>
+                <Grid size={{xs: 12}}>
                     <Card>
                         <CardContent>
                             <Typography variant="h6" gutterBottom>
                                 3. Create Dynamic Table
                             </Typography>
                             <Typography variant="body1">
-                                Dynamic tables organize data into tabular formats linked to JSON arrays.
+                                Dynamic tables organize data into tabular formats linked to JSON arrays. Use this for job order items, tasks, etc.
                             </Typography>
                             <Box mt={2}>
-                                <Button size='small' variant="outlined" color="primary">
+                                <Button size="small" variant="outlined" color="primary">
                                     Create New Table
                                 </Button>
                             </Box>
@@ -127,7 +127,7 @@ const PDFDesignGuide: React.FC = () => {
                         4. Integration
                     </Typography>
                     <Typography variant="body1">
-                        Use tokens and APIs to integrate the generated PDFs into external systems.
+                        Use tokens and APIs to integrate the generated PDFs into external systems. Below is an example of how the API integration might look:
                     </Typography>
                     <Paper elevation={2} sx={{ p: 2, mt: 2 }}>
                         <Typography variant="body2">
@@ -171,28 +171,27 @@ const PDFDesignGuide: React.FC = () => {
                                 alignItems: 'center',
                                 justifyContent: 'center',
                                 width: '100%',
-                                // backgroundColor: '#f5f5f5',
                             }}
                         >
                             <Box
                                 sx={{
-                                    display: "flex",
-                                    flexDirection: "column",
-                                    alignItems: "center",
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    alignItems: 'center',
                                     gap: 4,
                                     p: 4,
-                                    backgroundColor: "#f9f9f9",
+                                    backgroundColor: '#f9f9f9',
                                     borderRadius: 2,
                                 }}
                             >
                                 {/* Start Node */}
                                 <Box
                                     sx={{
-                                        display: "flex",
-                                        justifyContent: "center",
-                                        alignItems: "center",
-                                        backgroundColor: "#1976d2",
-                                        color: "#fff",
+                                        display: 'flex',
+                                        justifyContent: 'center',
+                                        alignItems: 'center',
+                                        backgroundColor: '#1976d2',
+                                        color: '#fff',
                                         width: 120,
                                         height: 50,
                                         borderRadius: 1,
@@ -203,21 +202,21 @@ const PDFDesignGuide: React.FC = () => {
 
                                 <Box
                                     sx={{
-                                        display: "flex",
-                                        flexDirection: "row",
-                                        justifyContent: "center",
-                                        alignItems: "center",
+                                        display: 'flex',
+                                        flexDirection: 'row',
+                                        justifyContent: 'center',
+                                        alignItems: 'center',
                                         gap: 4,
                                     }}
                                 >
                                     {/* Create Addon */}
                                     <Box
                                         sx={{
-                                            display: "flex",
-                                            justifyContent: "center",
-                                            alignItems: "center",
-                                            backgroundColor: "#42a5f5",
-                                            color: "#fff",
+                                            display: 'flex',
+                                            justifyContent: 'center',
+                                            alignItems: 'center',
+                                            backgroundColor: '#42a5f5',
+                                            color: '#fff',
                                             width: 160,
                                             height: 50,
                                             borderRadius: 1,
@@ -227,16 +226,16 @@ const PDFDesignGuide: React.FC = () => {
                                     </Box>
 
                                     {/* Arrow */}
-                                    <ArrowForward sx={{ fontSize: "2rem", color: "#888" }} />
+                                    <ArrowForward sx={{ fontSize: '2rem', color: '#888' }} />
 
                                     {/* Create Tags */}
                                     <Box
                                         sx={{
-                                            display: "flex",
-                                            justifyContent: "center",
-                                            alignItems: "center",
-                                            backgroundColor: "#42a5f5",
-                                            color: "#fff",
+                                            display: 'flex',
+                                            justifyContent: 'center',
+                                            alignItems: 'center',
+                                            backgroundColor: '#42a5f5',
+                                            color: '#fff',
                                             width: 160,
                                             height: 50,
                                             borderRadius: 1,
@@ -248,21 +247,21 @@ const PDFDesignGuide: React.FC = () => {
 
                                 <Box
                                     sx={{
-                                        display: "flex",
-                                        flexDirection: "row",
-                                        justifyContent: "center",
-                                        alignItems: "center",
+                                        display: 'flex',
+                                        flexDirection: 'row',
+                                        justifyContent: 'center',
+                                        alignItems: 'center',
                                         gap: 4,
                                     }}
                                 >
                                     {/* Create Table */}
                                     <Box
                                         sx={{
-                                            display: "flex",
-                                            justifyContent: "center",
-                                            alignItems: "center",
-                                            backgroundColor: "#42a5f5",
-                                            color: "#fff",
+                                            display: 'flex',
+                                            justifyContent: 'center',
+                                            alignItems: 'center',
+                                            backgroundColor: '#42a5f5',
+                                            color: '#fff',
                                             width: 160,
                                             height: 50,
                                             borderRadius: 1,
@@ -272,16 +271,16 @@ const PDFDesignGuide: React.FC = () => {
                                     </Box>
 
                                     {/* Arrow */}
-                                    <ArrowForward sx={{ fontSize: "2rem", color: "#888" }} />
+                                    <ArrowForward sx={{ fontSize: '2rem', color: '#888' }} />
 
                                     {/* Integration */}
                                     <Box
                                         sx={{
-                                            display: "flex",
-                                            justifyContent: "center",
-                                            alignItems: "center",
-                                            backgroundColor: "#1976d2",
-                                            color: "#fff",
+                                            display: 'flex',
+                                            justifyContent: 'center',
+                                            alignItems: 'center',
+                                            backgroundColor: '#1976d2',
+                                            color: '#fff',
                                             width: 160,
                                             height: 50,
                                             borderRadius: 1,
@@ -294,11 +293,11 @@ const PDFDesignGuide: React.FC = () => {
                                 {/* End Node */}
                                 <Box
                                     sx={{
-                                        display: "flex",
-                                        justifyContent: "center",
-                                        alignItems: "center",
-                                        backgroundColor: "#1565c0",
-                                        color: "#fff",
+                                        display: 'flex',
+                                        justifyContent: 'center',
+                                        alignItems: 'center',
+                                        backgroundColor: '#1565c0',
+                                        color: '#fff',
                                         width: 120,
                                         height: 50,
                                         borderRadius: 1,
@@ -307,8 +306,6 @@ const PDFDesignGuide: React.FC = () => {
                                     End
                                 </Box>
                             </Box>
-
-
                         </Paper>
                     </Box>
                 </CardContent>

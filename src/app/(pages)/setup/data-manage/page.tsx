@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from 'react';
-import { Button, TextField, Chip, IconButton, Popover, MenuItem, Select, InputLabel, FormControl, Paper, Box, Typography, Checkbox, ListItemText, Grid2, useTheme, Tooltip, Snackbar, Alert, Tabs, Tab, Skeleton } from '@mui/material';
+import { TextField, Chip, IconButton, Popover, MenuItem, Select, InputLabel, FormControl, Paper, Box, Checkbox, ListItemText, Grid2, useTheme, Tooltip, Snackbar, Alert, Tabs, Tab, Skeleton } from '@mui/material';
 import { RootState } from '@/redux/store';
 import { useSelector } from 'react-redux';
 import { getDefaultOrganization, Organization, OrganizationState } from '@/redux/slice/organizationSlice';
@@ -11,6 +11,10 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import SaveIcon from '@mui/icons-material/Save';
 import FileCopyIcon from '@mui/icons-material/FileCopy';
 import dynamic from 'next/dynamic';
+// import LoadingIconButton from '@/app/components/LoadingIconButton';
+// import SaveUpdateButton from '@/app/components/SaveUpdateButton';
+const LoadingIconButton = dynamic(() => import('@/app/components/LoadingIconButton'), { ssr: false });
+const SaveUpdateButton = dynamic(() => import('@/app/components/SaveUpdateButton'), { ssr: false });
 const ManageAddonsPage = dynamic(() => import('@/app/(pages)/setup/components/ManageAddons'), { ssr: false });
 const ExternalKeyManager = dynamic(() => import('@/app/(pages)/setup/components/ExternalKeyManager'), { ssr: false });
 const TemplateDataManager = dynamic(() => import('@/app/(pages)/setup/components/TemplateDataManager'), { ssr: false });
@@ -85,6 +89,7 @@ const TagManagementPage = () => {
     const id = openPopover ? 'simple-popover' : undefined;
 
     const openDelete = Boolean(deleteAnchorEl);
+    // eslint-disable-next-line
     const idDelete = openDelete ? 'delete-popover' : undefined;
     const [tabValue, setTabValue] = useState(0);
 
@@ -101,7 +106,7 @@ const TagManagementPage = () => {
                 if (res.status == 200) {
                     setAddons(() => res.data);
                     try {
-                        const response = await findAllTags(res.data?.filter((a: any) => selectedAddons.includes(a.name)), token);
+                        const response = await findAllTags(res.data?.filter((a: any) => selectedAddons.includes(a.name)), currentOrg.id, token);
                         // axios.get(process.env.NEXT_PUBLIC_BASE_URL + "v1/tags", {
                         //     params: { addons: addons.filter(a => selectedAddons.includes(a.name)).map(a => a.id).join(',') },
                         // });
@@ -129,7 +134,7 @@ const TagManagementPage = () => {
         setSelectedAddons(event.target.value);
         // console.log(event.target.value)
         try {
-            const response = await findAllTags(event.target.value, token);
+            const response = await findAllTags(event.target.value, currentOrg.id, token);
             if (response.status == 200) {
                 setTags(response.data);
             }
@@ -182,6 +187,7 @@ const TagManagementPage = () => {
         }
     };
 
+    // eslint-disable-next-line
     const handleConfirmDelete = () => {
         if (tagToDelete !== null) {
             handleDeleteTag(tagToDelete);
@@ -189,7 +195,7 @@ const TagManagementPage = () => {
         }
     };
 
-    const handleEditClick = (event: React.MouseEvent<HTMLElement>, tag: Tag) => {
+    const handleEditClick = async (event: React.MouseEvent<HTMLElement>, tag: Tag) => {
         setAnchorEl(event.currentTarget);
         setEditTag(tag);
     };
@@ -199,9 +205,15 @@ const TagManagementPage = () => {
         setEditTag(null);
     };
 
-    const handleDeleteClick = (event: React.MouseEvent<HTMLElement>, tagId: number) => {
+    const handleDeleteClick = async (event: React.MouseEvent<HTMLElement>, tagId: number) => {
+        // alert(tagId)
+        if (tagId !== null) {
+            handleDeleteTag(tagId);
+            handleDeleteClose();
+        }
         setDeleteAnchorEl(event.currentTarget);
         setTagToDelete(tagId);
+        // handleConfirmDelete();
     };
 
     const handleDeleteClose = () => {
@@ -295,15 +307,6 @@ const TagManagementPage = () => {
         setChosenAddon(event.target.value);
     };
 
-    // template data -----------------------------------------------
-    // const handleSaveTemplate = (updatedTemplate: any) => {
-    //     setTemplates((prevTemplates) =>
-    //         prevTemplates.map((template) =>
-    //             template.id === updatedTemplate.id ? updatedTemplate : template
-    //         )
-    //     );
-    // };
-
     return (
         <Box className="container mx-auto p-4">
             <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
@@ -383,9 +386,17 @@ const TagManagementPage = () => {
                 />
 
                 {/* Save Button */}
-                <Button size='small' variant="outlined" color="primary" sx={{ float: 'right' }} onClick={handleSaveTag} disabled={selectedType == 'TABLE'}>
+                <SaveUpdateButton
+                    label="Save"
+                    size="small"
+                    variant="outlined"
+                    color="primary"
+                    onClick={handleSaveTag}
+                    disabled={selectedType === "TABLE"} // Disable based on condition
+                />
+                {/* <Button size='small' variant="outlined" color="primary" sx={{ float: 'right' }} onClick={handleSaveTag} disabled={selectedType == 'TABLE'}>
                     Save Tag
-                </Button>
+                </Button> */}
 
                 {/* Display Tags */}
                 <div style={{ marginTop: 20 }}>
@@ -406,10 +417,14 @@ const TagManagementPage = () => {
                                 >
                                     <Chip
                                         label={tag.name}
-                                        onDelete={(e) => handleEditClick(e, tag)}
-                                        deleteIcon={<EditIcon sx={{
-                                            color: theme.palette.mode === 'light' ? theme.palette.success.dark : theme.palette.secondary.light,
-                                        }} />}
+                                        onDelete={() => handleCopyTag(tag.field_path)}
+                                        deleteIcon={
+                                            <Tooltip title={"Copy Key " + tag.field_path}>
+                                                <FileCopyIcon sx={{
+                                                    color: theme.palette.mode === 'light' ? theme.palette.success.dark : theme.palette.secondary.light,
+                                                }} />
+                                            </Tooltip>
+                                        }
                                         sx={{
                                             borderRadius: '12px',
                                             borderColor: 'transparent',
@@ -420,23 +435,38 @@ const TagManagementPage = () => {
                                         variant="outlined"
                                     />
                                     {/* Copy Icon Button */}
-                                    <Tooltip title={"Copy Key " + tag.field_path}>
-                                        <IconButton
-                                            onClick={() => handleCopyTag(tag.field_path)}
-                                            size="small"
-                                            sx={{
-                                                padding: '6px',
-                                                '&:hover': {
-                                                    backgroundColor: theme.palette.info.main,
-                                                    color: theme.palette.common.white,
-                                                },
-                                            }}
-                                        >
-                                            <FileCopyIcon sx={{ fontSize: 16 }} />
-                                        </IconButton>
-                                    </Tooltip>
+                                    <LoadingIconButton
+                                        onClick={handleEditClick}
+                                        icon={<EditIcon sx={{ fontSize: 16 }} />}
+                                        variant="info"
+                                        params={tag}
+                                        key={'edit' + tag.id}
+                                    />
+                                    {/* <IconButton
+                                        onClick={(e) => handleEditClick(e, tag)}
+                                        size="small"
+                                        sx={{
+                                            padding: '6px',
+                                            '&:hover': {
+                                                backgroundColor: theme.palette.info.main,
+                                                color: theme.palette.common.white,
+                                            },
+                                        }}
+                                    >
+                                        <EditIcon sx={{ fontSize: 16 }} />
+                                    </IconButton> */}
+
                                     {/* Delete Icon Button */}
-                                    <IconButton
+                                    <LoadingIconButton
+                                        onClick={handleDeleteClick}
+                                        icon={<DeleteIcon sx={{ fontSize: 16 }} />}
+                                        variant="error"
+                                        isNeedToConfirm={true}
+                                        confirmMessage={`Are you sure you want to delete this item (${tag.name}) ?`}
+                                        params={tag.id}
+                                        key={tag.id+''}
+                                    />
+                                    {/* <IconButton
                                         onClick={(event) => handleDeleteClick(event, tag.id)}
                                         size="small"
                                         sx={{
@@ -448,7 +478,7 @@ const TagManagementPage = () => {
                                         }}
                                     >
                                         <DeleteIcon sx={{ fontSize: 16 }} />
-                                    </IconButton>
+                                    </IconButton> */}
                                 </Paper>
 
                             </Grid2>
@@ -492,7 +522,7 @@ const TagManagementPage = () => {
                 </Popover>
 
                 {/* Edit Tag */}
-                <Popover
+                {/* <Popover
                     id={idDelete}
                     open={openDelete}
                     anchorEl={deleteAnchorEl}
@@ -517,7 +547,7 @@ const TagManagementPage = () => {
                             </Button>
                         </Box>
                     </Box>
-                </Popover>
+                </Popover> */}
                 {/* Snackbar to show copied text */}
                 <Snackbar
                     open={snackbarOpen}

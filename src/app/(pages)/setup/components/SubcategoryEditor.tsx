@@ -15,6 +15,9 @@ import AddCircleIcon from "@mui/icons-material/AddCircle";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import ClearIcon from "@mui/icons-material/Clear";
+import dynamic from "next/dynamic";
+// import LoadingIconButton from "@/app/components/LoadingIconButton";
+const LoadingIconButton = dynamic(() => import('@/app/components/LoadingIconButton'), { ssr: false });
 
 interface Subcategory {
     id: number;
@@ -25,7 +28,7 @@ interface SubcategoryEditorProps {
     subcategories: Subcategory[];
     onAddSubcategory: (name: string) => void;
     onDeleteSubcategory: (id: number) => void;
-    onEditSubcategory: (id: number, name: string) => void;
+    onEditSubcategory: (id: number, name: string) => Promise<void>;
     loading?: boolean;
 }
 
@@ -122,12 +125,21 @@ const SubcategoryEditor: React.FC<SubcategoryEditorProps> = ({
                                     >
                                         <EditIcon />
                                     </IconButton>
-                                    <IconButton
+                                    <LoadingIconButton
+                                        onClick={async () => onDeleteSubcategory(subcategory.id)} // Passing ID as a parameter
+                                        params={subcategory.id} // Passing ID as a parameter
+                                        icon={<DeleteIcon sx={{ fontSize: 16 }} />}
+                                        size="small"
+                                        variant="error"
+                                        isNeedToConfirm={true}
+                                        key={subcategory.id+''}
+                                    />
+                                    {/* <IconButton
                                         color="error"
                                         onClick={() => onDeleteSubcategory(subcategory.id)}
                                     >
                                         <DeleteIcon />
-                                    </IconButton>
+                                    </IconButton> */}
                                 </Box>
                             </Paper>
                         </Grid2>

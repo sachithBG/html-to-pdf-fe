@@ -176,7 +176,7 @@ function RememberMe() {
     );
 }
 
-export default function SignIn({ open, onClose, setSignUpModalOpen }: any) {
+export default function SignIn({ open, onClose, setSignUpModalOpen, setRestPwdOpen }: any) {
     const dispatch = useDispatch();
     const handleClose = () => {
         onClose(false);
@@ -189,7 +189,7 @@ export default function SignIn({ open, onClose, setSignUpModalOpen }: any) {
 
     const handleForgotPassword = () => {
         onClose(false);
-        setSignUpModalOpen(true);
+        setRestPwdOpen(true);
     };
 
     return (
@@ -230,7 +230,7 @@ export default function SignIn({ open, onClose, setSignUpModalOpen }: any) {
                     signUpLink: () => <Typography variant="body2" onClick={handleSignUp} sx={{ cursor: 'pointer' }}>
                         Sign up
                     </Typography>,
-                    forgotPasswordLink: () => <Typography variant="body2" onClick={handleForgotPassword}>
+                    forgotPasswordLink: () => <Typography sx={{cursor: 'pointer'}} variant="body2" onClick={handleForgotPassword}>
                         Forgot password?
                     </Typography>,
                     // userNameField: () => null,

@@ -15,12 +15,14 @@ import {
     Snackbar,
     Alert,
     Grid2,
+    InputAdornment,
 } from '@mui/material';
 import { Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import { createAddon, deleteAddon, findAllAddons, updateAddon } from '@/app/services/addonService';
 import { RootState } from '@/redux/store';
 import { useSelector } from 'react-redux';
 import { getDefaultOrganization, Organization, OrganizationState } from '@/redux/slice/organizationSlice';
+import ClearIcon from "@mui/icons-material/Clear";
 // import CustomTabPanel from './CustomTabPanel'; // Assume this is a reusable tab panel component
 
 const ManageAddonsPage: React.FC = () => {
@@ -146,6 +148,16 @@ const ManageAddonsPage: React.FC = () => {
                     }}
                     error={!!errors.addonName}
                     helperText={errors.addonName}
+                    slotProps={{
+                        input: {
+                            endAdornment: (
+                                <InputAdornment position="end">
+                                    {newAddon.id && <ClearIcon fontSize="small" sx={{ cursor: 'pointer' }}
+                                        onClick={() => setNewAddon({ id: null, name: "" })} />}
+                                </InputAdornment>
+                            ),
+                        }
+                    }}
                 />
                 <Button
                     variant="outlined"

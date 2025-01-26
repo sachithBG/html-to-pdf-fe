@@ -42,6 +42,13 @@ input:-webkit-autofill, input:-webkit-autofill:hover, input:-webkit-autofill:foc
 
 .custom-snackbar {
   margin-top: 64px; /* Adjust this value as needed */
+  /* background-color: rgb(12, 19, 13); */
+  color: black
+}
+
+.notistack-MuiContent-success{
+  background-color: rgba(5, 68, 13, 0.76) !important;
+  color: black
 }
 
 @import url('https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,400;0,700;1,400;1,700&display=swap');
