@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useCallback, useEffect } from 'react';
-import { Box, Tab, Tabs, Typography, Container, Grid2 as Grid, Grid2, FormControl, InputLabel, Select, MenuItem, Checkbox, ListItemText } from '@mui/material';
+import { Box, Tab, Tabs, Typography, Container, Grid2 as Grid, Grid2, FormControl, InputLabel, Select, MenuItem, Checkbox, ListItemText, TextField } from '@mui/material';
 import dynamic from 'next/dynamic';
 import { deleteImg, findAllImages, uploadMedia } from '@/app/services/mediaService';
 import { findAllAddons } from '@/app/services/addonService';
@@ -26,6 +26,7 @@ function MediaManageParent() {
     const [copiedToken, setCopiedToken] = useState<Map<number, boolean>>(new Map()); // Track if token was copied for each image
     const [tooltipToken, setTooltipToken] = useState<Map<number, string>>(new Map()); // Track tooltip text for each image
     const [selectedAddons, setSelectedAddons] = useState<number[]>([]);
+    const [imageName, setImageName] = useState<string>('');
 
     const { enqueueSnackbar } = useSnackbar();
     // Handle Tab Change
@@ -44,7 +45,7 @@ function MediaManageParent() {
                 // console.log(newImage);
                 const add = addons.filter(a => newImage.addons.includes(a.name)).map(a => a.id);
                 // console.log(add);
-                const res = await uploadMedia(currentOrg.id, newImage.preview!, add, token);
+                const res = await uploadMedia(currentOrg.id, newImage.preview!, add, token, imageName);
                 if (res.status == 201) {
                     enqueueSnackbar(`Uploaded`, { variant: 'success' });
                     const img = res.data?.data;
@@ -54,7 +55,8 @@ function MediaManageParent() {
                         file_key: img.file_key,
                         addon_ids: img.addon_ids,
                         url: img.url,
-                        organization_id: img.organization_id
+                        organization_id: img.organization_id,
+                        name: imageName
                     }]);
                 }
             } catch (e: any) {
@@ -118,28 +120,81 @@ function MediaManageParent() {
         }
     }, [selectedAddons]);
 
+    // const handleCopyUrl2 = (url: string, id: number) => {
+    //     if (!url) return;
+
+    //     // Copy URL to clipboard
+    //     navigator.clipboard.writeText(url)
+    //         .then(() => {
+    //             // Update copiedToken state to mark it as copied for the specific image ID
+    //             setCopiedToken((prev) => new Map(prev).set(id, true));
+
+    //             // Set tooltip text to 'Copied' for this specific image
+    //             setTooltipToken((prev) => new Map(prev).set(id, 'Copied'));
+
+    //             // Reset after a short delay
+    //             const t = setTimeout(() => {
+    //                 setCopiedToken((prev) => new Map(prev).set(id, false));
+    //                 setTooltipToken((prev) => new Map(prev).set(id, 'Copy URL'));
+    //                 clearTimeout(t);
+    //             }, 2000);
+    //         })
+    //         .catch(err => {
+    //             console.error('Failed to copy: ', err);
+    //         });
+    // };
+
     const handleCopyUrl = (url: string, id: number) => {
         if (!url) return;
 
-        // Copy URL to clipboard
-        navigator.clipboard.writeText(url)
-            .then(() => {
-                // Update copiedToken state to mark it as copied for the specific image ID
+        if (navigator.clipboard && typeof navigator.clipboard?.writeText === 'function') {
+            // Modern approach using Clipboard API
+            navigator.clipboard.writeText(url)
+                .then(() => {
+                    setCopiedToken((prev) => new Map(prev).set(id, true));
+                    setTooltipToken((prev) => new Map(prev).set(id, 'Copied'));
+                    const t = setTimeout(() => {
+                        setCopiedToken((prev) => new Map(prev).set(id, false));
+                        setTooltipToken((prev) => new Map(prev).set(id, 'Copy URL'));
+                        clearTimeout(t);
+                    }, 2000);
+                })
+                .catch((err) => {
+                    console.error('Clipboard API failed, using fallback:', err);
+                    fallbackCopyToClipboard(url, id); // Fallback if Clipboard API fails
+                });
+        } else {
+            // Fallback for older browsers or restricted environments
+            fallbackCopyToClipboard(url, id);
+        }
+    };
+
+    const fallbackCopyToClipboard = (url: string, id: number) => {
+        const textArea = document.createElement('textarea');
+        textArea.value = url;
+        textArea.style.position = 'fixed'; // Avoid scrolling to the bottom
+        textArea.style.opacity = '0';
+        textArea.style.left = '-9999px'; // Keep it hidden
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        try {
+            const successful = document.execCommand('copy');
+            if (successful) {
                 setCopiedToken((prev) => new Map(prev).set(id, true));
-
-                // Set tooltip text to 'Copied' for this specific image
                 setTooltipToken((prev) => new Map(prev).set(id, 'Copied'));
-
-                // Reset after a short delay
                 const t = setTimeout(() => {
                     setCopiedToken((prev) => new Map(prev).set(id, false));
                     setTooltipToken((prev) => new Map(prev).set(id, 'Copy URL'));
                     clearTimeout(t);
                 }, 2000);
-            })
-            .catch(err => {
-                console.error('Failed to copy: ', err);
-            });
+            } else {
+                console.error('Fallback copy failed');
+            }
+        } catch (err) {
+            console.error('Fallback copy error:', err);
+        }
+        document.body.removeChild(textArea);
     };
 
     const handleDelete = async (fileKey: string) => {
@@ -191,6 +246,7 @@ function MediaManageParent() {
                             ))}
                         </Select>
                     </FormControl>
+                    
                 </Grid2>
                 {!isLoading && <Grid container spacing={2}>
                     <ImageList
@@ -223,7 +279,8 @@ function MediaManageParent() {
 
             {/* New Image Tab */}
             <TabPanel value={tabValue} index="2">
-                <ImageManage onImageUpload={handleImageUpload} addons={addons} />
+                <ImageManage onImageUpload={handleImageUpload} addons={addons}
+                    imageName={imageName} setImageName={setImageName}/>
             </TabPanel>
         </Container>
     );

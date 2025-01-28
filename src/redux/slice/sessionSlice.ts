@@ -1,5 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import jwt, { JwtPayload } from 'jsonwebtoken';
+export const SECRET_KEY = process.env.NEXTAUTH_SECRET;
 
 interface User {
     id: number | any;
@@ -44,6 +45,14 @@ const sessionSlice = createSlice({
         validateSession: (state) => {
             if (state.token) {
                 try {
+                    // const storedToken: any = localStorage.getItem('token');
+                    // jwt.verify(storedToken, SECRET_KEY || '1234Testo',
+                    //     (err:any, user:any) => {
+                    //     if (err) {
+                    //         state.status = 'unauthenticated';
+                    //         throw new Error('Invalid token');
+                    //     }
+                    // });
                     const decoded: { exp: number } = jwt.decode(state.token) as JwtPayload | any;;
                     console.log('decoded', decoded);
                     // Check if the token is expired

@@ -259,6 +259,7 @@ const HtmlTestEditor = () => {
                                 onChange={(c) => { setHeaderContent(c); setPdfData(null); }}
                                 isLoading={isEditorLoading}
                                 placeholder="Start typing your content..."
+                                isTestingMode={true}
                             />
                         </Box>
                     </Box>
@@ -297,6 +298,7 @@ const HtmlTestEditor = () => {
                                 onChange={(c) => { setBodyContent(c); setPdfData(null); } }
                                 isLoading={isEditorLoading}
                                 placeholder="Start typing your content..."
+                                isTestingMode={true}
                             />
                         </Box>
 
@@ -345,6 +347,7 @@ const HtmlTestEditor = () => {
                                 onChange={(c) => { setFooterContent(c); setPdfData(null); } }
                                 isLoading={isEditorLoading}
                                 placeholder="Start typing your content..."
+                                isTestingMode={true}
                             />
                         </Box>
 

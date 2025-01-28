@@ -92,7 +92,7 @@ export default function AccountSlotsAccountSwitcher() {
             });
             setMode(storedUser?.profile?.theme || 'light');
         }
-
+        
         if (status === 'unauthenticated') {
             setSession(null)
         }

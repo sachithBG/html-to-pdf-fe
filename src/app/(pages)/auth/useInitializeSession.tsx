@@ -1,19 +1,26 @@
 import { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
-import { clearSession, setLoading, setSession } from '@/redux/slice/sessionSlice';
+import { clearSession, setLoading, setSession, validateSession } from '@/redux/slice/sessionSlice';
 import jwt, { JwtPayload } from 'jsonwebtoken';
+export const SECRET_KEY = process.env.NEXTAUTH_SECRET;
 
 const useInitializeSession = () => {
     const dispatch = useDispatch();
     useEffect(() => {
         const initializeSession = async () => {
             dispatch(setLoading());
-            const storedToken:any = localStorage.getItem('token');
+            const storedToken: any = localStorage.getItem('token');
             // Validate the token in the Redux store
             // dispatch(validateSession());
 
             if (storedToken) {
                 try {
+                    // jwt.verify(storedToken, SECRET_KEY || '1234Testo',
+                    //     (err: any, user: any) => {
+                    //         if (err) {
+                    //             throw new Error('Invalid token');
+                    //         }
+                    //     });
                     // You can directly set user info from the token if needed (assuming token has user data)
                     const decoded: { sub: string; name: string; email: string } | any = jwt.decode(storedToken) as JwtPayload | any;
                     if (decoded) {
@@ -38,6 +45,8 @@ const useInitializeSession = () => {
                     console.error('Failed to decode or fetch user data:', error);
                     dispatch(clearSession());
                     localStorage.removeItem('token');
+                } finally {
+                    dispatch(validateSession());
                 }
             }
         };

@@ -29,7 +29,7 @@ const PdfTemplatePage: React.FC = () => {
     const currentOrg: Organization | any = useSelector((state: { organization: OrganizationState }) =>
         getDefaultOrganization(state.organization)
     );
-    const { token } = useSelector((state: RootState) => state.session);
+    const { token, status } = useSelector((state: RootState) => state.session);
 
     const fetchTemplates = async (page: number) => {
         try {

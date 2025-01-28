@@ -14,9 +14,12 @@ import {
 import dynamic from "next/dynamic";
 const CKTextField = dynamic(() => import('@/app/(pages)/setup/components/CKTextField'), { ssr: false });
 
-const SectionEditor = ({ section, onChange, subcategories, token, orgId }: any) => {
+const SectionEditor = ({ section, onChange, subcategories, token, orgId, selectedAddons }: any) => {
 
     const [isEditorLoading, setIsEditorLoading] = useState<boolean>(true);
+    const [token_, setToken] = useState<any>(token);
+    const [orgId_, setOrgId] = useState<any>(orgId);
+    const [selectedAddons_, setSelectedAddons] = useState<any>(selectedAddons);
     const handleNameChange = (event: any) => {
         onChange({ name: event.target.value });
     };
@@ -39,6 +42,17 @@ const SectionEditor = ({ section, onChange, subcategories, token, orgId }: any) 
         const timeout = setTimeout(() => setIsEditorLoading(false), 2000); // Simulate loading
         return () => clearTimeout(timeout);
     }, []);
+
+    useEffect(() => {
+        setToken(token);
+        setOrgId(orgId);
+        setSelectedAddons(selectedAddons);
+        return () => {
+            setToken(null);
+            setOrgId(null);
+            setSelectedAddons([]);
+        } 
+    }, [subcategories, token, orgId, selectedAddons]);
 
     return (
         <Box sx={{ mb: 2 }}>
@@ -92,7 +106,8 @@ const SectionEditor = ({ section, onChange, subcategories, token, orgId }: any) 
                         isLoading={isEditorLoading}
                         placeholder="Start typing your content..."
                         config={{}}
-                        token={token} orgId={orgId}
+                        token={token_} orgId={orgId_}
+                        addon_ids={selectedAddons_}
                     />
                     {/* <TextField
                         label="HTML Content"

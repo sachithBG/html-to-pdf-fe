@@ -45,7 +45,7 @@ export const uploadOrgLogo = async (currentOrgId: number, image: File, token: st
     }
 };
 
-export const uploadMedia = async (currentOrgId: number, image: File, addon_ids:number[]=[], token: string) => {
+export const uploadMedia = async (currentOrgId: number, image: File, addon_ids: number[] = [], token: string, imageName: string) => {
     const formData = new FormData();
     formData.append('media', image);
 
@@ -56,7 +56,8 @@ export const uploadMedia = async (currentOrgId: number, image: File, addon_ids:n
             },
             params: {
                 organization_id: currentOrgId,
-                addon_ids: addon_ids
+                addon_ids: addon_ids,
+                name: imageName
         },
         timeout: 90000,
         });

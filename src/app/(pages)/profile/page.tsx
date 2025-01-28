@@ -107,6 +107,7 @@ const ProfilePage: React.FC = () => {
                 setAvatar(avatarUrl.file);
                 const prf: any = user?.profile ? user.profile : {};
                 const usr: any = user ? user : {};
+                
                 dispatch(setSession({ token, user: { ...usr, profile: { ...prf, avatar: avatarUrl?.file }}, status: 'authenticated' }));
                 return;
             }

@@ -8,9 +8,11 @@ import Image from 'next/image';
 interface ImageManageProps {
     onImageUpload: (image: any) => void;
     addons: any[];
+    setImageName: (imageName: any) => void;
+    imageName: string;
 }
 
-const ImageManage: React.FC<ImageManageProps> = ({ onImageUpload, addons }) => {
+const ImageManage: React.FC<ImageManageProps> = ({ onImageUpload, addons, setImageName, imageName }) => {
     const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
     const [key, setKey] = useState('');
     const [image, setImage] = useState<File | null>(null);
@@ -109,6 +111,17 @@ const ImageManage: React.FC<ImageManageProps> = ({ onImageUpload, addons }) => {
                             ))}
                         </Select>
                     </FormControl>
+                    <TextField
+                        autoFocus
+                        margin="dense"
+                        label="Image Name"
+                        size="small"
+                        type="text"
+                        fullWidth
+                        value={imageName}
+                        sx={{mt:2}}
+                        onChange={(e) => setImageName(e.target.value)}
+                    />
                 </Grid2>
 
                 <Grid2 size={{ sm: 6 }} display={'none'}>

@@ -13,7 +13,8 @@ export const generatePdfBufferById = async (id: number, organization_id: number,
         headers: {
             Authorization: `Bearer ${token}`
         },
-        params: { organization_id: organization_id, subcategoriesFilter: subcategoriesFilter }
+        params: { organization_id: organization_id, subcategoriesFilter: subcategoriesFilter },
+        timeout: 600000
     });
 }
 

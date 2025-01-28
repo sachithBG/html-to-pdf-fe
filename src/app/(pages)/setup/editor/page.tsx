@@ -283,13 +283,13 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
         try {
             const successful = document.execCommand('copy');
             if (successful) {
-                enqueueSnackbar(`Tag key copied (fallback): ${text}`, { variant: 'success' });
+                enqueueSnackbar(`Tag key copied : ${text}`, { variant: 'success' });
             } else {
-                enqueueSnackbar('Failed to copy tag key (fallback).', { variant: 'error' });
+                enqueueSnackbar('Failed to copy tag key .', { variant: 'error' });
             }
         } catch (err) {
             console.error('Fallback copy error:', err);
-            enqueueSnackbar('Failed to copy tag key (fallback).', { variant: 'error' });
+            enqueueSnackbar('Failed to copy tag key .', { variant: 'error' });
         }
 
         document.body.removeChild(textArea);
@@ -1006,6 +1006,7 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
                                 config={{}}
                                 token={token}
                                 orgId={currentOrg?.id}
+                                addon_ids={selectedAddons}
                             />
                             {/* <TextField
                                 fullWidth
@@ -1058,6 +1059,7 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
                                 config={{}}
                                 token={token}
                                 orgId={currentOrg?.id}
+                                addon_ids={selectedAddons}
                             />
                             {/* <TextField
                                 fullWidth
@@ -1093,7 +1095,7 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
 
                     <Box display="flex" flexDirection={'column'} gap={4} mt={3}>
                         {sections.map((section: any) => (
-                            <>
+                            < >
                                 <Box key={section.id + 'btn'} sx={{ display: 'flex', justifyContent: 'flex-end', width: '100%', mb: -8, mr: 0 }}>
                                     <DeleteConfirmDialog
                                         id={section.id}
@@ -1110,8 +1112,10 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
                                         handleSectionChange(section.id, updatedSection)
                                     }
                                     subcategories={pdfSubcategories?.map(c => c.name)}
+                                    selectedAddons={selectedAddons}
+                                    token={token } orgId={currentOrg?.id}
                                 />
-                                <Divider sx={{ width: '100%' }} />
+                                <Divider key={section.id + 'div'} sx={{ width: '100%' }} />
                             </>
                         ))}
                     </Box>
@@ -1159,6 +1163,7 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
                                 config={{}}
                                 token={token}
                                 orgId={currentOrg?.id}
+                                addon_ids={selectedAddons}
                             />
                             {/* <TextField
                                 fullWidth

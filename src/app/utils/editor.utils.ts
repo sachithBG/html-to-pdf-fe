@@ -1,7 +1,16 @@
-import { Alignment, Autoformat, AutoImage, Autosave, BalloonToolbar, BlockQuote, BlockToolbar, Bold, Code, CodeBlock, Essentials, FindAndReplace, FontBackgroundColor, FontColor, FontFamily, FontSize, FullPage, GeneralHtmlSupport, Heading, HorizontalLine, HtmlComment, ImageBlock, ImageCaption, ImageInline, ImageInsert, ImageInsertViaUrl, ImageResize, ImageStyle, ImageTextAlternative, ImageToolbar, ImageUpload, Indent, IndentBlock, Italic, Link, LinkImage, List, ListProperties, Markdown, MediaEmbed, Mention, PageBreak, Paragraph, PasteFromMarkdownExperimental, PasteFromOffice, PictureEditing, RemoveFormat, ShowBlocks, SourceEditing, SpecialCharacters, SpecialCharactersArrows, SpecialCharactersCurrency, SpecialCharactersEssentials, SpecialCharactersLatin, SpecialCharactersMathematical, SpecialCharactersText, Strikethrough, Style, Subscript, Superscript, Table, TableCaption, TableCellProperties, TableColumnResize, TableProperties, TableToolbar, TextPartLanguage, TextTransformation, Title, TodoList, Underline, WordCount } from "ckeditor5";
-
+import {
+    Alignment, Autoformat, AutoImage, Autosave, BalloonToolbar, Base64UploadAdapter, BlockQuote, BlockToolbar,
+    Bold, Code, CodeBlock, Essentials, FindAndReplace, FontBackgroundColor, FontColor, FontFamily, FontSize, FullPage,
+    GeneralHtmlSupport, Heading, HorizontalLine, HtmlComment, ImageBlock, ImageCaption, ImageInline, ImageInsert,
+    ImageInsertViaUrl, ImageResize, ImageStyle, ImageTextAlternative, ImageToolbar, ImageUpload, Indent, IndentBlock,
+    Italic, Link, LinkImage, List, ListProperties, Markdown, MediaEmbed, Mention, Notification, PageBreak, Paragraph, PasteFromMarkdownExperimental,
+    PasteFromOffice, PictureEditing, RemoveFormat, ShowBlocks, SourceEditing, SpecialCharacters, SpecialCharactersArrows,
+    SpecialCharactersCurrency, SpecialCharactersEssentials, SpecialCharactersLatin, SpecialCharactersMathematical,
+    SpecialCharactersText, Strikethrough, Style, Subscript, Superscript, Table, TableCaption, TableCellProperties, TableColumnResize,
+    TableProperties, TableToolbar, TextPartLanguage, TextTransformation, Title, TodoList, Underline, WordCount,
+} from "ckeditor5";
 import { config } from "process";
-import { uploadMedia } from "../services/mediaService";
+
 // const CLOUD_SERVICES_TOKEN_URL = 'https://';
 export const defaultConfig: any = {
     // initialData: value,
@@ -20,7 +29,7 @@ export const defaultConfig: any = {
             'fontFamily',
             'fontColor',
             'fontBackgroundColor',
-            'lineHeight',
+            // 'lineHeight',
             '|',
             'bold',
             'italic',
@@ -37,7 +46,7 @@ export const defaultConfig: any = {
             'link',
             // 'bookmark',
             'insertImage',
-            'imageUpload',
+            // 'imageUpload',
             // 'ckbox',
             // 'mediaEmbed',
             'insertTable',
@@ -69,6 +78,9 @@ export const defaultConfig: any = {
         BlockQuote,
         BlockToolbar,
         Bold,
+        // Base64UploadAdapter,
+        // ImageUpload,
+        // Notification,
         // Bookmark,
         //     //CKBox,
         // CloudServices,
@@ -95,7 +107,7 @@ export const defaultConfig: any = {
         ImageStyle,
         ImageTextAlternative,
         ImageToolbar,
-        ImageUpload,
+        // ImageUpload,
         Indent,
         IndentBlock,
         Italic,
@@ -137,6 +149,7 @@ export const defaultConfig: any = {
         TodoList,
         Underline,
         WordCount,
+        // MyUploadAdapter
     ],
     balloonToolbar: ['bold', 'italic', '|', 'link', 'insertImage', '|', 'bulletedList', 'numberedList'],
     blockToolbar: [
@@ -322,47 +335,7 @@ export const defaultConfig: any = {
 };
 
 
-export class MyUploadAdapter {
-    private loader: any;
-    private token: string;
-    private orgId: number;
 
-    constructor(loader: any, token: string, orgId: number) {
-        this.loader = loader;
-        this.token = token;
-        this.orgId = orgId;
-    }
-
-    // This method will be called to start the upload
-    upload(): Promise<any> {
-        return new Promise((resolve, reject) => {
-            // const data:any = new FormData();
-            // data.append('file', this.loader.file);
-
-            // Use your server API to handle the file upload
-            // fetch('/upload-endpoint', {
-            //     method: 'POST',
-            //     body: data,
-            // })
-            uploadMedia(this.orgId, this.loader.file, [],this.token)//todo set addons
-                // .then((response) => response.json())
-                .then((result) => {
-                    // On success, return the image URL
-                    resolve({
-                        default: result.data.url,  // The uploaded image URL
-                    });
-                })
-                .catch((error) => {
-                    reject(error);
-                });
-        });
-    }
-
-    // Optional: Implement abort method if you need to support aborting the upload
-    abort() {
-        // Handle the abortion of the upload here if needed
-    }
-}
 
 // Register the custom upload adapter
 // export function uploadAdapterPlugin(editor: any, token: string, orgId: number) {
