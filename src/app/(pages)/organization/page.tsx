@@ -33,7 +33,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import SaveIcon from '@mui/icons-material/Save';
 import CloseIcon from '@mui/icons-material/Close';
 import { LoadingButton } from '@mui/lab';
-import { createOrganization, findOrganizationsByUserId, setDefaultOrganization, updateOrg } from '@/app/services/organizationService';
+import { createOrganization, deleteOrganization, findOrganizationsByUserId, setDefaultOrganization, updateOrg } from '@/app/services/organizationService';
 import { RootState } from '@/redux/store';
 import { addOrganization, addOrganizationAll, clearOrganizationState, Organization, updateOrganization } from '@/redux/slice/organizationSlice';
 import { useDispatch, useSelector } from 'react-redux';
@@ -96,6 +96,37 @@ export default function OrganizationPage() {
         setOpen(true);
     };
 
+    const handleDeleteOrd = (org?: Organization) => {
+        if (!org?.id) {
+            enqueueSnackbar("Invalid organization selected", { variant: "error" });
+            return;
+        }
+        deleteOrganization(org.id, token)
+            .then((response: any) => {
+                if (response.status === 200 || response.status === 204) {
+                    findOrganizationsByUserId(user?.id, token)
+                        .then((res: any) => {
+                            if (res?.data) {
+                                dispatch(clearOrganizationState());
+                                dispatch(addOrganizationAll(res.data));
+                                setOrganizations(res.data);
+                                enqueueSnackbar("Organization deleted successfully!", { variant: "success" });
+                            }
+                        })
+                        .catch((err: any) => {
+                            console.error("Error fetching organizations:", err);
+                            enqueueSnackbar("Failed to fetch organizations", { variant: "error" });
+                        });
+                } else {
+                    enqueueSnackbar(`Failed to delete organization: ${response.statusText}`, { variant: "error" });
+                }
+            })
+            .catch((error: any) => {
+                console.error("Error deleting organization:", error);
+                enqueueSnackbar(`Delete operation failed: ${error?.response?.data?.error || error.message}`, { variant: "error" });
+            });
+    }
+
     const handleClose = () => {
         setOpen(false);
         setCurrentOrg({});
@@ -135,7 +166,7 @@ export default function OrganizationPage() {
                         }
                     }).catch((err: any) => {
                         console.error(err);
-                        enqueueSnackbar(`Failed: ${err?.response?.data?.message || err.message}`, { variant: 'error' });
+                        enqueueSnackbar(`Failed: ${err?.response?.data?.error || err.message}`, { variant: 'error' });
                     });
             } else {
                 // Create organization API call
@@ -149,7 +180,7 @@ export default function OrganizationPage() {
                             handleClose();
                         }
                     }).catch((err: any) => {
-                        enqueueSnackbar(`Failed: ${err?.response?.data?.message || err.message}`, { variant: 'error' });
+                        enqueueSnackbar(`Failed: ${err?.response?.data?.error || err.message}`, { variant: 'error' });
                     });
             }
             // handleClose();
@@ -302,6 +333,9 @@ export default function OrganizationPage() {
                             <TableCell>
                                 <IconButton onClick={() => handleOpen(org)}>
                                     <EditIcon />
+                                </IconButton>
+                                <IconButton onClick={() => handleDeleteOrd(org)}>
+                                    <DeleteIcon />
                                 </IconButton>
                             </TableCell>
                         </TableRow>
