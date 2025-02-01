@@ -23,7 +23,7 @@ export const uploadAvator = async (userId: number, organizationId: number,image:
     }
 };
 
-export const uploadOrgLogo = async (currentOrgId: number, image: File, token: string) => {
+export const uploadOrgLogo = async (currentOrgId: number, image: File, token: string, name: string) => {
     const formData = new FormData();
     formData.append('logo', image);
 
@@ -34,7 +34,8 @@ export const uploadOrgLogo = async (currentOrgId: number, image: File, token: st
                 'Content-Type': 'multipart/form-data',
             },
             params: {
-                organizationId: currentOrgId
+                organizationId: currentOrgId,
+                name: name
             },
             timeout: 90000,
         });

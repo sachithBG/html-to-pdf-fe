@@ -115,7 +115,7 @@ export default function OrganizationPage() {
             // Implement the image upload logic here
             // This function should return a promise that resolves with the uploaded image URL
             if (file) console.log('file exsit');
-            return await uploadOrgLogo(currentOrg?.id, file!, token);
+            return await uploadOrgLogo(currentOrg?.id, file!, token, currentOrg.name);
         };
         
 
@@ -141,6 +141,7 @@ export default function OrganizationPage() {
                         if (res.data) {
                             dispatch(addOrganization(res.data));
                             setOrganizations([...organizations, res.data]);
+                            handleClose();
                         }
                     }).catch((err: any) => {
                         console.error(err);
@@ -330,9 +331,10 @@ export default function OrganizationPage() {
                         onChange={(e) => setCurrentOrg({ ...currentOrg, name: e.target.value })}
                         error={!!errors.name}
                         helperText={errors.name}
+                        size='small'
                     />
                 </DialogContent>
-                <DialogContent sx={{ justifyItems: 'center' }}>
+                <DialogContent sx={{ justifyItems: 'center', display: currentOrg?.id ? 'block': 'none' }}>
                     <input
                         accept="image/*"
                         type="file"
@@ -395,6 +397,7 @@ export default function OrganizationPage() {
                             }}
                             error={!!errors.addonName}
                             helperText={errors.addonName}
+                            size='small'
                         />
                         {/* <LoadingButton
                             onClick={handleAddAddon}
