@@ -85,7 +85,7 @@ jobs:
     env: # Define environment variables here
         NODE_ENV: production
         NEXT_PUBLIC_BASE_URL: http://188.166.245.108/api/
-        NEXTAUTH_SECRET: 1234Testo
+        NEXT_PUBLIC_SECRET: 1234Testo
         API_KEY: 1234Testo
     environment:
       name: github-pages

@@ -39,8 +39,10 @@ const CKTextField: React.FC<CKTextFieldProps> = ({
     const theme = useTheme();
     const [imageName, setImageName] = useState<string>('');
     const [dialogOpen, setDialogOpen] = useState<boolean>(false); 
+    // eslint-disable-next-line
     const [uploadProgress, setUploadProgress] = useState<number>(0);
     const [imgUploading, setImgUploading] = useState<boolean>(false);
+    // eslint-disable-next-line
     const [uploadAdapter, setUploadAdapter] = useState<MyUploadAdapter>(new MyUploadAdapter());
     const { enqueueSnackbar } = useSnackbar();
 

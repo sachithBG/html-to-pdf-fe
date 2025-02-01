@@ -1,6 +1,8 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import jwt, { JwtPayload } from 'jsonwebtoken';
-export const SECRET_KEY = process.env.NEXTAUTH_SECRET;
+import dotenv from 'dotenv';
+dotenv.config();
+export const SECRET_KEY = process.env.NEXT_PUBLIC_SECRET;
 
 interface User {
     id: number | any;
@@ -46,20 +48,18 @@ const sessionSlice = createSlice({
             if (state.token) {
                 try {
                     // const storedToken: any = localStorage.getItem('token');
-                    // jwt.verify(storedToken, SECRET_KEY || '1234Testo',
-                    //     (err:any, user:any) => {
-                    //     if (err) {
-                    //         state.status = 'unauthenticated';
-                    //         throw new Error('Invalid token');
-                    //     }
-                    // });
-                    const decoded: { exp: number } = jwt.decode(state.token) as JwtPayload | any;;
+                    const decoded = jwt.decode(state.token);
                     console.log('decoded', decoded);
                     // Check if the token is expired
-                    if (decoded && decoded.exp * 1000 < Date.now()) {
-                        state.token = null;
-                        state.user = { id: null, name: '', email: '', profile: { id: null, theme: 'light', avatar: null } };
-                        state.status = 'unauthenticated';
+                    if (decoded && typeof decoded === 'object' && 'exp' in decoded) {
+                        const expirationTime = (decoded as JwtPayload).exp! * 1000;
+                        if (Date.now() >= expirationTime) {
+                            state.token = null;
+                            state.user = { id: null, name: '', email: '', profile: { id: null, theme: 'light', avatar: null } };
+                            state.status = 'unauthenticated';
+                        } else {
+                            state.status = 'authenticated';
+                        }
                     } else {
                         state.status = 'authenticated';
                     }

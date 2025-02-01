@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { clearSession, setLoading, setSession, validateSession } from '@/redux/slice/sessionSlice';
 import jwt, { JwtPayload } from 'jsonwebtoken';
-export const SECRET_KEY = process.env.NEXTAUTH_SECRET;
+export const SECRET_KEY = process.env.NEXT_PUBLIC_SECRET;
 
 const useInitializeSession = () => {
     const dispatch = useDispatch();
@@ -15,9 +15,10 @@ const useInitializeSession = () => {
 
             if (storedToken) {
                 try {
-                    // jwt.verify(storedToken, SECRET_KEY || '1234Testo',
+                    // jwt.verify(storedToken, SECRET_KEY+'',
                     //     (err: any, user: any) => {
                     //         if (err) {
+                    //             alert(err)
                     //             throw new Error('Invalid token');
                     //         }
                     //     });

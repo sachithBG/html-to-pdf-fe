@@ -42,15 +42,11 @@ import { createPdfTemplate, generatePdfBuffer, generatePdfBufferById, readPdfTem
 import { findAllByAddonId } from "@/app/services/externalKeyService";
 import { useSnackbar } from "notistack";
 import { RootState } from "@/redux/store";
-// import DeleteConfirmDialog from "../components/DeleteConfirmDialog";
-// import CKTextField from "../components/CKTextField";
 const CKTextField = dynamic(() => import('@/app/(pages)/setup/components/CKTextField'), { ssr: false });
 const PdfPreviewButton = dynamic(() => import('@/app/components/PdfPreviewButton'), { ssr: false });
-// const DownloadButton = dynamic(() => import('@/app/components/DownloadButton'), { ssr: false });
 const SectionEditor = dynamic(() => import('@/app/(pages)/setup/components/SectionEditor'), { ssr: false });
 const SubcategoryEditor = dynamic(() => import('@/app/(pages)/setup/components/SubcategoryEditor'), { ssr: false });
 const DeleteConfirmDialog = dynamic(() => import('@/app/(pages)/setup/components/DeleteConfirmDialog'), { ssr: false });
-
 
 const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
     const [headerContent, setHeaderContent] = useState<string>("");
@@ -72,7 +68,7 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
     const isMobile = useMediaQuery((theme) => theme.breakpoints.down('sm'));
 
     const [addons, setAddons] = useState<any[]>(addons_ || []);
-    const [selectedAddons, setSelectedAddons] = useState<number[]>([]);
+    const [selectedAddons, setSelectedAddons] = useState<number>();
     const [tags, setTags] = useState<any[]>([]);
     const [selectedTags, setSelectedTags] = useState<string[]>([]);
     const [tagFlter, setTagFlter] = useState<string>('');
@@ -92,14 +88,13 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
     const [margin, setMargin] = useState({ l: 20, t: 200, r: 20, b: 150 });
     const [displayHeaderFooter, setDisplayHeaderFooter] = useState(true);
     const [defVal, setDefVal] = useState('-');
-    const [selectedType, setSelectedType] = useState<number | null>(null);
+    const [selectedKey, setSelectedKey] = useState<number | null>(null);
     const [externalKeys, setExternalKeys] = useState<any[]>([]);
     // eslint-disable-next-line
     const [pdfPrevButton, setPdfPrevButton] = useState(true);
     const [sections, setSections] = useState<any[]>([]);
     const [pdfSubcategories, setPdfSubcategories] = useState<any[]>([]);
     const { enqueueSnackbar } = useSnackbar();
-    // const [editorValue, setEditorValue] = useState<string>('<p>Start typing here...</p>');
     const [isEditorLoading, setIsEditorLoading] = useState<boolean>(true);
     const [isCloneLoading, setIsCloneLoading] = useState<boolean>(false);
 
@@ -114,9 +109,11 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
 
     const fetchTags = async () => {
         try {
-            const response = await findAllTags(selectedAddons, currentOrg.id, token);
-            if (response.status == 200) {
-                setTags(() => response.data);
+            if (selectedAddons) {
+                const response = await findAllTags([selectedAddons], currentOrg.id, token);
+                if (response.status == 200) {
+                    setTags(() => response.data);
+                }
             }
         } catch (error) {
             console.error("Error fetching tags:", error);
@@ -125,10 +122,11 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
 
     const fetchExternalKeys = async () => {
         try {
-            const response = await findAllByAddonId(selectedAddons[0], token);
+            if (selectedAddons){
+            const response = await findAllByAddonId(selectedAddons, token);
             if (response.status == 200) {
                 setExternalKeys(() => response.data);
-            }
+            }}
         } catch (error) {
             console.error("Error fetching tags:", error);
         }
@@ -140,7 +138,7 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
             // console.log(response.data)
             if (response.status == 200) {
                 setAddons(response.data);
-                setSelectedAddons([]);
+                setSelectedAddons(undefined);
             }
         } catch (error) {
             console.error("Error fetching addons:", error);
@@ -155,7 +153,7 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
     // Fetch Tags based on selected Addons
     useEffect(() => {
         // console.log(session)
-        if (selectedAddons.length > 0) {
+        if (selectedAddons && selectedAddons > 0) {
             fetchTags();
             fetchExternalKeys();
         } else {
@@ -205,12 +203,12 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
                         setHeaderContent(() => response.data.headerContent);
                         setBodyContent(() => response.data.bodyContent);
                         setFooterContent(() => response.data.footerContent);
-                        setSelectedAddons(() => response.data.addons?.map((a: any) => a.id));
+                        setSelectedAddons(() => response.data.addon_id);
                         setDefVal(() => response.data.defVal);
                         setPdfKey(() => response.data.key);
                         setDisplayHeaderFooter(() => response.data.displayHeaderFooter);
                         setMargin(() => response.data.margin);
-                        setSelectedType(() => response.data.external_key);
+                        setSelectedKey(() => response.data.external_key_id);
                         setSections(() => response.data.sections || []);
                         setPdfSubcategories(() => response.data.subcategories || []);
                     }
@@ -234,7 +232,7 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
     const handleAddonChange = (event: any) => {
         setErrors((prev) => ({ ...prev, addons: undefined }));
         // alert(event.target.value)
-        setSelectedAddons([event.target.value]);
+        setSelectedAddons(event.target.value);
     };
 
     // Handle Copy Tag
@@ -320,8 +318,8 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
         const newErrors: { pdfName?: string; field_path?: string; tag_type?: string, addons?: string, externalKey?: string } = {};
         if (!pdfName) newErrors.pdfName = 'Name is required';
         // if (!tagKey) newErrors.field_path = 'Tag key is required';
-        if (!selectedAddons.length) newErrors.addons = 'Addon must be selected';
-        if (!selectedType) newErrors.externalKey = 'Type/Status must be selected';
+        if (!selectedAddons) newErrors.addons = 'Addon must be selected';
+        if (!selectedKey) newErrors.externalKey = 'Key must be selected';
 
         if (Object.keys(newErrors).length > 0) {
             setErrors(newErrors);
@@ -343,7 +341,7 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
                 displayHeaderFooter: displayHeaderFooter,
                 defVal: defVal,
                 organization_id: currentOrg.id,
-                external_key: selectedType,
+                external_key_id: selectedKey,
                 sections: sections,
                 subcategories: pdfSubcategories
             };
@@ -437,9 +435,9 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
         }
     };
 
-    const handleTypeStatusChange = (event: any) => {
+    const handleKeyChange = (event: any) => {
         const value = event.target.value;
-        setSelectedType(value);
+        setSelectedKey(value);
         setErrors((prev) => ({ ...prev, externalKey: undefined }));
     };
 
@@ -553,7 +551,7 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
                             color="primary"
                             onClick={savePdfTmpl}
                             endIcon={<SaveIcon />}
-                            disabled={selectedAddons.length === 0 || isUploading}
+                            disabled={selectedAddons && selectedAddons < 0 || isUploading}
                             sx={{ float: 'right' }}
                             size="small"
                         >
@@ -644,7 +642,7 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
                                 {/* {addons?.filter(a => a.id == selectedAddons[0])[0]?.name} */}
                                 {!isLoding && <Select
                                     // multiple
-                                    value={selectedAddons[0]  ? Number(selectedAddons[0]) : ''}
+                                    value={selectedAddons  ? Number(selectedAddons) : ''}
                                     onChange={handleAddonChange}
                                     label="Addons"
                                     required
@@ -669,8 +667,8 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
                                 <InputLabel>Type/Status</InputLabel>
                                 <Select
                                     // multiple
-                                    value={selectedType ? Number(selectedType)  : ''}
-                                    onChange={handleTypeStatusChange}
+                                    value={selectedKey ? Number(selectedKey)  : ''}
+                                    onChange={handleKeyChange}
                                     label="Type/Status"
                                     renderValue={(selected) => externalKeys.filter(k => k.id == selected)[0]?.key_value} // Display selected addons or "None"
                                     required
@@ -678,7 +676,7 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
                                 >
                                     {externalKeys?.map((keys) => (
                                         <MenuItem key={keys.id} value={keys.id +''}>
-                                            <Checkbox checked={selectedType == keys.id} />
+                                            {/* <Checkbox checked={selectedType == keys.id} /> */}
                                             <ListItemText primary={keys.key_value} />
                                         </MenuItem>
                                     ))}
@@ -826,7 +824,7 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
 
                                     {/* <InputLabel>Tags</InputLabel> */}
                                     <Autocomplete
-                                        disabled={selectedAddons.length < 1}
+                                        disabled={selectedAddons && selectedAddons < 1 ? true : false}
                                         multiple
                                         disableCloseOnSelect
                                         autoHighlight
@@ -911,7 +909,7 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
                                                                         // label="Filter"
                                                                         size="small"
                                                                         variant="standard"
-                                                                        disabled={selectedAddons.length < 1}
+                                                                        disabled={selectedAddons && selectedAddons < 1 ? true : false}
                                                                         endAdornment={<InputAdornment position="end" ><FilterListIcon /></InputAdornment>}
 
                                                                     >
@@ -1006,7 +1004,7 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
                                 config={{}}
                                 token={token}
                                 orgId={currentOrg?.id}
-                                addon_ids={selectedAddons}
+                                addon_ids={selectedAddons ? [selectedAddons] : []}
                             />
                             {/* <TextField
                                 fullWidth
@@ -1059,7 +1057,7 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
                                 config={{}}
                                 token={token}
                                 orgId={currentOrg?.id}
-                                addon_ids={selectedAddons}
+                                addon_ids={selectedAddons ? [selectedAddons] : []}
                             />
                             {/* <TextField
                                 fullWidth
@@ -1163,7 +1161,7 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
                                 config={{}}
                                 token={token}
                                 orgId={currentOrg?.id}
-                                addon_ids={selectedAddons}
+                                addon_ids={selectedAddons ? [selectedAddons]: []}
                             />
                             {/* <TextField
                                 fullWidth
@@ -1206,7 +1204,7 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
                     color="primary"
                     onClick={savePdfTmpl}
                     endIcon={<SaveIcon />}
-                    disabled={selectedAddons.length === 0 || isUploading}
+                    disabled={selectedAddons && selectedAddons === 0 || isUploading}
                     sx={{ float: 'right' }}
                     size="small"
                 >

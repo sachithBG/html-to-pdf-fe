@@ -312,7 +312,7 @@ const TagManagementPage = () => {
             <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                 <Tabs value={tabValue} onChange={handleChangeTab} aria-label="basic tabs example">
                     <Tab label="Tag" {...a11yProps(0)} />
-                    <Tab label="Type/Status" {...a11yProps(1)} />
+                    <Tab label="External Key" {...a11yProps(1)} />
                     <Tab label="Template Test data" {...a11yProps(2)} />
                     <Tab label="Addons" {...a11yProps(3)} />
                 </Tabs>

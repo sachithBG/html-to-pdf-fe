@@ -56,6 +56,7 @@ export class MyUploadAdapter {
     }
 
     async upload() {
+        // eslint-disable-next-line
         const $this = this;
         // Wait for the image name to be set
         $this.setDialogOpen(true);
@@ -78,7 +79,7 @@ export class MyUploadAdapter {
             return this.loader.file.then(async (file: any | Blob) => {
                 const data = new FormData()
                 data.append("media", file)
-                const genericError = `Couldn't upload file: ${file.name}.`
+                // const genericError = `Couldn't upload file: ${file.name}.`
 
                 return await axios({
                     data,

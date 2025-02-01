@@ -55,15 +55,15 @@ const CopyIconButton: React.FC<CopyIconButtonProps> = ({
         try {
             const successful = document.execCommand('copy');
             if (successful) {
-                enqueueSnackbar(`Copied (fallback): ${text}`, { variant: 'success' });
+                enqueueSnackbar(`Copied: ${text}`, { variant: 'success' });
                 setCopied(true);
                 setTimeout(() => setCopied(false), 2000);
             } else {
-                enqueueSnackbar('Failed to copy (fallback).', { variant: 'error' });
+                enqueueSnackbar('Failed to copy.', { variant: 'error' });
             }
         } catch (err) {
             console.error('Fallback copy failed:', err);
-            enqueueSnackbar('Failed to copy (fallback).', { variant: 'error' });
+            enqueueSnackbar('Failed to copy.', { variant: 'error' });
         }
 
         document.body.removeChild(textArea);
