@@ -40,6 +40,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { createAddon, deleteAddon, findAllAddons, updateAddon } from '@/app/services/addonService';
 import { uploadOrgLogo } from '@/app/services/mediaService';
 import { isValidS3Url } from '@/app/utils/constant';
+import { useSnackbar } from 'notistack';
 
 export default function OrganizationPage() {
     const [organizations, setOrganizations] = useState<Organization[]>([]);
@@ -60,6 +61,7 @@ export default function OrganizationPage() {
 
     const { token, user } = useSelector((state: RootState) => state.session);
     const dispatch = useDispatch();
+    const { enqueueSnackbar } = useSnackbar();
 
     const avatarUrl =
         typeof currentOrg?.logo === 'string' && isValidS3Url(currentOrg?.logo)
@@ -129,9 +131,11 @@ export default function OrganizationPage() {
                         if (res.status == 200) {
                             dispatch(updateOrganization(org));
                             setOrganizations(organizations.map((o) => (o.id === org.id ? org : o)));
+                            enqueueSnackbar(`Updated successfully!`, { variant: 'success' });
                         }
                     }).catch((err: any) => {
                         console.error(err);
+                        enqueueSnackbar(`Failed: ${err?.response?.data?.message || err.message}`, { variant: 'error' });
                     });
             } else {
                 // Create organization API call
@@ -141,10 +145,11 @@ export default function OrganizationPage() {
                         if (res.data) {
                             dispatch(addOrganization(res.data));
                             setOrganizations([...organizations, res.data]);
+                            enqueueSnackbar(`Created successfully!`, { variant: 'success' });
                             handleClose();
                         }
                     }).catch((err: any) => {
-                        console.error(err);
+                        enqueueSnackbar(`Failed: ${err?.response?.data?.message || err.message}`, { variant: 'error' });
                     });
             }
             // handleClose();
