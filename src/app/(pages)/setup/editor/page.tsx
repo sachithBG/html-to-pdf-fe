@@ -255,7 +255,7 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
             // Use Clipboard API if available
             navigator.clipboard.writeText(textToCopy)
                 .then(() => {
-                    enqueueSnackbar(`Tag key copied: ${textToCopy}`, { variant: 'success' });
+                    // enqueueSnackbar(`Tag key copied: ${textToCopy}`, { variant: 'success' });
                 })
                 .catch((err) => {
                     console.error('Clipboard API failed, using fallback:', err);
@@ -281,13 +281,13 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
         try {
             const successful = document.execCommand('copy');
             if (successful) {
-                enqueueSnackbar(`Tag key copied : ${text}`, { variant: 'success' });
+                // enqueueSnackbar(`Tag key copied : ${text}`, { variant: 'success' });
             } else {
-                enqueueSnackbar('Failed to copy tag key .', { variant: 'error' });
+                // enqueueSnackbar('Failed to copy tag key .', { variant: 'error' });
             }
         } catch (err) {
             console.error('Fallback copy error:', err);
-            enqueueSnackbar('Failed to copy tag key .', { variant: 'error' });
+            // enqueueSnackbar('Failed to copy tag key .', { variant: 'error' });
         }
 
         document.body.removeChild(textArea);
@@ -890,11 +890,11 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
                                                 input: {
                                                     ...params.InputProps,
                                                     style: { cursor: 'pointer' },
-                                                    onClick: (e: any) => {
-                                                        const tagName = e.target.innerText;
-                                                        const tag_ = tags.find((t) => t.name === tagName);
-                                                        handleCopyTag(tag_); // Handle copy action when clicking the tag
-                                                    },
+                                                    // onClick: (e: any) => {
+                                                    //     const tagName = e.target.innerText;
+                                                    //     const tag_ = tags.find((t) => t.name === tagName);
+                                                    //     handleCopyTag(tag_); // Handle copy action when clicking the tag
+                                                    // },
                                                     endAdornment: (
                                                         <>
                                                             <InputAdornment position="end" sx={{ display: 'flex', alignItems: 'center', mr: -4 }}>
