@@ -41,6 +41,7 @@ import { createAddon, deleteAddon, findAllAddons, updateAddon } from '@/app/serv
 import { uploadOrgLogo } from '@/app/services/mediaService';
 import { isValidS3Url } from '@/app/utils/constant';
 import { useSnackbar } from 'notistack';
+import DeleteConfirmDialog from '../setup/components/DeleteConfirmDialog';
 
 export default function OrganizationPage() {
     const [organizations, setOrganizations] = useState<Organization[]>([]);
@@ -96,12 +97,12 @@ export default function OrganizationPage() {
         setOpen(true);
     };
 
-    const handleDeleteOrd = (org?: Organization) => {
-        if (!org?.id) {
+    const handleDeleteOrd = (id?: number) => {
+        if (!id) {
             enqueueSnackbar("Invalid organization selected", { variant: "error" });
             return;
         }
-        deleteOrganization(org.id, token)
+        deleteOrganization(id, token)
             .then((response: any) => {
                 if (response.status === 200 || response.status === 204) {
                     findOrganizationsByUserId(user?.id, token)
@@ -334,9 +335,12 @@ export default function OrganizationPage() {
                                 <IconButton onClick={() => handleOpen(org)}>
                                     <EditIcon />
                                 </IconButton>
-                                <IconButton onClick={() => handleDeleteOrd(org)}>
-                                    <DeleteIcon />
-                                </IconButton>
+                                <DeleteConfirmDialog
+                                    id={org.id}
+                                    onDelete={(id: any) => handleDeleteOrd(id)}
+                                    variant="icon"
+                                    buttonProps={{ size: "small", color: "error" }} // IconButton props
+                                />
                             </TableCell>
                         </TableRow>
                     ))}

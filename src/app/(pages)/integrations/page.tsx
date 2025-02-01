@@ -143,23 +143,26 @@ export default function Page() {
         if (type === 'token') {
             setCopiedToken(true);
             setTooltipToken('Copied');
-            setTimeout(() => {
+            const tt = setTimeout(() => {
                 setCopiedToken(false);
                 setTooltipToken('Copy');
+                clearTimeout(tt);
             }, 2000); // Reset tooltip after 2 seconds
         } else if (type === 'curl') {
             setCopiedCurl(true);
             setTooltipCurl('Copied');
-            setTimeout(() => {
+            const tt = setTimeout(() => {
                 setCopiedCurl(false);
                 setTooltipCurl('Copy');
+                clearTimeout(tt);
             }, 2000); // Reset tooltip after 2 seconds
         } else if (type === 'curl2') {
             setCopiedCurl2(true);
             setTooltipCurl2('Copied');
-            setTimeout(() => {
+            const tt = setTimeout(() => {
                 setCopiedCurl2(false);
                 setTooltipCurl2('Copy');
+                clearTimeout(tt);
             }, 2000); // Reset tooltip after 2 seconds
         }
     }

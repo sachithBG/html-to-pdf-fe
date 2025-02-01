@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { debounce } from 'lodash'; // Lodash debounce for efficient search
 import { fadeIn } from '@/app/utils/constant';
 import dynamic from 'next/dynamic';
+import CopyIconButton from '@/app/components/CopyIconButton';
 const PdfPreviewButton = dynamic(() => import('@/app/components/PdfPreviewButton'), { ssr: false });
 
 const PdfTemplatesList = ({ currentOrg, token, readAllPdfTemplatePage }: any) => {
@@ -12,6 +13,7 @@ const PdfTemplatesList = ({ currentOrg, token, readAllPdfTemplatePage }: any) =>
     const [pdfTemplates, setPdfTemplates] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [totalPages, setTotalPages] = useState(0);
+
     const pageSize = 5;
 
     // Optimized search function with debouncing
@@ -128,6 +130,15 @@ const PdfTemplatesList = ({ currentOrg, token, readAllPdfTemplatePage }: any) =>
                                                         `} isIconButton={true}
                                                         id={template.id} organization_id={currentOrg?.id} subcategories={[template.subcategories]} />
                                                 </Grid2>
+                                                <Box mt={-.51} ml={1}>
+                                                    <CopyIconButton
+                                                        textToCopy={template?.external_key}
+                                                        tooltipCopy={"Copy Key: " + template?.external_key}
+                                                        tooltipCopied="Copied!"
+                                                        size="small"
+                                                        color="info"
+                                                    />
+                                                </Box>
                                             </Box>
                                             <Typography className="text-gray-500">{new Date(template.modified_at).toLocaleDateString()}</Typography>
                                             {/* <IconButton

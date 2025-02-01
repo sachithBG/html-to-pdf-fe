@@ -10,6 +10,7 @@ import { findAllAddons } from '@/app/services/addonService';
 import dynamic from 'next/dynamic';
 // import DeleteConfirmDialog from '../components/DeleteConfirmDialog';
 import { RootState } from '@/redux/store';
+import CopyIconButton from '@/app/components/CopyIconButton';
 const PdfPreviewButton = dynamic(() => import('@/app/components/PdfPreviewButton'), { ssr: false });
 const HtmlToPdfEditor = dynamic(() => import('../editor/page'), { ssr: false });
 const DeleteConfirmDialog = dynamic(() => import('../components/DeleteConfirmDialog'), { ssr: false });
@@ -192,9 +193,18 @@ const PdfTemplatePage: React.FC = () => {
                                                         ${template.sections ? template.sections.map((se: any) => se.htmlContent) : ''}
                                                         <footer>${template.footerContent}</footer>
                                                         </div>
-                                                        </div>
+                                                        </div> 
                                                 `} isIconButton={true} id={template.id} 
-                                                    organization_id={currentOrg?.id} subcategories={template?.subcategories || []}/>
+                                                    organization_id={currentOrg?.id} subcategories={template?.subcategories || []} />
+                                                <Box mt={-.51} ml={1}>
+                                                    <CopyIconButton
+                                                        textToCopy={template?.external_key}
+                                                        tooltipCopy={"Copy Key: " + template?.external_key}
+                                                        tooltipCopied="Copied!"
+                                                        size="small"
+                                                        color="info"
+                                                    />
+                                                </Box>
                                             </Grid2>
                                         </TableCell>
                                         <TableCell>{template?.addons?.join(', ')}</TableCell>
