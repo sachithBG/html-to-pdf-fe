@@ -149,7 +149,7 @@ export default function OrganizationPage() {
             // handleClose();
         };
 
-        if (typeof currentOrg?.logo === 'string' && !isValidS3Url(currentOrg.logo)) {// && currentOrg.logo.startsWith('blob:')
+        if (currentOrg?.logo instanceof File && !isValidS3Url(currentOrg.logo+'')) {// && currentOrg.logo.startsWith('blob:')
             // If the logo is a blob URL, upload the image first
             setLoadingSave(true);
             uploadImage(currentOrg.logo).then((uploadedImageUrl) => {
