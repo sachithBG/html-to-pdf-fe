@@ -87,37 +87,82 @@ export default function Page() {
                         `);
     }
 
+    // const handleCopy = (text: any, type: any) => {
+    //     // Copy the text to the clipboard
+    //     navigator.clipboard.writeText(text)
+    //         .then(() => {
+    //             setCopyParams(type);
+    //         })
+    //         .catch((err) => {
+    //             console.error('Error copying text: ', err);
+    //         });
+    // };
+
     const handleCopy = (text: any, type: any) => {
-        // Copy the text to the clipboard
-        navigator.clipboard.writeText(text)
-            .then(() => {
-                if (type === 'token') {
-                    setCopiedToken(true);
-                    setTooltipToken('Copied');
-                    setTimeout(() => {
-                        setCopiedToken(false);
-                        setTooltipToken('Copy');
-                    }, 2000); // Reset tooltip after 2 seconds
-                } else if (type === 'curl') {
-                    setCopiedCurl(true);
-                    setTooltipCurl('Copied');
-                    setTimeout(() => {
-                        setCopiedCurl(false);
-                        setTooltipCurl('Copy');
-                    }, 2000); // Reset tooltip after 2 seconds
-                } else if (type === 'curl2') {
-                    setCopiedCurl2(true);
-                    setTooltipCurl2('Copied');
-                    setTimeout(() => {
-                        setCopiedCurl2(false);
-                        setTooltipCurl2('Copy');
-                    }, 2000); // Reset tooltip after 2 seconds
-                }
-            })
-            .catch((err) => {
-                console.error('Error copying text: ', err);
-            });
+        const textToCopy = text;
+
+        if (navigator.clipboard && typeof navigator.clipboard?.writeText === 'function') {
+            // Modern approach using Clipboard API
+            navigator.clipboard.writeText(textToCopy)
+                .then(() => {
+                    setCopyParams(type);
+                })
+                .catch((err) => {
+                    console.error('Clipboard API failed, using fallback:', err);
+                    fallbackCopyToClipboard(textToCopy, type); // Fallback if Clipboard API fails
+                });
+        } else {
+            // Fallback for older browsers or restricted environments
+            fallbackCopyToClipboard(textToCopy, type);
+        }
     };
+
+    const fallbackCopyToClipboard = (text: string, type: any) => {
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        textArea.style.position = 'fixed'; // Avoid scrolling to the bottom
+        textArea.style.opacity = '0';
+        textArea.style.left = '-9999px'; // Keep it hidden
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        try {
+            const successful = document.execCommand('copy');
+            if (successful) {
+                setCopyParams(type);
+            } else {
+                console.error('Fallback copy failed');
+            }
+        } catch (err) {
+            console.error('Fallback copy error:', err);
+        }
+        document.body.removeChild(textArea);
+    };
+
+    const setCopyParams = (type:string) => {
+        if (type === 'token') {
+            setCopiedToken(true);
+            setTooltipToken('Copied');
+            setTimeout(() => {
+                setCopiedToken(false);
+                setTooltipToken('Copy');
+            }, 2000); // Reset tooltip after 2 seconds
+        } else if (type === 'curl') {
+            setCopiedCurl(true);
+            setTooltipCurl('Copied');
+            setTimeout(() => {
+                setCopiedCurl(false);
+                setTooltipCurl('Copy');
+            }, 2000); // Reset tooltip after 2 seconds
+        } else if (type === 'curl2') {
+            setCopiedCurl2(true);
+            setTooltipCurl2('Copied');
+            setTimeout(() => {
+                setCopiedCurl2(false);
+                setTooltipCurl2('Copy');
+            }, 2000); // Reset tooltip after 2 seconds
+        }
+    }
 
     return (
         <Box sx={{ p: 3 }}>

@@ -137,11 +137,54 @@ const Dashboard = () => {
         }
     }, [chartData]);
 
+    // const handleCopy_ = () => {
+    //     navigator.clipboard.writeText('my_generated_token_12345').then(() => {
+    //         setCopiedToken(true);
+    //         setTimeout(() => setCopiedToken(false), 2000);
+    //     });
+    // };
+
     const handleCopy = () => {
-        navigator.clipboard.writeText('my_generated_token_12345').then(() => {
-            setCopiedToken(true);
-            setTimeout(() => setCopiedToken(false), 2000);
-        });
+        const textToCopy = truncatedToken;
+
+        if (navigator.clipboard && typeof navigator.clipboard?.writeText === 'function') {
+            // Modern approach using Clipboard API
+            navigator.clipboard.writeText(textToCopy)
+                .then(() => {
+                    setCopiedToken(true);
+                    setTimeout(() => setCopiedToken(false), 2000);
+                })
+                .catch((err) => {
+                    console.error('Clipboard API failed, using fallback:', err);
+                    fallbackCopyToClipboard(textToCopy); // Fallback if Clipboard API fails
+                });
+        } else {
+            // Fallback for older browsers or restricted environments
+            fallbackCopyToClipboard(textToCopy);
+        }
+    };
+
+    const fallbackCopyToClipboard = (text: string) => {
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        textArea.style.position = 'fixed'; // Avoid scrolling to the bottom
+        textArea.style.opacity = '0';
+        textArea.style.left = '-9999px'; // Keep it hidden
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        try {
+            const successful = document.execCommand('copy');
+            if (successful) {
+                setCopiedToken(true);
+                setTimeout(() => setCopiedToken(false), 2000);
+            } else {
+                console.error('Fallback copy failed');
+            }
+        } catch (err) {
+            console.error('Fallback copy error:', err);
+        }
+        document.body.removeChild(textArea);
     };
 
     const setDefault = (orgId: number) => {
