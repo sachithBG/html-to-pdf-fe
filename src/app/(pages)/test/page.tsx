@@ -3,12 +3,18 @@ import {
     Box,
     Button,
     Collapse,
+    Divider,
     Grid2 as Grid,
+    Grid2,
+    InputAdornment,
+    TextField,
     useMediaQuery,
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { generatePdfBufferTest } from "@/app/services/pdfService";
+import { RootState } from "@/redux/store";
+import { useSelector } from "react-redux";
 // const EditableTextField = dynamic(() => import('@/app/components/EditableTextField'), { ssr: false });
 const PdfPreviewButton = dynamic(() => import('@/app/components/PdfPreviewButton'), { ssr: false });
 const DownloadButton = dynamic(() => import('@/app/components/DownloadButton'), { ssr: false });
@@ -131,6 +137,8 @@ const HtmlTestEditor = () => {
     const isMobile = useMediaQuery((theme) => theme.breakpoints.down('sm'));
     const [isEditorLoading, setIsEditorLoading] = useState<boolean>(true);
     const [isGenerating, setIsGenerating] = useState<boolean>(false);
+    const [margin, setMargin] = useState({ l: 20, t: 200, r: 20, b: 150 });
+    const { status, token } = useSelector((state: RootState) => state.session);
     // @typescript-eslint / no - unused - vars
     // const [pdfPrevButton, setPdfPrevButton] = useState(true);
 
@@ -143,6 +151,10 @@ const HtmlTestEditor = () => {
     if (!isClient) {
         return null; // Or render a loading state
     }
+
+    const handleMarginChange = (side: 'l' | 't' | 'r' | 'b', value: string) => {
+        setMargin((prev) => ({ ...prev, [side]: value }));
+    };
 
 
     const handleCollapse = (section: "header" | "body" | "footer") => {
@@ -205,14 +217,25 @@ const HtmlTestEditor = () => {
                 >
                     <Grid >
                         <PdfPreviewButton htmlContent={
-                            `<div className="ck ck-editor__main">
-                                <div class="ck ck-content" style="margin: 20px;">
-                                <div>${headerContent ? headerContent?.replace(/^<h1>&nbsp;<\/h1>/, '') : ''}</div>
-                                ${bodyContent ? bodyContent?.replace(/^<h1>&nbsp;<\/h1>/, '') : ''}
-                                <footer>${footerContent ? footerContent?.replace(/^<h1>&nbsp;<\/h1>/, '') : ''}</footer>
+                            `<div className="ck ck-editor__main" style="height: max-content; width: 100%;">
+                                <div class="ck ck-content" style="position: absolute;height: max-content; width: 100%;">
+                                    <!-- Header -->
+                                    <div style="position: absolute; top: 0; left: 0; right: 0; margin-left: ${margin.l}px; margin-right: ${margin.r}px;">
+                                    ${headerContent?.replace(/^<h1>&nbsp;<\/h1>/, '')}
+                                    </div>
+
+                                    <!-- Body Content -->
+                                    <div style="position: relative; margin: ${margin.t}px ${margin.r}px ${margin.b}px ${margin.l}px;">
+                                    ${bodyContent?.replace(/^<h1>&nbsp;<\/h1>/, '')}
+                                    </div>
+
+                                    <!-- Footer -->
+                                    <footer style="position: absolute; bottom: 0; left: 0; right: 0;margin-bottom:10px; margin-left: ${margin.l}px; margin-right: ${margin.r}px;">
+                                    ${footerContent?.replace(/^<h1>&nbsp;<\/h1>/, '')}
+                                    </footer>
                                 </div>
-                                </div>
-                            `} id={null} isIconButton={false} organization_id={0} subcategories={[]} isNew={ true} />
+                            </div>
+                            `} id={null} isIconButton={false} organization_id={0} subcategories={[]} isNew={true} />
                     </Grid>
                     <Grid >
                         <Button
@@ -227,24 +250,98 @@ const HtmlTestEditor = () => {
                         </Button>
                     </Grid>
                     <Grid sx={{ display: 'flex', gap: 2, width: '100%', justifyContent: 'flex-end' }}>
-                    {pdfData && <> <Grid >
-                        <Button
-                            variant="outlined"
-                            color="primary"
-                            // startIcon={<SaveIcon />}
-                            onClick={openPdfInNewTab}
-                            size="small"
-                        >
-                            Open In New Tab
-                        </Button>
-                    </Grid>
-                        <Grid >
-                            <DownloadButton pdfData={pdfData} />
+                        {pdfData && <> <Grid >
+                            <Button
+                                variant="outlined"
+                                color="primary"
+                                // startIcon={<SaveIcon />}
+                                onClick={openPdfInNewTab}
+                                size="small"
+                            >
+                                Open In New Tab
+                            </Button>
+                        </Grid>
+                            <Grid >
+                                <DownloadButton pdfData={pdfData} />
                             </Grid></>}
                     </Grid>
                 </Grid>
             </Box>
-
+            <Grid2 container spacing={{ xs: 2, md: 3 }} columns={{ xs: 4, sm: 8, md: 12 }}>
+                <Grid2 size={{ xs: 2, sm: 2, md: 2 }}>
+                    <TextField
+                        label="Left Margin"
+                        variant="outlined"
+                        value={margin.l ? Number(margin.l) : 0}
+                        onChange={(e) => handleMarginChange('l', e.target.value)}
+                        fullWidth
+                        type="number"
+                        size="small"
+                        slotProps={{
+                            input: {
+                                endAdornment: (
+                                    <InputAdornment position="end">{"px"}</InputAdornment>
+                                ),
+                            },
+                        }}
+                    />
+                </Grid2>
+                <Grid2 size={{ xs: 2, sm: 2, md: 2 }}>
+                    <TextField
+                        label="Top Margin"
+                        variant="outlined"
+                        value={margin.t ? Number(margin.t) : 0}
+                        onChange={(e) => handleMarginChange('t', e.target.value)}
+                        fullWidth
+                        type="number"
+                        size="small"
+                        slotProps={{
+                            input: {
+                                endAdornment: (
+                                    <InputAdornment position="end">{"px"}</InputAdornment>
+                                ),
+                            },
+                        }}
+                    />
+                </Grid2>
+                <Grid2 size={{ xs: 2, sm: 2, md: 2 }}>
+                    <TextField
+                        label="Right Margin"
+                        variant="outlined"
+                        value={margin.r ? Number(margin.r) : 0}
+                        onChange={(e) => handleMarginChange('r', e.target.value)}
+                        fullWidth
+                        type="number"
+                        size="small"
+                        slotProps={{
+                            input: {
+                                endAdornment: (
+                                    <InputAdornment position="end">{"px"}</InputAdornment>
+                                ),
+                            },
+                        }}
+                    />
+                </Grid2>
+                <Grid2 size={{ xs: 2, sm: 2, md: 2 }}>
+                    <TextField
+                        label="Bottom Margin"
+                        variant="outlined"
+                        value={margin.b ? Number(margin.b) : 0}
+                        onChange={(e) => handleMarginChange('b', e.target.value)}
+                        fullWidth
+                        type="number"
+                        size="small"
+                        slotProps={{
+                            input: {
+                                endAdornment: (
+                                    <InputAdornment position="end">{"px"}</InputAdornment>
+                                ),
+                            },
+                        }}
+                    />
+                </Grid2>
+            </Grid2>
+            <Divider sx={{my: 2}}/>
             <Box key={'header'} mb={4}>
                 <Button onClick={() => handleCollapse('header')}>
                     {'header'.charAt(0).toUpperCase() + 'header'.slice(1)} Editor{" "}
@@ -259,7 +356,7 @@ const HtmlTestEditor = () => {
                                 onChange={(c) => { setHeaderContent(c); setPdfData(null); }}
                                 isLoading={isEditorLoading}
                                 placeholder="Start typing your content..."
-                                isTestingMode={true}
+                                isTestingMode={status === 'unauthenticated' || !token}
                             />
                         </Box>
                     </Box>
@@ -295,10 +392,10 @@ const HtmlTestEditor = () => {
                             /> */}
                             <CKTextField
                                 value={bodyContent}
-                                onChange={(c) => { setBodyContent(c); setPdfData(null); } }
+                                onChange={(c) => { setBodyContent(c); setPdfData(null); }}
                                 isLoading={isEditorLoading}
                                 placeholder="Start typing your content..."
-                                isTestingMode={true}
+                                isTestingMode={status === 'unauthenticated' || !token}
                             />
                         </Box>
 
@@ -323,7 +420,7 @@ const HtmlTestEditor = () => {
                 <Collapse in={collapsed['footer']} aria-expanded>
                     <Box display="flex" gap={4}>
                         {/* Editor Section */}
-                         <Box flex={1}>
+                        <Box flex={1}>
                             {/*<TextField
                                 fullWidth
                                 label={`${'footer'.charAt(0).toUpperCase() + 'footer'.slice(1)} Content`}
@@ -344,10 +441,10 @@ const HtmlTestEditor = () => {
                             /> */}
                             <CKTextField
                                 value={footerContent}
-                                onChange={(c) => { setFooterContent(c); setPdfData(null); } }
+                                onChange={(c) => { setFooterContent(c); setPdfData(null); }}
                                 isLoading={isEditorLoading}
                                 placeholder="Start typing your content..."
-                                isTestingMode={true}
+                                isTestingMode={status === 'unauthenticated' || !token}
                             />
                         </Box>
 

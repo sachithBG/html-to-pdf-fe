@@ -573,14 +573,25 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
                         
                         <Grid sx={{mr: 30}}>
                             {!isLoding && <PdfPreviewButton htmlContent={
-                                `<div className="ck ck-editor__main">
-                                    <div class="ck ck-content" style="margin: ${margin.t}px ${margin.r}px ${margin.b}px ${margin.l}px;">
-                                    <div>${headerContent?.replace(/^<h1>&nbsp;<\/h1>/, '') }</div>
-                                    ${bodyContent?.replace(/^<h1>&nbsp;<\/h1>/, '') }
-                                    ${sections ? sections.map((se: any) => se.htmlContent?.replace(/^<h1>&nbsp;<\/h1>/, '')) : ''}
-                                    <footer>${footerContent?.replace(/^<h1>&nbsp;<\/h1>/, '') }</footer>
+                                `<div className="ck ck-editor__main" style="height: max-content; width: 100%;">
+                                    <div class="ck ck-content" style="position: absolute;height: max-content; width: 100%;">
+                                        <!-- Header -->
+                                        <div style="position: absolute; top: 0; left: 0; right: 0; margin-left: ${margin.l}px; margin-right: ${margin.r}px;">
+                                        ${headerContent?.replace(/^<h1>&nbsp;<\/h1>/, '')}
+                                        </div>
+
+                                        <!-- Body Content -->
+                                        <div style="position: relative; margin: ${margin.t}px ${margin.r}px ${margin.b}px ${margin.l}px;">
+                                        ${bodyContent?.replace(/^<h1>&nbsp;<\/h1>/, '')}
+                                        ${sections ? sections.map((se: any) => se.htmlContent?.replace(/^<h1>&nbsp;<\/h1>/, '')).join('') : ''}
+                                        </div>
+
+                                        <!-- Footer -->
+                                        <footer style="position: absolute; bottom: 0; left: 0; right: 0;margin-bottom:10px; margin-left: ${margin.l}px; margin-right: ${margin.r}px;">
+                                        ${footerContent?.replace(/^<h1>&nbsp;<\/h1>/, '')}
+                                        </footer>
                                     </div>
-                                    </div>
+                                </div>
                             `} isIconButton={false} id={isEditMode ? id : null} isNew={!isEditMode}
                                 organization_id={currentOrg?.id} subcategories={pdfSubcategories?.map(sc => sc.name) || []} />}
                         </Grid>

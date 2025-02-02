@@ -186,14 +186,26 @@ const PdfTemplatePage: React.FC = () => {
                                                 <Typography mr={2}>{template.name}</Typography>
 
                                                 <PdfPreviewButton htmlContent={
-                                                    `<div className="ck ck-editor__main">
-                                                        <div class="ck ck-content" style="margin: ${template?.margin?.t}px ${template?.margin?.r}px ${template?.margin?.b}px ${template?.margin?.l}px;">
-                                                        <div>${template.headerContent?.replace(/^<h1>&nbsp;<\/h1>/, '') }</div>
-                                                        ${template.bodyContent?.replace(/^<h1>&nbsp;<\/h1>/, '') }
-                                                        ${template.sections ? template.sections.map((se: any) => se.htmlContent?.replace(/^<h1>&nbsp;<\/h1>/, '')) : ''}
-                                                        <footer>${template.footerContent?.replace(/^<h1>&nbsp;<\/h1>/, '') }</footer>
+                                                    `
+                                                    <div className="ck ck-editor__main" style="height: max-content; width: 100%;">
+                                                        <div class="ck ck-content" style="position: absolute;height: max-content; width: 100%;">
+                                                            <!-- Header -->
+                                                            <div style="position: absolute; top: 0; left: 0; right: 0; margin-left: ${template?.margin?.l}px; margin-right: ${template?.margin?.r}px;">
+                                                            ${template.headerContent?.replace(/^<h1>&nbsp;<\/h1>/, '')}
+                                                            </div>
+
+                                                            <!-- Body Content -->
+                                                            <div style="position: relative; margin: ${template?.margin?.t}px ${template?.margin?.r}px ${template?.margin?.b}px ${template?.margin?.l}px;">
+                                                            ${template.bodyContent?.replace(/^<h1>&nbsp;<\/h1>/, '')}
+                                                            ${template.sections ? template.sections.map((se: any) => se.htmlContent?.replace(/^<h1>&nbsp;<\/h1>/, '')).join('') : ''}
+                                                            </div>
+
+                                                            <!-- Footer -->
+                                                            <footer style="position: absolute; bottom: 0; left: 0; right: 0;margin-bottom:10px; margin-left: ${template?.margin?.l}px; margin-right: ${template?.margin?.r}px;">
+                                                            ${template.footerContent?.replace(/^<h1>&nbsp;<\/h1>/, '')}
+                                                            </footer>
                                                         </div>
-                                                        </div> 
+                                                    </div>
                                                 `} isIconButton={true} id={template.id} 
                                                     organization_id={currentOrg?.id} subcategories={template?.subcategories || []} />
                                                 <Box mt={-.51} ml={1}>

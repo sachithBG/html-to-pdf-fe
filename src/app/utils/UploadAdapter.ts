@@ -12,6 +12,7 @@ export class MyUploadAdapter {
     crash: boolean = false;
     setUploading: any = null;
     notification: any = null;
+    isTestingMode: boolean = false;
     constructor() {
     }
 
@@ -55,30 +56,44 @@ export class MyUploadAdapter {
         return this;
     }
 
+    setIsTestingMode(testMode: boolean) {
+        this.isTestingMode = testMode;
+        return this;
+    }
+
     async upload() {
         // eslint-disable-next-line
         const $this = this;
+        let errrMsg = 'An unexpected error occurred during the upload.';
         // Wait for the image name to be set
         $this.setDialogOpen(true);
         $this.setUploading(true);
         try {
             await new Promise<string>((resolve, reject) => {
-                const interval = setInterval(() => {
-                    if ($this.imgName) {
-                        clearInterval(interval);
-                        // $this.setUploading(false);
-                        resolve($this.imgName);
-                    } else if ($this.crash) {
-                        clearInterval(interval);
-                        $this.setUploading(false);
-                        $this.setCrash(false);
-                        reject();//'Could not upload this image.'
-                    }
-                }, 100);
+                if ($this.isTestingMode) {
+                    errrMsg = 'You must be logged in to proceed.';
+                    $this.setUploading(false);
+                    $this.setDialogOpen(false);
+                    $this.setCrash(false);
+                    reject();
+                } else {
+                    const interval = setInterval(() => {
+                        if ($this.imgName) {
+                            clearInterval(interval);
+                            // $this.setUploading(false);
+                            resolve($this.imgName);
+                        } else if ($this.crash) {
+                            clearInterval(interval);
+                            $this.setUploading(false);
+                            $this.setCrash(false);
+                            reject();//'Could not upload this image.'
+                        }
+                    }, 100);
+                }
             });
             return this.loader.file.then(async (file: any | Blob) => {
-                const data = new FormData()
-                data.append("media", file)
+                const data = new FormData();
+                data.append("media", file);
                 // const genericError = `Couldn't upload file: ${file.name}.`
 
                 return await axios({
@@ -107,7 +122,7 @@ export class MyUploadAdapter {
                         }
                     },
                 })
-                    .then(({data}) => {
+                    .then(({ data }) => {
                         $this.setUploading(false);
                         $this.setImgName('');
                         // alert(JSON.stringify(data?.data?.url))
@@ -129,7 +144,7 @@ export class MyUploadAdapter {
             // );
             // return Promise.resolve({ uploaded: false });
             $this.notification(
-                error?.message || 'An unexpected error occurred during the upload.',
+                error?.message || errrMsg,
                 { variant: 'error' }
             );
             return Promise.reject(null);

@@ -68,7 +68,7 @@ const CKTextField: React.FC<CKTextFieldProps> = ({
     };
 
     function uploadAdapterPlugin(editor: { plugins: { get: (arg0: string) => { (): any; new(): any; createUploadAdapter: (loader: any) => MyUploadAdapter } } }) {
-        uploadAdapter.setDialogOpen_(setDialogOpen)
+        uploadAdapter.setDialogOpen_(setDialogOpen).setIsTestingMode(isTestingMode)
             .setUploadProgress_(setUploadProgress).setUploading_(setImgUploading);
         editor.plugins.get("FileRepository").createUploadAdapter = (loader: any) =>
             uploadAdapter.setLoader(loader).setNotification(enqueueSnackbar);
@@ -83,6 +83,10 @@ const CKTextField: React.FC<CKTextFieldProps> = ({
             // console.log(orgId)
         };
     }, [editorInstance]);
+
+    useEffect(() => {
+        uploadAdapter.setIsTestingMode(isTestingMode);
+    }, [isTestingMode]);
 
     useEffect(() => {
         uploadAdapter.setOther(token, orgId || 0, addon_ids || []);
@@ -135,7 +139,7 @@ const CKTextField: React.FC<CKTextFieldProps> = ({
                         setEditorInstance(editor);
                         editorRef.current = editor;
                         // alert(token)
-                        if (!isTestingMode) uploadAdapterPlugin(editor);
+                        uploadAdapterPlugin(editor);
                     }}
                     onChange={(event: any, editor: any) => {
                         const data = editor.getData();
