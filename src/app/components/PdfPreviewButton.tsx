@@ -430,7 +430,7 @@ const PdfPreviewButton = ({
                                     padding: 0;
                                     color: #333;
                                     font-size: 14px; /* Default font size */
-                                    line-height: 0.1;
+                                    line-height: 1.38;
                                 },
                                 .ck-content {
                                       margin: 0 auto;
