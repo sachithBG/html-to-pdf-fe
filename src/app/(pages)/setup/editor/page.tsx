@@ -575,10 +575,10 @@ const HtmlToPdfEditor = ({ id, handleBack, addons_ = [] }: any) => {
                             {!isLoding && <PdfPreviewButton htmlContent={
                                 `<div className="ck ck-editor__main">
                                     <div class="ck ck-content" style="margin: ${margin.t}px ${margin.r}px ${margin.b}px ${margin.l}px;">
-                                    <div>${headerContent}</div>
-                                    ${bodyContent}
-                                    ${sections ? sections.map((se: any) => se.htmlContent) : ''}
-                                    <footer>${footerContent}</footer>
+                                    <div>${headerContent?.replace(/^<h1>&nbsp;<\/h1>/, '') }</div>
+                                    ${bodyContent?.replace(/^<h1>&nbsp;<\/h1>/, '') }
+                                    ${sections ? sections.map((se: any) => se.htmlContent?.replace(/^<h1>&nbsp;<\/h1>/, '')) : ''}
+                                    <footer>${footerContent?.replace(/^<h1>&nbsp;<\/h1>/, '') }</footer>
                                     </div>
                                     </div>
                             `} isIconButton={false} id={isEditMode ? id : null} isNew={!isEditMode}

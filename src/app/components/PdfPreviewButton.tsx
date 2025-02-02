@@ -129,10 +129,10 @@ const PdfPreviewButton = ({
             // console.log(response.data)
             setHtmlCntnt(() => `<div className="ck ck-editor__main">
                                     <div class="ck ck-content" style="margin: 20px;color: 'black'; font-size: 14px; line-height: 1.4;">
-                                    <div>${response.data.headerContent}</div>
-                                    ${response.data.bodyContent}
-                                    ${response.data.sections ? response.data.sections.map((se: any) => se.htmlContent) : ''}
-                                    <footer>${response.data.footerContent}</footer>
+                                    <div>${response.data.headerContent?.replace(/^<h1>&nbsp;<\/h1>/, '') }</div>
+                                    ${response.data.bodyContent?.replace(/^<h1>&nbsp;<\/h1>/, '') }
+                                    ${response.data.sections ? response.data.sections.map((se: any) => se.htmlContent?.replace(/^<h1>&nbsp;<\/h1>/, '')) : ''}
+                                    <footer>${response.data.footerContent?.replace(/^<h1>&nbsp;<\/h1>/, '') }</footer>
                                     </div>
                                     </div>
                             `);

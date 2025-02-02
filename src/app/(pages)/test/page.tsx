@@ -207,9 +207,9 @@ const HtmlTestEditor = () => {
                         <PdfPreviewButton htmlContent={
                             `<div className="ck ck-editor__main">
                                 <div class="ck ck-content" style="margin: 20px;">
-                                <div>${headerContent ? headerContent.replace('<h1>&nbsp;</h1>', '') : ''}</div>
-                                ${bodyContent ? bodyContent.replace('<h1>&nbsp;</h1>', '') : ''}
-                                <footer>${footerContent ? footerContent.replace('<h1>&nbsp;</h1>', '') : ''}</footer>
+                                <div>${headerContent ? headerContent?.replace(/^<h1>&nbsp;<\/h1>/, '') : ''}</div>
+                                ${bodyContent ? bodyContent?.replace(/^<h1>&nbsp;<\/h1>/, '') : ''}
+                                <footer>${footerContent ? footerContent?.replace(/^<h1>&nbsp;<\/h1>/, '') : ''}</footer>
                                 </div>
                                 </div>
                             `} id={null} isIconButton={false} organization_id={0} subcategories={[]} isNew={ true} />

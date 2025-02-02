@@ -121,10 +121,10 @@ const PdfTemplatesList = ({ currentOrg, token, readAllPdfTemplatePage }: any) =>
                                                         `<div className="ck ck-editor__main">
                                                             <div class="ck ck-content" style="margin: 20px;
                                                              color: 'black'; font-size: 14px; line-height: 1.4;">
-                                                                <div>${template.headerContent}</div>
-                                                            ${template.bodyContent}
-                                                            ${template.sections ? template.sections.map((se: any) => se.htmlContent) : ''}
-                                                            <footer>${template.footerContent}</footer>
+                                                                <div>${template.headerContent?.replace(/^<h1>&nbsp;<\/h1>/, '') }</div>
+                                                            ${template.bodyContent?.replace(/^<h1>&nbsp;<\/h1>/, '') }
+                                                            ${template.sections ? template.sections.map((se: any) => se.htmlContent?.replace(/^<h1>&nbsp;<\/h1>/, '')) : ''}
+                                                            <footer>${template.footerContent?.replace(/^<h1>&nbsp;<\/h1>/, '') }</footer>
                                                             </div>
                                                         </div>
                                                         `} isIconButton={true}
